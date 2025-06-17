@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Management</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --gray-color: #95a5a6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 20px 0;
+        }
+        
+        .logo {
+            text-align: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .logo h2 {
+            font-size: 1.5rem;
+        }
+        
+        .nav-menu {
+            margin-top: 20px;
+        }
+        
+        .nav-item {
+            padding: 12px 20px;
+            transition: all 0.3s;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .nav-item.active {
+            background-color: var(--primary-color);
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .page-title h1 {
+            font-size: 1.8rem;
+            color: var(--dark-color);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        /* Device Form Styles */
+        .device-form-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-title {
+            font-size: 1.2rem;
+            color: var(--dark-color);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 0.85rem;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            grid-column: span 2;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-secondary {
+            background-color: var(--gray-color);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        
+        /* Device Table Styles */
+        .device-table-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            overflow-x: auto;
+        }
+        
+        .device-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        
+        .device-table th {
+            text-align: left;
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--dark-color);
+            border-bottom: 2px solid #eee;
+        }
+        
+        .device-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .device-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .device-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .action-btns {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .action-btns button {
+            padding: 5px 8px;
+            font-size: 0.8rem;
+            border-radius: 3px;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .edit-btn {
+            background-color: var(--warning-color);
+            color: white;
+        }
+        
+        .edit-btn:hover {
+            background-color: #e0a800;
+        }
+        
+        .delete-btn {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+        
+        .logout-button {
+            margin-left: 15px;
+            padding: 6px 12px;
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.2s;
+        }
+        
+        .logout-button:hover {
+            background-color: #c0392b;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-actions {
+                grid-column: span 1;
+                flex-wrap: wrap;
+            }
+            
+            .btn {
+                flex: 1;
+            }
+        }
+        .dropdown-menu {
+    display: none;
+    padding-left: 20px;
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.dropdown-item {
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    color: #fff;
+    text-decoration: none;
+}
+
+.dropdown-item i {
+    margin-right: 10px;
+}
+
+.dropdown-toggle .dropdown-icon {
+    margin-left: auto;
+    transition: transform 0.3s;
+}
+
+.dropdown-toggle.show .dropdown-icon {
+    transform: rotate(180deg);
+}
+.dropdown-menu {
+    display: none;
+    padding-left: 20px;
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.dropdown-item {
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    color: #fff;
+    text-decoration: none;
+}
+
+.dropdown-item i {
+    margin-right: 10px;
+}
+
+.dropdown-toggle .dropdown-icon {
+    margin-left: auto;
+    transition: transform 0.3s;
+}
+
+.dropdown-toggle.show .dropdown-icon {
+    transform: rotate(180deg);
+}
+/* Improved Account Dropdown Styles */
+.user-info-wrapper {
+    --primary-color: #4361ee; /* Modern blue (change as needed) */
+    --danger-color: #ef233c; /* Modern red for logout */
+    --text-color: #2b2d42; /* Dark gray for text */
+    --hover-bg: #f8f9fa; /* Light gray for hover */
+    --transition-speed: 0.25s;
+    font-family: 'Segoe UI', system-ui, sans-serif; /* Modern system font stack */
+}
+
+.account-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Trigger Button */
+.account-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+}
+
+.account-trigger:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.account-trigger:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.account-trigger .fa-user-circle {
+    font-size: 1.5rem; /* 24px */
+    color: var(--primary-color);
+}
+
+.account-trigger span {
+    font-size: 0.875rem; /* 14px */
+    font-weight: 500;
+}
+
+.account-trigger .fa-caret-down {
+    font-size: 0.75rem; /* 12px */
+    transition: transform var(--transition-speed);
+}
+
+.account-trigger.active .fa-caret-down {
+    transform: rotate(180deg); /* Flip caret when open */
+}
+
+/* Dropdown Menu */
+.account-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem); /* Add small gap */
+    background-color: white;
+    min-width: 180px; /* Slightly wider */
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 0;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-10px);
+    visibility: hidden;
+    transition: 
+        opacity var(--transition-speed) ease,
+        transform var(--transition-speed) ease;
+}
+
+.account-menu.show {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+/* Menu Items */
+.account-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: 
+        background-color var(--transition-speed),
+        color var(--transition-speed);
+}
+
+.account-menu-item:hover,
+.account-menu-item:focus {
+    background-color: var(--hover-bg);
+    color: var(--primary-color);
+}
+
+.account-menu-item i {
+    width: 1.25rem;
+    text-align: center;
+    color: inherit;
+}
+
+/* Divider & Logout */
+.account-menu-divider {
+    height: 1px;
+    background-color: #e9ecef; /* Lighter gray */
+    margin: 0.5rem 0;
+}
+
+.logout-account-btn {
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+
+.logout-account-btn:hover,
+.logout-account-btn:focus {
+    color: var(--danger-color) !important;
+}
+
+    </style>
+</head>
+<body>
+  <div class="container">
+        <!-- Sidebar Navigation -->
+       <div class="sidebar">
+            <div class="logo">
+                <h2>CraneIQ Pro</h2>
+            </div>
+<div class="nav-menu">
+                <div class="nav-item">
+                    <a href="dash.html" class="nav-link">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="operations.html" class="nav-link">
+                        <i class="fas fa-history"></i>
+                        <span>Operations Log</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="load.html" class="nav-link">
+                        <i class="fas fa-weight-hanging"></i>
+                        <span>Load</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="vibration.html" class="nav-link">
+                        <i class="fas fa-wave-square"></i>
+                        <span>Vibration Monitoring</span>
+                    </a>
+                </div>
+                 <div class="nav-item">
+                    <a href="energy.html" class="nav-link">
+                        <i class="fas fa-bolt"></i>
+                        <span>Energy Monitoring</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="temperature.html" class="nav-link">
+                        <i class="fas fa-temperature-high"></i>
+                        <span>Temperature</span>
+                    </a>
+                </div>
+               
+                <div class="nav-item">
+                    <a href="errors.html" class="nav-link">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Error Log</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="reports.html" class="nav-link">
+                        <i class="fas fa-file-export"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="alerts.html" class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        <span>Alerts</span>
+                    </a>
+                </div>
+                <div class="nav-item dropdown">
+                    <a href="#" class="nav-link dropdown-toggle">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="machine.html" class="dropdown-item">
+                            <i class="fas fa-weight-hanging"></i>
+                            <span>Machine</span>
+                        </a>
+                        <a href="device.html" class="dropdown-item">
+                            <i class="fas fa-microchip"></i>
+                            <span>Device</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="nav-item">
+                    <a href="help.html" class="nav-link">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Help</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <div class="page-title">
+                    <h1>Device Management</h1>
+                    <p style="font-size: 0.9rem; color: var(--gray-color);">Manage all connected devices</p>
+                </div>
+               <div class="user-info-wrapper">
+    <div class="account-dropdown">
+        <div class="account-trigger" id="accountDropdownTrigger">
+            <i class="fas fa-user-circle"></i>
+            <span>Admin User</span>
+            <i class="fas fa-caret-down"></i>
+        </div>
+        <div class="account-menu" id="accountDropdownMenu">
+            <a href="#" class="account-menu-item">
+                <i class="fas fa-user"></i> Profile
+            </a>
+            <div class="account-menu-divider"></div>
+            <button id="accountLogoutBtn" class="account-menu-item logout-account-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+</div>
+            </div>
+            
+            <!-- Device Form -->
+            <div class="device-form-container">
+                <h2 class="form-title"><i class="fas fa-plus-circle"></i> Add Device</h2>
+                <form id="deviceForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="deviceId">Device ID</label>
+                            <input type="text" id="deviceId" name="deviceId" placeholder="eg: 3489209" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="hardwareVersion">Hardware Version</label>
+                            <input type="text" id="hardwareVersion" name="hardwareVersion" placeholder="eg: 2.3.0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="softwareVersion">Software Version</label>
+                            <input type="text" id="softwareVersion" name="softwareVersion" placeholder="eg: 1.2.0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="model">Model</label>
+                            <input type="text" id="model" name="model" placeholder="Model number" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Add Device
+                        </button>
+                        <button type="button" id="clearBtn" class="btn btn-secondary">
+                            <i class="fas fa-eraser"></i> Clear
+                        </button>
+                        <button type="button" id="deleteBtn" class="btn btn-danger" style="display: none;">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Device Table -->
+            <div class="device-table-container">
+                <h2 class="form-title"><i class="fas fa-list"></i> Device List</h2>
+                <table class="device-table" id="deviceTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Device ID</th>
+                            <th>Hardware Version</th>
+                            <th>Software Version</th>
+                            <th>Model</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Sample data rows will be added by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+            const dropdownTrigger = document.getElementById('accountDropdownTrigger');
+    const dropdownMenu = document.getElementById('accountDropdownMenu');
+
+    // Toggle dropdown when clicking the trigger
+    dropdownTrigger.addEventListener('click', function(e) {
+        e.stopPropagation(); // Prevent immediate document click handler from closing it
+        dropdownMenu.classList.toggle('show');
+    });
+
+    // Close dropdown when clicking anywhere else
+    document.addEventListener('click', function() {
+        dropdownMenu.classList.remove('show');
+    });
+    
+
+    // Prevent dropdown from closing when clicking inside it
+    dropdownMenu.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+        // Sample data
+        let devices = [
+            {
+                id: 1,
+                deviceId: "DEV3489209",
+                hardwareVersion: "2.3.0",
+                softwareVersion: "1.2.0",
+                model: "CRANE-X200"
+            },
+            {
+                id: 2,
+                deviceId: "DEV3489210",
+                hardwareVersion: "2.4.1",
+                softwareVersion: "1.3.2",
+                model: "CRANE-Y300"
+            },
+            {
+                id: 3,
+                deviceId: "DEV3489211",
+                hardwareVersion: "3.0.0",
+                softwareVersion: "2.0.0",
+                model: "CRANE-Z400"
+            }
+        ];
+
+        // DOM elements
+        const form = document.getElementById("deviceForm");
+        const clearBtn = document.getElementById("clearBtn");
+        const deleteBtn = document.getElementById("deleteBtn");
+        const tableBody = document.querySelector("#deviceTable tbody");
+        const logoutBtn = document.getElementById("logoutBtn");
+        let editId = null;
+
+        // Render table
+        function renderTable() {
+            tableBody.innerHTML = '';
+            devices.forEach((device, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${device.deviceId}</td>
+                    <td>${device.hardwareVersion}</td>
+                    <td>${device.softwareVersion}</td>
+                    <td>${device.model}</td>
+                    <td class="action-btns">
+                        <button class="edit-btn" data-id="${device.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="delete-btn" data-id="${device.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            // Add event listeners to edit buttons
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', editDevice);
+            });
+
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', deleteDevice);
+            });
+        }
+
+        // Edit device
+        function editDevice(e) {
+            const deviceId = parseInt(e.currentTarget.getAttribute('data-id'));
+            const device = devices.find(d => d.id === deviceId);
+            
+            if (device) {
+                // Populate form
+                document.getElementById('deviceId').value = device.deviceId;
+                document.getElementById('hardwareVersion').value = device.hardwareVersion;
+                document.getElementById('softwareVersion').value = device.softwareVersion;
+                document.getElementById('model').value = device.model;
+                
+                // Set edit mode
+                editId = deviceId;
+                
+                // Change buttons
+                document.querySelector('.btn-primary').innerHTML = '<i class="fas fa-save"></i> Update Device';
+                deleteBtn.style.display = 'block';
+            }
+        }
+
+        // Delete device from table
+        function deleteDevice(e) {
+            const deviceId = parseInt(e.currentTarget.getAttribute('data-id'));
+            confirmDelete(deviceId);
+        }
+
+        // Confirm and delete device
+        function confirmDelete(deviceId) {
+            if (confirm('Are you sure you want to delete this device?')) {
+                devices = devices.filter(d => d.id !== deviceId);
+                renderTable();
+                if (editId === deviceId) {
+                    clearForm();
+                }
+            }
+        }
+
+        // Clear form
+        function clearForm() {
+            form.reset();
+            editId = null;
+            document.querySelector('.btn-primary').innerHTML = '<i class="fas fa-save"></i> Add Device';
+            deleteBtn.style.display = 'none';
+        }
+
+        // Form submission
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const deviceId = document.getElementById('deviceId').value;
+            const hardwareVersion = document.getElementById('hardwareVersion').value;
+            const softwareVersion = document.getElementById('softwareVersion').value;
+            const model = document.getElementById('model').value;
+            
+            if (editId) {
+                // Update existing device
+                const index = devices.findIndex(d => d.id === editId);
+                if (index !== -1) {
+                    devices[index] = {
+                        ...devices[index],
+                        deviceId,
+                        hardwareVersion,
+                        softwareVersion,
+                        model
+                    };
+                }
+            } else {
+                // Add new device
+                const newDevice = {
+                    id: devices.length > 0 ? Math.max(...devices.map(d => d.id)) + 1 : 1,
+                    deviceId,
+                    hardwareVersion,
+                    softwareVersion,
+                    model
+                };
+                devices.push(newDevice);
+            }
+            
+            renderTable();
+            clearForm();
+        });
+
+        // Event listeners
+        clearBtn.addEventListener('click', clearForm);
+        
+        deleteBtn.addEventListener('click', () => {
+            if (editId) {
+                confirmDelete(editId);
+            }
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                // In a real app, you would redirect to logout
+                alert('Logged out successfully!');
+            }
+        });
+
+        // Initial render
+        renderTable();
+        document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+    toggle.addEventListener('click', function(e) {
+        e.preventDefault();
+        const dropdown = this.closest('.dropdown');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        
+        // Close all other dropdowns
+        document.querySelectorAll('.dropdown-menu').forEach(m => {
+            if (m !== menu) m.classList.remove('show');
+        });
+        document.querySelectorAll('.dropdown-toggle').forEach(t => {
+            if (t !== this) t.classList.remove('show');
+        });
+        
+        // Toggle current dropdown
+        menu.classList.toggle('show');
+        this.classList.toggle('show');
+    });
+});
+    </script>
+</body>
+</html>

@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Configuration | CraneIQ Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --gray-color: #95a5a6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 20px 0;
+        }
+        
+        .logo {
+            text-align: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .logo h2 {
+            font-size: 1.5rem;
+        }
+        
+        .nav-menu {
+            margin-top: 20px;
+        }
+        
+        .nav-item {
+            padding: 12px 20px;
+            transition: all 0.3s;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .nav-item.active {
+            background-color: var(--primary-color);
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .page-title h1 {
+            font-size: 1.8rem;
+            color: var(--dark-color);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        /* Form Container */
+        .form-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 25px;
+            margin-top: 20px;
+        }
+        
+        /* Form Grid Layout */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 0.85rem;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        .full-width {
+            grid-column: span 2;
+        }
+        
+        .threshold-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-secondary {
+            background-color: var(--gray-color);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+        
+        .logout-button {
+            margin-left: 15px;
+            padding: 6px 12px;
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.2s;
+        }
+        
+        .logout-button:hover {
+            background-color: #c0392b;
+        }
+        
+        /* Section Headers */
+        .section-header {
+            grid-column: span 2;
+            margin: 20px 0 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            color: var(--dark-color);
+            font-size: 1.2rem;
+        }
+        
+        /* Switch Configuration Styles */
+        .switch-config {
+            margin-bottom: 20px;
+        }
+        
+        .switch-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .switch-title {
+            font-size: 1rem;
+            color: var(--dark-color);
+            font-weight: 600;
+        }
+        
+        .add-switch-btn {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .switch-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .switch-table th {
+            background-color: #f8f9fa;
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        
+        .switch-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .switch-table select {
+            width: 100%;
+            padding: 6px 8px;
+        }
+        
+        .switch-table input[type="text"],
+        .switch-table input[type="number"] {
+            width: 100%;
+            padding: 6px 8px;
+        }
+        
+        .remove-switch {
+            color: var(--danger-color);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        /* Custom I/O Name Input */
+        .custom-io-input {
+            display: none;
+            margin-top: 5px;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 992px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .full-width, .section-header {
+                grid-column: span 1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+        }
+        
+        .dropdown-menu {
+            display: none;
+            padding-left: 20px;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .dropdown-item i {
+            margin-right: 10px;
+        }
+
+        .dropdown-toggle .dropdown-icon {
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+
+        .dropdown-toggle.show .dropdown-icon {
+            transform: rotate(180deg);
+        }
+        /* Improved Account Dropdown Styles */
+.user-info-wrapper {
+    --primary-color: #4361ee; /* Modern blue (change as needed) */
+    --danger-color: #ef233c; /* Modern red for logout */
+    --text-color: #2b2d42; /* Dark gray for text */
+    --hover-bg: #f8f9fa; /* Light gray for hover */
+    --transition-speed: 0.25s;
+    font-family: 'Segoe UI', system-ui, sans-serif; /* Modern system font stack */
+}
+
+.account-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Trigger Button */
+.account-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+}
+
+.account-trigger:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.account-trigger:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.account-trigger .fa-user-circle {
+    font-size: 1.5rem; /* 24px */
+    color: var(--primary-color);
+}
+
+.account-trigger span {
+    font-size: 0.875rem; /* 14px */
+    font-weight: 500;
+}
+
+.account-trigger .fa-caret-down {
+    font-size: 0.75rem; /* 12px */
+    transition: transform var(--transition-speed);
+}
+
+.account-trigger.active .fa-caret-down {
+    transform: rotate(180deg); /* Flip caret when open */
+}
+
+/* Dropdown Menu */
+.account-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem); /* Add small gap */
+    background-color: white;
+    min-width: 180px; /* Slightly wider */
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 0;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-10px);
+    visibility: hidden;
+    transition: 
+        opacity var(--transition-speed) ease,
+        transform var(--transition-speed) ease;
+}
+
+.account-menu.show {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+/* Menu Items */
+.account-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: 
+        background-color var(--transition-speed),
+        color var(--transition-speed);
+}
+
+.account-menu-item:hover,
+.account-menu-item:focus {
+    background-color: var(--hover-bg);
+    color: var(--primary-color);
+}
+
+.account-menu-item i {
+    width: 1.25rem;
+    text-align: center;
+    color: inherit;
+}
+
+/* Divider & Logout */
+.account-menu-divider {
+    height: 1px;
+    background-color: #e9ecef; /* Lighter gray */
+    margin: 0.5rem 0;
+}
+
+.logout-account-btn {
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+
+.logout-account-btn:hover,
+.logout-account-btn:focus {
+    color: var(--danger-color) !important;
+}
+
+    </style>
+</head>
+<body>
+<div class="container">
+        <!-- Sidebar Navigation -->
+       <div class="sidebar">
+            <div class="logo">
+                <h2>CraneIQ Pro</h2>
+            </div>
+            <div class="nav-menu">
+                <div class="nav-item">
+                    <a href="dash.html" class="nav-link">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="operations.html" class="nav-link">
+                        <i class="fas fa-history"></i>
+                        <span>Operations Log</span>
+                    </a>
+                </div>
+                 <div class="nav-item">
+                    <a href="load.html" class="nav-link">
+                        <i class="fas fa-weight-hanging"></i>
+                        <span>Load</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="vibration.html" class="nav-link">
+                        <i class="fas fa-wave-square"></i>
+                        <span>Vibration Monitoring</span>
+                    </a>
+                </div>
+                 <div class="nav-item">
+                    <a href="energy.html" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Energy Monitoring</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="temperature.html" class="nav-link">
+                        <i class="fas fa-temperature-high"></i>
+                        <span>Temperature</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="errors.html" class="nav-link">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Error Log</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="reports.html" class="nav-link">
+                        <i class="fas fa-file-export"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="alerts.html" class="nav-link">
+                        <i class="fas fa-bell"></i>
+                        <span>Alerts</span>
+                    </a>
+                </div>
+                <div class="nav-item dropdown">
+                    <a href="#" class="nav-link dropdown-toggle">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                        <i class="fas fa-chevron-down dropdown-icon"></i>
+                    </a>
+                    <div class="dropdown-menu">
+                        <a href="machine.html" class="dropdown-item">
+                            <i class="fas fa-weight-hanging"></i>
+                            <span>Machine</span>
+                        </a>
+                        <a href="device.html" class="dropdown-item">
+                            <i class="fas fa-microchip"></i>
+                            <span>Device</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="nav-item">
+                    <a href="help.html" class="nav-link">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Help</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <div class="page-title">
+                    <h1><i class="fas fa-cogs"></i> Machine Configuration</h1>
+                    <p style="font-size: 0.9rem; color: var(--gray-color);" id="form-subtitle">Add new machine configuration</p>
+                </div>
+              <div class="user-info-wrapper">
+    <div class="account-dropdown">
+        <div class="account-trigger" id="accountDropdownTrigger">
+            <i class="fas fa-user-circle"></i>
+            <span>Admin User</span>
+            <i class="fas fa-caret-down"></i>
+        </div>
+        <div class="account-menu" id="accountDropdownMenu">
+            <a href="#" class="account-menu-item">
+                <i class="fas fa-user"></i> Profile
+            </a>
+            <div class="account-menu-divider"></div>
+            <button id="accountLogoutBtn" class="account-menu-item logout-account-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+</div>
+            </div>
+            
+            <div class="form-container">
+                <form id="machineForm">
+                    <h3 class="section-header">Basic Details</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="machineId">Machine ID</label>
+                            <input type="text" id="machineId" name="machineId" placeholder="MAC5632" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="deviceId">Device ID</label>
+                            <select id="deviceId" name="deviceId" required>
+                                <option value="">Select Device</option>
+                                <option value="DEV001">DEV001</option>
+                                <option value="DEV002">DEV002</option>
+                                <option value="DEV003">DEV003</option>
+                                <option value="DEV004">DEV004</option>
+                                <option value="DEV005">DEV005</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="machineName">Name</label>
+                            <input type="text" id="machineName" name="machineName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="manufacturer">Manufacturer</label>
+                            <input type="text" id="manufacturer" name="manufacturer" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="model">Model</label>
+                            <input type="text" id="model" name="model" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="line">Line</label>
+                            <input type="text" id="line" name="line" required>
+                        </div>
+                    </div>
+
+                    <h3 class="section-header">Capacity Settings</h3>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label for="swl">Safe Working Load (kg)</label>
+                            <input type="number" id="swl" name="swl" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="stage1Threshold">Warning Threshold</label>
+                            <input type="number" id="stage1Threshold" name="stage1Threshold" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="stage2Threshold">Upper Threshold</label>
+                            <input type="number" id="stage2Threshold" name="stage2Threshold" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="craneSpeed">Crane Speed (m/min)</label>
+                            <input type="number" id="craneSpeed" name="craneSpeed" required>
+                        </div>
+                    </div>
+
+                    <h3 class="section-header">Temperature Settings</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="motorWarningTemp">Warning Temp (°C)</label>
+                            <input type="number" id="motorWarningTemp" name="motorWarningTemp" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="motorCriticalTemp">Critical Temp (°C)</label>
+                            <input type="number" id="motorCriticalTemp" name="motorCriticalTemp" required>
+                        </div>
+                    </div>
+
+                    <h3 class="section-header">Switch Limits</h3>
+                    <div class="form-grid">
+                        <!-- Hoist Operation -->
+                        <div class="form-group full-width switch-config">
+                            <div class="switch-header">
+                                <h4 class="switch-title">Hoist Operation (Up/Down)</h4>
+                                <button class="add-switch-btn" type="button" onclick="addSwitch('hoist')">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
+                            </div>
+                            <table class="switch-table" id="hoistSwitchTable">
+                                <thead>
+                                    <tr>
+                                        <th>Operation</th>
+                                        <th>Device I/O</th>
+                                        <th>Error Type</th>
+                                        <th>Parametric Name</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Rows will be added dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Cross Travel -->
+                        <div class="form-group full-width switch-config">
+                            <div class="switch-header">
+                                <h4 class="switch-title">Cross Travel (Left/Right)</h4>
+                                <button class="add-switch-btn" type="button" onclick="addSwitch('crossTravel')">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
+                            </div>
+                            <table class="switch-table" id="crossTravelSwitchTable">
+                                <thead>
+                                    <tr>
+                                        <th>Operation</th>
+                                        <th>Device I/O</th>
+                                        <th>Error Type</th>
+                                        <th>Parametric Name</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Rows will be added dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Long Travel -->
+                        <div class="form-group full-width switch-config">
+                            <div class="switch-header">
+                                <h4 class="switch-title">Long Travel (Forward/Reverse)</h4>
+                                <button class="add-switch-btn" type="button" onclick="addSwitch('longTravel')">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
+                            </div>
+                            <table class="switch-table" id="longTravelSwitchTable">
+                                <thead>
+                                    <tr>
+                                        <th>Operation</th>
+                                        <th>Device I/O</th>
+                                        <th>Error Type</th>
+                                        <th>Parametric Name</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Rows will be added dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" id="cancelBtn" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Configuration
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+            const dropdownTrigger = document.getElementById('accountDropdownTrigger');
+    const dropdownMenu = document.getElementById('accountDropdownMenu');
+
+    // Toggle dropdown when clicking the trigger
+    dropdownTrigger.addEventListener('click', function(e) {
+        e.stopPropagation(); // Prevent immediate document click handler from closing it
+        dropdownMenu.classList.toggle('show');
+    });
+
+    // Close dropdown when clicking anywhere else
+    document.addEventListener('click', function() {
+        dropdownMenu.classList.remove('show');
+    });
+    
+
+    // Prevent dropdown from closing when clicking inside it
+    dropdownMenu.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+        // Sample data - in a real app, this would come from an API
+        let machines = [
+            {
+                id: 1,
+                machineId: "MAC5632",
+                deviceId: "DEV001",
+                name: "Crane A",
+                manufacturer: "ABC Manufacturing",
+                model: "X-2000",
+                line: "Production Line 1",
+                swl: 5000,
+                stage1Threshold: 4500,
+                stage2Threshold: 4800,
+                motorWarningTemp: 70,
+                motorCriticalTemp: 85,
+                craneSpeed: 30,
+                hoistSwitches: [
+                    {
+                        operation: "Up",
+                        ioName: "IO_HOIST_UP",
+                        errorType: "Overload",
+                        parametricName: "hoist_up_sensor"
+                    },
+                    {
+                        operation: "Down",
+                        ioName: "IO_HOIST_DOWN",
+                        errorType: "Limit Switch",
+                        parametricName: "hoist_down_sensor"
+                    }
+                ],
+                crossTravelSwitches: [
+                    {
+                        operation: "Left",
+                        ioName: "IO_CT_LEFT",
+                        errorType: "Limit Switch",
+                        parametricName: "cross_left_sensor"
+                    },
+                    {
+                        operation: "Right",
+                        ioName: "IO_CT_RIGHT",
+                        errorType: "Emergency Stop",
+                        parametricName: "cross_right_sensor"
+                    }
+                ],
+                longTravelSwitches: [
+                    {
+                        operation: "Forward",
+                        ioName: "IO_LT_FWD",
+                        errorType: "Emergency Stop",
+                        parametricName: "long_fwd_sensor"
+                    },
+                    {
+                        operation: "Reverse",
+                        ioName: "IO_LT_REV",
+                        errorType: "Limit Switch",
+                        parametricName: "long_rev_sensor"
+                    }
+                ]
+            },
+            {
+                id: 2,
+                machineId: "MAC5633",
+                deviceId: "DEV002",
+                name: "Crane B",
+                manufacturer: "XYZ Industries",
+                model: "Y-3000",
+                line: "Assembly Line 2",
+                swl: 8000,
+                stage1Threshold: 7200,
+                stage2Threshold: 7600,
+                motorWarningTemp: 75,
+                motorCriticalTemp: 90,
+                craneSpeed: 25,
+                hoistSwitches: [
+                    {
+                        operation: "Up",
+                        ioName: "IO_HOIST_UP_02",
+                        errorType: "Overload",
+                        parametricName: "hoist_up_sensor_02"
+                    }
+                ],
+                crossTravelSwitches: [
+                    {
+                        operation: "Left",
+                        ioName: "IO_CT_LEFT_02",
+                        errorType: "Limit Switch",
+                        parametricName: "cross_left_sensor_02"
+                    }
+                ],
+                longTravelSwitches: [
+                    {
+                        operation: "Forward",
+                        ioName: "IO_LT_FWD_02",
+                        errorType: "Emergency Stop",
+                        parametricName: "long_fwd_sensor_02"
+                    }
+                ]
+            }
+        ];
+
+        // Switch configuration data with I/O names
+        const switchConfig = {
+            operations: {
+                hoist: ["Up", "Down"],
+                crossTravel: ["Left", "Right"],
+                longTravel: ["Forward", "Reverse"]
+            },
+            errorTypes: ["Overload", "Limit Switch", "Emergency Stop", "Over Temperature", "Under Voltage"],
+            ioNames: [
+                "IO_001", "IO_002", "IO_003", "IO_004", "IO_005",
+                "IO_HOIST_UP", "IO_HOIST_DOWN",
+                "IO_CT_LEFT", "IO_CT_RIGHT",
+                "IO_LT_FWD", "IO_LT_REV"
+            ]
+        };
+
+        // DOM elements
+        const form = document.getElementById("machineForm");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const cancelBtn = document.getElementById("cancelBtn");
+        const formSubtitle = document.getElementById("form-subtitle");
+
+        // Check if we're editing an existing machine
+        const urlParams = new URLSearchParams(window.location.search);
+        const machineId = urlParams.get('id');
+
+        // Add a new switch row
+        function addSwitch(type) {
+            const tableId = `${type}SwitchTable`;
+            const tbody = document.querySelector(`#${tableId} tbody`);
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <select name="${type}Operation">
+                        ${switchConfig.operations[type].map(op => 
+                            `<option value="${op}">${op}</option>`
+                        ).join('')}
+                    </select>
+                </td>
+                <td>
+                    <select name="${type}IOName" required>
+                        <option value="">Select Device I/O</option>
+                        ${switchConfig.ioNames.map(io => 
+                            `<option value="${io}">${io}</option>`
+                        ).join('')}
+                        <option value="custom">Custom...</option>
+                    </select>
+                    <input type="text" name="${type}CustomIOName" class="custom-io-input" placeholder="Enter custom Device I/O">
+                </td>
+                <td>
+                    <select name="${type}ErrorType">
+                        ${switchConfig.errorTypes.map(error => 
+                            `<option value="${error}">${error}</option>`
+                        ).join('')}
+                    </select>
+                </td>
+                <td>
+                    <input type="text" name="${type}ParametricName" placeholder="Enter parametric name" required>
+                </td>
+                <td>
+                    <button type="button" class="remove-switch" onclick="removeSwitch(this)">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+            
+            // Add event listener for custom I/O name selection
+            const ioSelect = row.querySelector(`select[name="${type}IOName"]`);
+            const customInput = row.querySelector(`input[name="${type}CustomIOName"]`);
+            
+            ioSelect.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    customInput.style.display = 'block';
+                    customInput.required = true;
+                } else {
+                    customInput.style.display = 'none';
+                    customInput.required = false;
+                    customInput.value = '';
+                }
+            });
+        }
+
+        // Remove a switch row
+        function removeSwitch(button) {
+            const row = button.closest('tr');
+            row.remove();
+        }
+
+        // Initialize form with data if editing
+        if (machineId) {
+            const machine = machines.find(m => m.id === parseInt(machineId));
+            if (machine) {
+                // Update the form title
+                formSubtitle.textContent = `Editing ${machine.name} (${machine.machineId})`;
+                
+                // Populate basic fields
+                document.getElementById('machineId').value = machine.machineId;
+                document.getElementById('deviceId').value = machine.deviceId;
+                document.getElementById('machineName').value = machine.name;
+                document.getElementById('manufacturer').value = machine.manufacturer;
+                document.getElementById('model').value = machine.model;
+                document.getElementById('line').value = machine.line;
+                document.getElementById('swl').value = machine.swl;
+                document.getElementById('stage1Threshold').value = machine.stage1Threshold;
+                document.getElementById('stage2Threshold').value = machine.stage2Threshold;
+                document.getElementById('motorWarningTemp').value = machine.motorWarningTemp;
+                document.getElementById('motorCriticalTemp').value = machine.motorCriticalTemp;
+                document.getElementById('craneSpeed').value = machine.craneSpeed;
+                
+                // Populate hoist switches
+                if (machine.hoistSwitches && machine.hoistSwitches.length > 0) {
+                    machine.hoistSwitches.forEach(switchData => {
+                        addSwitch('hoist');
+                        const rows = document.querySelectorAll('#hoistSwitchTable tbody tr');
+                        const lastRow = rows[rows.length - 1];
+                        
+                        lastRow.querySelector('select[name="hoistOperation"]').value = switchData.operation;
+                        
+                        // Check if I/O name exists in our predefined list
+                        const ioSelect = lastRow.querySelector('select[name="hoistIOName"]');
+                        const customInput = lastRow.querySelector('input[name="hoistCustomIOName"]');
+                        
+                        if (switchConfig.ioNames.includes(switchData.ioName)) {
+                            ioSelect.value = switchData.ioName;
+                        } else {
+                            ioSelect.value = 'custom';
+                            customInput.style.display = 'block';
+                            customInput.value = switchData.ioName;
+                        }
+                        
+                        lastRow.querySelector('select[name="hoistErrorType"]').value = switchData.errorType;
+                        lastRow.querySelector('input[name="hoistParametricName"]').value = switchData.parametricName || '';
+                    });
+                }
+                
+                // Populate cross travel switches
+                if (machine.crossTravelSwitches && machine.crossTravelSwitches.length > 0) {
+                    machine.crossTravelSwitches.forEach(switchData => {
+                        addSwitch('crossTravel');
+                        const rows = document.querySelectorAll('#crossTravelSwitchTable tbody tr');
+                        const lastRow = rows[rows.length - 1];
+                        
+                        lastRow.querySelector('select[name="crossTravelOperation"]').value = switchData.operation;
+                        
+                        const ioSelect = lastRow.querySelector('select[name="crossTravelIOName"]');
+                        const customInput = lastRow.querySelector('input[name="crossTravelCustomIOName"]');
+                        
+                        if (switchConfig.ioNames.includes(switchData.ioName)) {
+                            ioSelect.value = switchData.ioName;
+                        } else {
+                            ioSelect.value = 'custom';
+                            customInput.style.display = 'block';
+                            customInput.value = switchData.ioName;
+                        }
+                        
+                        lastRow.querySelector('select[name="crossTravelErrorType"]').value = switchData.errorType;
+                        lastRow.querySelector('input[name="crossTravelParametricName"]').value = switchData.parametricName || '';
+                    });
+                }
+                
+                // Populate long travel switches
+                if (machine.longTravelSwitches && machine.longTravelSwitches.length > 0) {
+                    machine.longTravelSwitches.forEach(switchData => {
+                        addSwitch('longTravel');
+                        const rows = document.querySelectorAll('#longTravelSwitchTable tbody tr');
+                        const lastRow = rows[rows.length - 1];
+                        
+                        lastRow.querySelector('select[name="longTravelOperation"]').value = switchData.operation;
+                        
+                        const ioSelect = lastRow.querySelector('select[name="longTravelIOName"]');
+                        const customInput = lastRow.querySelector('input[name="longTravelCustomIOName"]');
+                        
+                        if (switchConfig.ioNames.includes(switchData.ioName)) {
+                            ioSelect.value = switchData.ioName;
+                        } else {
+                            ioSelect.value = 'custom';
+                            customInput.style.display = 'block';
+                            customInput.value = switchData.ioName;
+                        }
+                        
+                        lastRow.querySelector('select[name="longTravelErrorType"]').value = switchData.errorType;
+                        lastRow.querySelector('input[name="longTravelParametricName"]').value = switchData.parametricName || '';
+                    });
+                }
+            }
+        } else {
+            // Add one empty row for each switch type by default
+            addSwitch('hoist');
+            addSwitch('crossTravel');
+            addSwitch('longTravel');
+        }
+
+        // Collect switch data from a table
+        function collectSwitchData(type) {
+            const rows = document.querySelectorAll(`#${type}SwitchTable tbody tr`);
+            return Array.from(rows).map(row => {
+                const ioSelect = row.querySelector(`select[name="${type}IOName"]`);
+                const customInput = row.querySelector(`input[name="${type}CustomIOName"]`);
+                
+                const ioName = ioSelect.value === 'custom' 
+                    ? customInput.value 
+                    : ioSelect.value;
+                
+                return {
+                    operation: row.querySelector(`select[name="${type}Operation"]`).value,
+                    ioName: ioName,
+                    errorType: row.querySelector(`select[name="${type}ErrorType"]`).value,
+                    parametricName: row.querySelector(`input[name="${type}ParametricName"]`).value
+                };
+            });
+        }
+
+        // Form submission
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Collect all form data
+            const formData = {
+                machineId: document.getElementById('machineId').value,
+                deviceId: document.getElementById('deviceId').value,
+                name: document.getElementById('machineName').value,
+                manufacturer: document.getElementById('manufacturer').value,
+                model: document.getElementById('model').value,
+                line: document.getElementById('line').value,
+                swl: document.getElementById('swl').value,
+                stage1Threshold: document.getElementById('stage1Threshold').value,
+                stage2Threshold: document.getElementById('stage2Threshold').value,
+                motorWarningTemp: document.getElementById('motorWarningTemp').value,
+                motorCriticalTemp: document.getElementById('motorCriticalTemp').value,
+                craneSpeed: document.getElementById('craneSpeed').value,
+                hoistSwitches: collectSwitchData('hoist'),
+                crossTravelSwitches: collectSwitchData('crossTravel'),
+                longTravelSwitches: collectSwitchData('longTravel')
+            };
+            
+            // In a real app, you would save to an API here
+            console.log('Form data:', formData);
+            alert('Machine configuration saved successfully!');
+            window.location.href = 'machine.html';
+        });
+
+        // Cancel button
+        cancelBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
+                window.location.href = 'machine.html';
+            }
+        });
+
+        // Logout button
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                // In a real app, you would redirect to logout
+                alert('Logged out successfully!');
+            }
+        });
+
+        // Dropdown toggle functionality
+        document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                const dropdown = this.closest('.dropdown');
+                const menu = dropdown.querySelector('.dropdown-menu');
+                
+                // Close all other dropdowns
+                document.querySelectorAll('.dropdown-menu').forEach(m => {
+                    if (m !== menu) m.classList.remove('show');
+                });
+                document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                    if (t !== this) t.classList.remove('show');
+                });
+                
+                // Toggle current dropdown
+                menu.classList.toggle('show');
+                this.classList.toggle('show');
+            });
+        });
+
+        // Event delegation for dynamic I/O name dropdown changes
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.name && e.target.name.endsWith('IOName')) {
+                const row = e.target.closest('tr');
+                const customInput = row.querySelector('input[name$="CustomIOName"]');
+                
+                if (e.target.value === 'custom') {
+                    customInput.style.display = 'block';
+                    customInput.required = true;
+                } else {
+                    customInput.style.display = 'none';
+                    customInput.required = false;
+                    customInput.value = '';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

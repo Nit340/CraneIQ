@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IoT Gateway Data Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --primary-color: #3498db;
@@ -422,14 +423,14 @@
 
         .gateway-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
         }
 
         .gateway-item {
             background: white;
             border-radius: 8px;
-            padding: 20px;
+            padding: 15px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             cursor: pointer;
             transition: all 0.3s;
@@ -453,25 +454,25 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             width: 100%;
         }
 
         .gateway-name {
             font-weight: 600;
-            font-size: 18px;
+            font-size: 16px;
         }
 
         .gateway-status {
             display: flex;
             align-items: center;
             gap: 5px;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .gateway-details {
             color: #7f8c8d;
-            font-size: 14px;
+            font-size: 12px;
             margin-top: 10px;
             width: 100%;
         }
@@ -499,12 +500,12 @@
 
         .machine-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
         }
 
         .machine-item {
-            padding: 20px;
+            padding: 15px;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s;
@@ -552,7 +553,7 @@
         }
 
         .machine-details {
-            font-size: 14px;
+            font-size: 12px;
             color: #7f8c8d;
             width: 100%;
         }
@@ -748,6 +749,76 @@
             object-fit: cover;
         }
 
+        /* Visualization Section */
+        .visualization-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .visualization-section h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .visualization-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .visualization-card {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .visualization-card h4 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+
+        /* Data Flow Visualization */
+        .data-flow-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .data-source, .data-destination {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .data-flow-arrow {
+            font-size: 24px;
+            color: var(--primary-color);
+            margin: 0 15px;
+        }
+
         /* Responsive Design */
         @media (max-width: 1400px) {
             .connection-container {
@@ -758,7 +829,7 @@
         @media (max-width: 1200px) {
             .gateway-list,
             .machine-grid {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             }
         }
 
@@ -793,7 +864,12 @@
                 margin: 10px 0;
                 transform: rotate(90deg);
             }
+            
+            .visualization-container {
+                grid-template-columns: 1fr;
+            }
         }
+        
     </style>
 </head>
 <body>
@@ -801,7 +877,6 @@
         <!-- Sidebar Navigation -->
         <div id="sidebar-container"></div>
         
-         
         <!-- Main Content Area -->
         <div class="main-content">
             <div class="header">
@@ -923,6 +998,18 @@
                 </div>
             </div>
 
+            <!-- Data Visualization Section -->
+            <div class="visualization-section">
+                <h3>Data Visualization</h3>
+                <div class="visualization-container" id="visualization-container">
+                    <!-- Visualization cards will be added here dynamically -->
+                    <div class="no-visualization" id="no-visualization" style="text-align: center; padding: 40px; color: #7f8c8d; width: 100%;">
+                        <i class="fas fa-chart-line" style="font-size: 40px; margin-bottom: 15px;"></i>
+                        <p>No data connections yet. Create links between machine and gateway data points to see visualizations.</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Data Point Connection Area -->
             <div class="connection-area">
                 <div class="connection-header">
@@ -939,7 +1026,7 @@
                             <li class="data-point-item" data-id="m-dp1" data-type="machine">
                                 <div class="data-point-info">
                                     <div class="data-point-name">Load Weight</div>
-                                    <div class="data-point-value">425</div>
+                                    <div class="data-point-value">--</div>
                                     <div class="data-point-unit">kg</div>
                                     <div class="data-point-source">Crane-101</div>
                                 </div>
@@ -948,7 +1035,7 @@
                             <li class="data-point-item" data-id="m-dp2" data-type="machine">
                                 <div class="data-point-info">
                                     <div class="data-point-name">Power Consumption</div>
-                                    <div class="data-point-value">4.2</div>
+                                    <div class="data-point-value">--</div>
                                     <div class="data-point-unit">kW</div>
                                     <div class="data-point-source">Crane-101</div>
                                 </div>
@@ -957,7 +1044,7 @@
                             <li class="data-point-item" data-id="m-dp3" data-type="machine">
                                 <div class="data-point-info">
                                     <div class="data-point-name">Motor Temperature</div>
-                                    <div class="data-point-value">68.3</div>
+                                    <div class="data-point-value">--</div>
                                     <div class="data-point-unit">°C</div>
                                     <div class="data-point-source">Crane-101</div>
                                 </div>
@@ -1255,9 +1342,128 @@
                     if (connectionCanvas.querySelectorAll('.connection-item').length === 0) {
                         document.getElementById('no-connections').style.display = 'block';
                     }
+                    
+                    // Remove the corresponding visualization
+                    removeVisualization(machinePointId, gatewayPointId);
                 });
                 
                 connectionCanvas.appendChild(connectionItem);
+                
+                // Create visualization for this connection
+                createVisualization(machinePointId, gatewayPointId, machineName, gatewayValue, machineUnit);
+                
+                // Update machine data point with gateway value
+                updateMachineDataPoint(machinePointId, gatewayValue);
+            }
+            
+            function createVisualization(machinePointId, gatewayPointId, name, value, unit) {
+                const visualizationContainer = document.getElementById('visualization-container');
+                const noVisualization = document.getElementById('no-visualization');
+                
+                // Hide the no visualization message
+                if (noVisualization) {
+                    noVisualization.style.display = 'none';
+                }
+                
+                // Check if visualization already exists
+                if (document.getElementById(`visualization-${machinePointId}-${gatewayPointId}`)) {
+                    return;
+                }
+                
+                const visualizationCard = document.createElement('div');
+                visualizationCard.className = 'visualization-card';
+                visualizationCard.id = `visualization-${machinePointId}-${gatewayPointId}`;
+                
+                visualizationCard.innerHTML = `
+                    <h4>${name}</h4>
+                    <div class="chart-container">
+                        <canvas id="chart-${machinePointId}-${gatewayPointId}"></canvas>
+                    </div>
+                `;
+                
+                visualizationContainer.appendChild(visualizationCard);
+                
+                // Create the chart
+                const ctx = document.getElementById(`chart-${machinePointId}-${gatewayPointId}`).getContext('2d');
+                const chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: Array.from({length: 10}, (_, i) => `${i+1}s`),
+                        datasets: [{
+                            label: `${name} (${unit})`,
+                            data: Array(10).fill(null),
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false
+                            }
+                        },
+                        animation: {
+                            duration: 0
+                        }
+                    }
+                });
+                
+                // Start updating the chart with data
+                startChartUpdate(chart, value, unit);
+            }
+            
+            function removeVisualization(machinePointId, gatewayPointId) {
+                const visualization = document.getElementById(`visualization-${machinePointId}-${gatewayPointId}`);
+                if (visualization) {
+                    visualization.remove();
+                }
+                
+                // Reset machine data point value
+                updateMachineDataPoint(machinePointId, '--');
+                
+                // Show no visualization message if no visualizations left
+                const visualizationContainer = document.getElementById('visualization-container');
+                if (visualizationContainer.querySelectorAll('.visualization-card').length === 0) {
+                    document.getElementById('no-visualization').style.display = 'block';
+                }
+            }
+            
+            function updateMachineDataPoint(pointId, value) {
+                const point = document.querySelector(`[data-id="${pointId}"]`);
+                if (point) {
+                    point.querySelector('.data-point-value').textContent = value;
+                }
+            }
+            
+            function startChartUpdate(chart, initialValue, unit) {
+                let dataPoints = Array(10).fill(null);
+                let currentValue = parseFloat(initialValue) || 0;
+                
+                setInterval(() => {
+                    // Simulate data fluctuation
+                    const fluctuation = (Math.random() - 0.5) * 2;
+                    
+                    if (unit === 'kg') {
+                        currentValue += fluctuation * 5;
+                    } else if (unit === 'kW') {
+                        currentValue += fluctuation * 0.2;
+                    } else if (unit === '°C') {
+                        currentValue += fluctuation * 0.5;
+                    } else {
+                        currentValue += fluctuation;
+                    }
+                    
+                    // Add new data point and remove the oldest
+                    dataPoints.push(currentValue);
+                    dataPoints.shift();
+                    
+                    // Update chart
+                    chart.data.datasets[0].data = dataPoints;
+                    chart.update('none');
+                }, 1000);
             }
             
             // Function to update data points based on selected machine
@@ -1266,12 +1472,12 @@
                 machineDataPoints.innerHTML = '';
                 
                 if (machineName.includes('Crane-101')) {
-                    addDataPoint(machineDataPoints, 'm-dp1', 'Load Weight', '425', 'kg', 'Crane-101');
-                    addDataPoint(machineDataPoints, 'm-dp2', 'Power Consumption', '4.2', 'kW', 'Crane-101');
-                    addDataPoint(machineDataPoints, 'm-dp3', 'Motor Temperature', '68.3', '°C', 'Crane-101');
+                    addDataPoint(machineDataPoints, 'm-dp1', 'Load Weight', '--', 'kg', 'Crane-101');
+                    addDataPoint(machineDataPoints, 'm-dp2', 'Power Consumption', '--', 'kW', 'Crane-101');
+                    addDataPoint(machineDataPoints, 'm-dp3', 'Motor Temperature', '--', '°C', 'Crane-101');
                 } else if (machineName.includes('Conveyor-205')) {
-                    addDataPoint(machineDataPoints, 'm-dp5', 'Belt Speed', '2.4', 'm/s', 'Conveyor-205');
-                    addDataPoint(machineDataPoints, 'm-dp6', 'Power Consumption', '3.1', 'kW', 'Conveyor-205');
+                    addDataPoint(machineDataPoints, 'm-dp5', 'Belt Speed', '--', 'm/s', 'Conveyor-205');
+                    addDataPoint(machineDataPoints, 'm-dp6', 'Power Consumption', '--', 'kW', 'Conveyor-205');
                 }
                 
                 // Add click events to new data points
@@ -1327,34 +1533,6 @@
                 `;
                 container.appendChild(point);
             }
-            
-            // Simulate live data updates
-            setInterval(() => {
-                const dataPoints = document.querySelectorAll('.data-point-value');
-                dataPoints.forEach(point => {
-                    const parent = point.closest('.data-point-item');
-                    if (parent) {
-                        const unit = parent.querySelector('.data-point-unit').textContent;
-                        if (unit === 'kg') {
-                            const currentValue = parseFloat(point.textContent);
-                            const newValue = (currentValue + (Math.random() * 10 - 5)).toFixed(0);
-                            point.textContent = newValue;
-                        } else if (unit === 'kW') {
-                            const currentValue = parseFloat(point.textContent);
-                            const newValue = (currentValue + (Math.random() * 0.2 - 0.1)).toFixed(1);
-                            point.textContent = newValue;
-                        } else if (unit === '°C') {
-                            const currentValue = parseFloat(point.textContent);
-                            const newValue = (currentValue + (Math.random() * 0.4 - 0.2)).toFixed(1);
-                            point.textContent = newValue;
-                        } else if (unit === 'V') {
-                            const currentValue = parseFloat(point.textContent);
-                            const newValue = (currentValue + (Math.random() * 2 - 1)).toFixed(0);
-                            point.textContent = newValue;
-                        }
-                    }
-                });
-            }, 3000);
             
             // Initialize
             updateConnectionButton();

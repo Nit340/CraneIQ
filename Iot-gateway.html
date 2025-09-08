@@ -174,6 +174,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         
         .btn {
@@ -205,6 +206,15 @@
         
         .btn-secondary:hover {
             background-color: #7f8c8d;
+        }
+        
+        .btn-grouping {
+            background-color: #9b59b6;
+            color: white;
+        }
+        
+        .btn-grouping:hover {
+            background-color: #8e44ad;
         }
 
         /* Gateway Table Styles */
@@ -295,6 +305,31 @@
             background-color: var(--gray-color);
         }
 
+        /* Grouping styles */
+        .group-header {
+            background-color: #f3e5f5 !important;
+            font-weight: bold;
+        }
+        
+        .group-header td {
+            padding: 10px 15px;
+            border-bottom: 2px solid #d1c4e9;
+        }
+        
+        .group-header .group-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .group-header .toggle-group {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #7b1fa2;
+            font-size: 0.9rem;
+        }
+
         /* Dropdown menu styles */
         .dropdown-menu {
             display: none;
@@ -334,6 +369,117 @@
         .dropdown-toggle.show .dropdown-icon,
         .sidebar:hover .dropdown-toggle.show .dropdown-icon {
             transform: rotate(180deg);
+        }
+
+        /* Grouping Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background-color: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h2 {
+            font-size: 1.2rem;
+            color: var(--dark-color);
+            margin: 0;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray-color);
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: calc(80vh - 130px);
+            overflow-y: auto;
+        }
+        
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .gateway-checkboxes {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            padding: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .checkbox-item input {
+            margin-right: 10px;
         }
 
         /* Account Dropdown */
@@ -564,7 +710,9 @@
                 <button class="btn btn-primary" id="addGatewayBtn">
                     <i class="fas fa-plus"></i> Add Gateway
                 </button>
-              
+                <button class="btn btn-grouping" id="groupGatewaysBtn">
+                    <i class="fas fa-object-group"></i> Group Gateways
+                </button>
             </div>
             
             <div class="gateway-table-container">
@@ -583,6 +731,32 @@
                         <!-- Data will be populated by JavaScript -->
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grouping Modal -->
+    <div class="modal-overlay" id="groupModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Create Gateway Group</h2>
+                <button class="modal-close" id="closeGroupModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="groupName">Group Name</label>
+                    <input type="text" id="groupName" class="form-control" placeholder="Enter group name">
+                </div>
+                <div class="form-group">
+                    <label>Select Gateways to Include</label>
+                    <div class="gateway-checkboxes" id="gatewayCheckboxes">
+                        <!-- Checkboxes will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelGroupModal">Cancel</button>
+                <button class="btn btn-primary" id="saveGroup">Save Group</button>
             </div>
         </div>
     </div>
@@ -731,7 +905,96 @@
                 });
             }
 
-         
+            // Group Gateways button functionality
+            const groupGatewaysBtn = document.getElementById('groupGatewaysBtn');
+            if (groupGatewaysBtn) {
+                groupGatewaysBtn.addEventListener('click', function() {
+                    openGroupModal();
+                });
+            }
+
+            // Group Modal functionality
+            const groupModal = document.getElementById('groupModal');
+            const closeGroupModal = document.getElementById('closeGroupModal');
+            const cancelGroupModal = document.getElementById('cancelGroupModal');
+            const saveGroup = document.getElementById('saveGroup');
+
+            if (closeGroupModal) {
+                closeGroupModal.addEventListener('click', closeModal);
+            }
+            
+            if (cancelGroupModal) {
+                cancelGroupModal.addEventListener('click', closeModal);
+            }
+            
+            if (saveGroup) {
+                saveGroup.addEventListener('click', saveGatewayGroup);
+            }
+
+            function openGroupModal() {
+                // Populate the checkboxes with available gateways
+                const gateways = loadGateways();
+                const checkboxesContainer = document.getElementById('gatewayCheckboxes');
+                checkboxesContainer.innerHTML = '';
+                
+                if (gateways.length === 0) {
+                    checkboxesContainer.innerHTML = '<p>No gateways available to group.</p>';
+                } else {
+                    gateways.forEach(gateway => {
+                        const checkboxItem = document.createElement('div');
+                        checkboxItem.className = 'checkbox-item';
+                        checkboxItem.innerHTML = `
+                            <input type="checkbox" id="gateway-${gateway.id}" value="${gateway.id}">
+                            <label for="gateway-${gateway.id}">${gateway.name}</label>
+                        `;
+                        checkboxesContainer.appendChild(checkboxItem);
+                    });
+                }
+                
+                // Show the modal
+                groupModal.classList.add('active');
+            }
+
+            function closeModal() {
+                groupModal.classList.remove('active');
+            }
+
+            function saveGatewayGroup() {
+                const groupName = document.getElementById('groupName').value.trim();
+                if (!groupName) {
+                    showNotification('Please enter a group name', 'error');
+                    return;
+                }
+                
+                // Get selected gateways
+                const selectedGateways = [];
+                document.querySelectorAll('#gatewayCheckboxes input:checked').forEach(checkbox => {
+                    selectedGateways.push(checkbox.value);
+                });
+                
+                if (selectedGateways.length === 0) {
+                    showNotification('Please select at least one gateway', 'error');
+                    return;
+                }
+                
+                // Save the group (in a real app, this would be saved to a database)
+                const group = {
+                    id: 'group_' + Date.now(),
+                    name: groupName,
+                    gateways: selectedGateways,
+                    createdAt: new Date().toISOString()
+                };
+                
+                // Save to localStorage
+                localStorage.setItem(`group_${group.id}`, JSON.stringify(group));
+                
+                showNotification(`Group "${groupName}" created successfully`, 'success');
+                closeModal();
+                
+                // Re-render the table to show groups
+                renderGatewayTable();
+            }
+
             // Notification function
             function showNotification(message, type) {
                 const notification = document.createElement('div');
@@ -806,13 +1069,32 @@
                 }
             }
 
+            // Load groups from localStorage
+            function loadGroups() {
+                try {
+                    let groups = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key.startsWith('group_')) {
+                            const group = JSON.parse(localStorage.getItem(key));
+                            groups.push(group);
+                        }
+                    }
+                    return groups;
+                } catch (error) {
+                    console.error('Error loading groups:', error);
+                    return [];
+                }
+            }
+
             // Render the table with gateway data
             function renderGatewayTable() {
                 const gateways = loadGateways();
+                const groups = loadGroups();
                 const tableBody = document.querySelector("#gatewayTable tbody");
                 tableBody.innerHTML = '';
                 
-                if (gateways.length === 0) {
+                if (gateways.length === 0 && groups.length === 0) {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td colspan="6" style="text-align: center; padding: 20px;">
@@ -823,37 +1105,89 @@
                     return;
                 }
                 
-                gateways.forEach((gateway, index) => {
-                    const row = document.createElement('tr');
-                    
-                    // Determine status class
-                    let statusClass = 'status-unknown';
-                    let statusText = 'Unknown';
-                    
-                    if (gateway.status === 'online') {
-                        statusClass = 'status-online';
-                        statusText = 'Online';
-                    } else if (gateway.status === 'offline') {
-                        statusClass = 'status-offline';
-                        statusText = 'Offline';
-                    }
-                    
-                    row.innerHTML = `
-                        <td>${index + 1}</td>
-                        <td>${gateway.name || 'N/A'}</td>
-                        <td>${gateway.deviceToken || 'N/A'}</td>
-                        <td>${gateway.protocol || 'N/A'}</td>
-                        <td><span class="status-indicator ${statusClass}"></span> ${statusText}</td>
-                        <td class="action-btns">
-                            <button class="btn edit-btn" data-id="${gateway.id}">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="btn delete-btn" data-id="${gateway.id}">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
+                // Add groups first
+                groups.forEach(group => {
+                    const groupRow = document.createElement('tr');
+                    groupRow.className = 'group-header';
+                    groupRow.innerHTML = `
+                        <td colspan="6">
+                            <div class="group-name">
+                                <button class="toggle-group" data-group="${group.id}">
+                                    <i class="fas fa-caret-down"></i>
+                                </button>
+                                <i class="fas fa-object-group"></i>
+                                ${group.name} (${group.gateways.length} gateways)
+                            </div>
                         </td>
                     `;
-                    tableBody.appendChild(row);
+                    tableBody.appendChild(groupRow);
+                    
+                    // Add gateways in this group
+                    group.gateways.forEach(gatewayId => {
+                        const gateway = gateways.find(g => g.id === gatewayId);
+                        if (gateway) {
+                            addGatewayToTable(gateway, tableBody, true);
+                        }
+                    });
+                });
+                
+                // Add ungrouped gateways
+                const groupedGatewayIds = new Set();
+                groups.forEach(group => {
+                    group.gateways.forEach(gatewayId => groupedGatewayIds.add(gatewayId));
+                });
+                
+                const ungroupedGateways = gateways.filter(gateway => !groupedGatewayIds.has(gateway.id));
+                
+                if (ungroupedGateways.length > 0) {
+                    // Add a header for ungrouped gateways if there are groups
+                    if (groups.length > 0) {
+                        const ungroupedHeader = document.createElement('tr');
+                        ungroupedHeader.className = 'group-header';
+                        ungroupedHeader.innerHTML = `
+                            <td colspan="6">
+                                <div class="group-name">
+                                    <i class="fas fa-server"></i>
+                                    Ungrouped Gateways
+                                </div>
+                            </td>
+                        `;
+                        tableBody.appendChild(ungroupedHeader);
+                    }
+                    
+                    // Add the ungrouped gateways
+                    ungroupedGateways.forEach(gateway => {
+                        addGatewayToTable(gateway, tableBody, false);
+                    });
+                }
+                
+                // Add event listeners to toggle buttons
+                document.querySelectorAll('.toggle-group').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const groupId = this.getAttribute('data-group');
+                        const icon = this.querySelector('i');
+                        
+                        // Toggle the icon
+                        if (icon.classList.contains('fa-caret-down')) {
+                            icon.classList.remove('fa-caret-down');
+                            icon.classList.add('fa-caret-right');
+                            // Hide group items (next rows until next group header)
+                            let nextRow = this.closest('tr').nextElementSibling;
+                            while (nextRow && !nextRow.classList.contains('group-header')) {
+                                nextRow.style.display = 'none';
+                                nextRow = nextRow.nextElementSibling;
+                            }
+                        } else {
+                            icon.classList.remove('fa-caret-right');
+                            icon.classList.add('fa-caret-down');
+                            // Show group items
+                            let nextRow = this.closest('tr').nextElementSibling;
+                            while (nextRow && !nextRow.classList.contains('group-header')) {
+                                nextRow.style.display = '';
+                                nextRow = nextRow.nextElementSibling;
+                            }
+                        }
+                    });
                 });
                 
                 // Add event listeners to edit buttons
@@ -881,6 +1215,43 @@
                         }
                     });
                 });
+            }
+            
+            // Helper function to add a gateway row to the table
+            function addGatewayToTable(gateway, tableBody, isGrouped) {
+                const row = document.createElement('tr');
+                if (isGrouped) {
+                    row.style.backgroundColor = '#fafafa';
+                }
+                
+                // Determine status class
+                let statusClass = 'status-unknown';
+                let statusText = 'Unknown';
+                
+                if (gateway.status === 'online') {
+                    statusClass = 'status-online';
+                    statusText = 'Online';
+                } else if (gateway.status === 'offline') {
+                    statusClass = 'status-offline';
+                    statusText = 'Offline';
+                }
+                
+                row.innerHTML = `
+                    <td></td>
+                    <td>${gateway.name || 'N/A'}</td>
+                    <td>${gateway.deviceToken || 'N/A'}</td>
+                    <td>${gateway.protocol || 'N/A'}</td>
+                    <td><span class="status-indicator ${statusClass}"></span> ${statusText}</td>
+                    <td class="action-btns">
+                        <button class="btn edit-btn" data-id="${gateway.id}">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn delete-btn" data-id="${gateway.id}">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
             }
 
             // Initial render

@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Gateway Data Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #1abc9c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --gray-color: #95a5a6;
+            --rule-engine-color: #9b59b6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            min-height: 100vh;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        .container.sidebar-expanded {
+            grid-template-columns: 250px 1fr;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 20px 0;
+            position: relative;
+            z-index: 10;
+            width: 60px;
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+
+        .sidebar.expanded {
+            width: 250px;
+        }
+
+        .sidebar.expanded .nav-link span {
+            display: inline;
+            opacity: 1;
+        }
+
+        .logo {
+            text-align: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: none;
+        }
+
+        .nav-link {
+            color: inherit;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px 15px;
+        }
+
+        .nav-item.active .nav-link {
+            color: white;
+        }
+
+        .nav-item:hover .nav-link {
+            color: white;
+        }
+
+        .nav-menu {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 100px);
+            justify-content: space-between;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+        }
+
+        .nav-item i {
+            width: 30px;
+            text-align: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .nav-link span {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            margin-left: 10px;
+        }
+
+        /* Dropdown menu styles */
+        .dropdown-menu {
+            display: none;
+            padding-left: 20px;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .dropdown-item i {
+            margin-right: 10px;
+        }
+
+        .dropdown-toggle .dropdown-icon {
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+
+        .dropdown-toggle.show .dropdown-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .page-title {
+            margin-bottom: 20px;
+        }
+
+        .page-title h1 {
+            font-size: 1.8rem;
+            color: var(--dark-color);
+        }
+
+        .page-title p {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+        
+        /* Data Point Connection Area */
+        .connection-area {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .connection-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .connection-header h3 {
+            color: #2c3e50;
+            font-size: 20px;
+        }
+
+        .connection-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .connection-container {
+            display: flex;
+            gap: 20px;
+            min-height: 400px;
+        }
+
+        .data-points-panel {
+            flex: 1;
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .data-points-panel h4 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+
+        .data-point-list {
+            list-style: none;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .data-point-item {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background-color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+
+        .data-point-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .data-point-item.selected {
+            background-color: #e6f0ff;
+            border: 2px solid #3498db;
+        }
+
+        .data-point-info {
+            flex: 1;
+        }
+
+        .data-point-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .data-point-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #3498db;
+            text-align: center;
+            margin: 5px 0;
+        }
+
+        .data-point-unit {
+            color: #7f8c8d;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .data-point-source {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 3px;
+            text-align: center;
+        }
+
+        .connection-visualization {
+            flex: 2;
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .connection-visualization h4 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+
+        .connection-canvas {
+            flex: 1;
+            background: white;
+            border-radius: 8px;
+            border: 2px dashed #ddd;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+        }
+
+        .connection-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: #f0f5ff;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            transition: all 0.3s;
+        }
+
+        .connection-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .connection-source, .connection-target {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+
+        .connection-arrow {
+            font-size: 20px;
+            color: #3498db;
+            margin: 0 15px;
+        }
+
+        .connection-details {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        .connection-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-connected {
+            background: #e6f7ee;
+            color: #2ecc71;
+        }
+
+        .status-pending {
+            background: #fef5e7;
+            color: #e67e22;
+        }
+
+        .connection-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .connection-actions i {
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .connection-actions i:hover {
+            background: rgba(0,0,0,0.1);
+        }
+
+        /* Gateway List */
+        .gateway-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .gateway-section h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .gateway-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .gateway-item {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.3s;
+            border-top: 4px solid #9b59b6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .gateway-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .gateway-item.selected {
+            border: 2px solid #3498db;
+        }
+
+        .gateway-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .gateway-name {
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .gateway-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 14px;
+        }
+
+        .gateway-details {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .gateway-details div {
+            margin-bottom: 5px;
+        }
+
+        /* Machine List */
+        .machine-list {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .machine-list h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            font-size: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .machine-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .machine-item {
+            padding: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid var(--primary-color);
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .machine-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .machine-item.active {
+            background-color: #e6f0ff;
+            border-left: 4px solid var(--dark-color);
+        }
+
+        .machine-name {
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .machine-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-online {
+            background-color: var(--success-color);
+        }
+
+        .status-offline {
+            background-color: var(--danger-color);
+        }
+
+        .machine-details {
+            font-size: 14px;
+            color: #7f8c8d;
+            width: 100%;
+        }
+
+        .machine-details div {
+            margin-bottom: 5px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #d0d0d0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Account Dropdown */
+        .user-info-wrapper {
+            --primary-color: #4361ee;
+            --danger-color: #ef233c;
+            --text-color: #2b2d42;
+            --hover-bg: #f8f9fa;
+            --transition-speed: 0.25s;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .account-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .account-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+        }
+
+        .account-trigger:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .account-trigger:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        .account-trigger .fa-user-circle {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .account-trigger span {
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: none;
+        }
+
+        .account-trigger .fa-caret-down {
+            font-size: 0.75rem;
+            transition: transform var(--transition-speed);
+        }
+
+        .account-trigger.active .fa-caret-down {
+            transform: rotate(180deg);
+        }
+
+        .account-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.5rem);
+            background-color: white;
+            min-width: 180px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem 0;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-10px);
+            visibility: hidden;
+            transition: 
+                opacity var(--transition-speed) ease,
+                transform var(--transition-speed) ease;
+        }
+
+        .account-menu.show {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .account-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 1rem;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: 
+                background-color var(--transition-speed),
+                color var(--transition-speed);
+        }
+
+        .account-menu-item:hover,
+        .account-menu-item:focus {
+            background-color: var(--hover-bg);
+            color: var(--primary-color);
+        }
+
+        .account-menu-item i {
+            width: 1.25rem;
+            text-align: center;
+            color: inherit;
+        }
+
+        .account-menu-divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 0.5rem 0;
+        }
+
+        .logout-account-btn {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font: inherit;
+            color: inherit;
+        }
+
+        .logout-account-btn:hover,
+        .logout-account-btn:focus {
+            color: var(--danger-color) !important;
+        }
+        
+        .account-menu-item.plan-info {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            font-weight: 600;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .account-menu-item.plan-info i {
+            margin-right: 8px;
+        }
+
+        /* Different colors for different plans */
+        .plan-basic { color: var(--primary-color); }
+        .plan-advanced { color: var(--success-color); }
+        .plan-pro { color: gold; }
+        
+        .customer-logo{
+            width:30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1400px) {
+            .connection-container {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .gateway-list,
+            .machine-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 992px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .connection-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .gateway-list,
+            .machine-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .connection-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .connection-arrow {
+                margin: 10px 0;
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <!-- Sidebar Navigation -->
+        <div id="sidebar-container"></div>
+        
+         
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <div class="header-logo">CraneIQ</div>
+                </div>
+                
+                <div class="user-info-wrapper">
+                    <div class="account-dropdown">
+                        <div class="account-trigger" id="accountDropdownTrigger">
+                            <img src="image/houzz.png" class="customer-logo">
+                            <span>Hilton (Pro Plan)</span>
+                            <i class="fas fa-caret-down"></i>
+                        </div>
+                        <div class="account-menu" id="accountDropdownMenu">
+                            <div class="account-menu-item plan-info">
+                                <i class="fas fa-crown" style="color: gold;"></i>
+                                <span>Pro Plan</span>
+                            </div>
+                            <div class="account-menu-divider"></div>
+                            <a href="#" class="account-menu-item">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="#" class="account-menu-item">
+                                <i class="fas fa-sync-alt"></i> Upgrade Plan
+                            </a>
+                            <div class="account-menu-divider"></div>
+                            <button id="accountLogoutBtn" class="account-menu-item logout-account-btn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page-title">
+                <h1>Data Hub</h1>
+                <p>Monitor and manage machine data points in real-time</p>
+            </div>
+
+            <!-- Machine List -->
+            <div class="machine-list">
+                <h2>Machines</h2>
+                <div class="machine-grid">
+                    <div class="machine-item active">
+                        <div class="machine-name">
+                            <span class="machine-status status-online"></span>
+                            <span>Crane-101</span>
+                        </div>
+                        <div class="machine-details">
+                            <div>ID: M-C101</div>
+                            <div>Last updated: 2 min ago</div>
+                            <div>Gateways: 2</div>
+                            <div>Data Points: 8</div>
+                        </div>
+                    </div>
+                    <div class="machine-item">
+                        <div class="machine-name">
+                            <span class="machine-status status-online"></span>
+                            <span>Conveyor-205</span>
+                        </div>
+                        <div class="machine-details">
+                            <div>ID: M-C205</div>
+                            <div>Last updated: 5 min ago</div>
+                            <div>Gateways: 1</div>
+                            <div>Data Points: 5</div>
+                        </div>
+                    </div>
+                    <div class="machine-item">
+                        <div class="machine-name">
+                            <span class="machine-status status-offline"></span>
+                            <span>Robotic Arm-307</span>
+                        </div>
+                        <div class="machine-details">
+                            <div>ID: M-RA307</div>
+                            <div>Last updated: 1 day ago</div>
+                            <div>Gateways: 1</div>
+                            <div>Data Points: 6</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gateway Section -->
+            <div class="gateway-section">
+                <h3>Connected Gateways</h3>
+                <div class="gateway-list">
+                    <div class="gateway-item selected">
+                        <div class="gateway-header">
+                            <div class="gateway-name">Gateway-101</div>
+                            <div class="gateway-status">
+                                <span class="machine-status status-online"></span>
+                                <span>Online</span>
+                            </div>
+                        </div>
+                        <div class="gateway-details">
+                            <div>IP: 192.168.1.101</div>
+                            <div>Last seen: 2 min ago</div>
+                            <div>Data points: 12</div>
+                            <div>Connected to: Crane-101</div>
+                        </div>
+                    </div>
+
+                    <div class="gateway-item">
+                        <div class="gateway-header">
+                            <div class="gateway-name">Gateway-102</div>
+                            <div class="gateway-status">
+                                <span class="machine-status status-online"></span>
+                                <span>Online</span>
+                            </div>
+                        </div>
+                        <div class="gateway-details">
+                            <div>IP: 192.168.1.102</div>
+                            <div>Last seen: 5 min ago</div>
+                            <div>Data points: 8</div>
+                            <div>Connected to: Crane-101</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Point Connection Area -->
+            <div class="connection-area">
+                <div class="connection-header">
+                    <h3>Data Point Linking</h3>
+                    <div class="connection-actions">
+                        <button class="btn btn-primary" id="linkButton"><i class="fas fa-link"></i> Create Link</button>
+                        <button class="btn btn-secondary" id="saveButton"><i class="fas fa-save"></i> Save</button>
+                    </div>
+                </div>
+                <div class="connection-container">
+                    <div class="data-points-panel">
+                        <h4>Machine Data Points</h4>
+                        <ul class="data-point-list" id="machine-data-points">
+                            <li class="data-point-item" data-id="m-dp1" data-type="machine">
+                                <div class="data-point-info">
+                                    <div class="data-point-name">Load Weight</div>
+                                    <div class="data-point-value">425</div>
+                                    <div class="data-point-unit">kg</div>
+                                    <div class="data-point-source">Crane-101</div>
+                                </div>
+                                <i class="fas fa-plug"></i>
+                            </li>
+                            <li class="data-point-item" data-id="m-dp2" data-type="machine">
+                                <div class="data-point-info">
+                                    <div class="data-point-name">Power Consumption</div>
+                                    <div class="data-point-value">4.2</div>
+                                    <div class="data-point-unit">kW</div>
+                                    <div class="data-point-source">Crane-101</div>
+                                </div>
+                                <i class="fas fa-plug"></i>
+                            </li>
+                            <li class="data-point-item" data-id="m-dp3" data-type="machine">
+                                <div class="data-point-info">
+                                    <div class="data-point-name">Motor Temperature</div>
+                                    <div class="data-point-value">68.3</div>
+                                    <div class="data-point-unit">°C</div>
+                                    <div class="data-point-source">Crane-101</div>
+                                </div>
+                                <i class="fas fa-plug"></i>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="data-points-panel">
+                        <h4>Gateway Data Points</h4>
+                        <ul class="data-point-list" id="gateway-data-points">
+                            <li class="data-point-item" data-id="g-dp1" data-type="gateway">
+                                <div class="data-point-info">
+                                    <div class="data-point-name">Load Sensor</div>
+                                    <div class="data-point-value">425</div>
+                                    <div class="data-point-unit">kg</div>
+                                    <div class="data-point-source">Gateway-101</div>
+                                </div>
+                                <i class="fas fa-plug"></i>
+                            </li>
+                            <li class="data-point-item" data-id="g-dp2" data-type="gateway">
+                                <div class="data-point-info">
+                                    <div class="data-point-name">Power Meter</div>
+                                    <div class="data-point-value">4.2</div>
+                                    <div class="data-point-unit">kW</div>
+                                    <div class="data-point-source">Gateway-101</div>
+                                </div>
+                                <i class="fas fa-plug"></i>
+                            </li>
+                            <li class="data-point-item" data-id="g-dp3" data-type="gateway">
+                                <div class="data-point-info">
+                                    <div class="data-point-name">Temp Sensor</div>
+                                    <div class="data-point-value">68.3</div>
+                                    <div class="data-point-unit">°C</div>
+                                    <div class="data-point-source">Gateway-101</div>
+                                </div>
+                                <i class="fas fa-plug"></i>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="connection-visualization">
+                        <h4>Data Point Connections</h4>
+                        <div class="connection-canvas" id="connection-canvas">
+                            <!-- Connections will appear here when created -->
+                            <div class="no-connections" id="no-connections" style="text-align: center; padding: 40px; color: #7f8c8d;">
+                                <i class="fas fa-link" style="font-size: 40px; margin-bottom: 15px;"></i>
+                                <p>No connections yet. Select a machine data point and a gateway data point, then click "Create Link"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load the sidebar
+            fetch('sidebar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('sidebar-container').innerHTML = data;
+                    initializeSidebar(); // Call this after loading
+                });
+
+            function initializeSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                
+                if (sidebar && sidebarToggle) {
+                    sidebarToggle.addEventListener('click', function() {
+                        sidebar.classList.toggle('expanded');
+                        document.querySelector('.container').classList.toggle('sidebar-expanded');
+                    });
+
+                    // Dropdown functionality
+                    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                        toggle.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const dropdown = this.closest('.dropdown');
+                            const menu = dropdown.querySelector('.dropdown-menu');
+                            
+                            // Close all other dropdowns
+                            closeAllDropdownsExcept(menu, this);
+                            
+                            // Toggle current dropdown
+                            menu.classList.toggle('show');
+                            this.classList.toggle('show');
+                        });
+                    });
+
+                    // Function to close all dropdowns
+                    function closeAllDropdowns() {
+                        document.querySelectorAll('.dropdown-menu').forEach(m => {
+                            m.classList.remove('show');
+                        });
+                        document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                            t.classList.remove('show');
+                        });
+                    }
+
+                    // Function to close all dropdowns except a specific one
+                    function closeAllDropdownsExcept(exceptMenu = null, exceptToggle = null) {
+                        document.querySelectorAll('.dropdown-menu').forEach(m => {
+                            if (m !== exceptMenu) m.classList.remove('show');
+                        });
+                        document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                            if (t !== exceptToggle) t.classList.remove('show');
+                        });
+                    }
+
+                    // Close dropdowns when sidebar is collapsed
+                    sidebarToggle.addEventListener('click', function() {
+                        if (!sidebar.classList.contains('expanded')) {
+                            closeAllDropdowns();
+                        }
+                    });
+
+                    // Also close dropdowns when clicking outside
+                    document.addEventListener('click', function(e) {
+                        if (!e.target.closest('.dropdown')) {
+                            closeAllDropdowns();
+                        }
+                    });
+                }
+            }
+
+            // Account dropdown functionality
+            const dropdownTrigger = document.getElementById('accountDropdownTrigger');
+            const dropdownMenu = document.getElementById('accountDropdownMenu');
+            const logoutBtn = document.getElementById('accountLogoutBtn');
+
+            dropdownTrigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdownMenu.classList.toggle('show');
+            });
+
+            document.addEventListener('click', function() {
+                dropdownMenu.classList.remove('show');
+            });
+            
+            dropdownMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+
+            // Machine selection
+            const machineItems = document.querySelectorAll('.machine-item');
+            machineItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    machineItems.forEach(m => m.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update dashboard title
+                    const machineName = this.querySelector('.machine-name span:nth-child(2)').textContent.trim();
+                    document.querySelector('.page-title h1').textContent = machineName + ' Dashboard';
+                    
+                    // Update data points based on selected machine
+                    updateDataPoints(machineName);
+                });
+            });
+            
+            // Gateway selection
+            const gatewayItems = document.querySelectorAll('.gateway-item');
+            gatewayItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    gatewayItems.forEach(g => g.classList.remove('selected'));
+                    this.classList.add('selected');
+                    
+                    // Update data points based on selected gateway
+                    const gatewayName = this.querySelector('.gateway-name').textContent;
+                    updateGatewayDataPoints(gatewayName);
+                });
+            });
+            
+            // Data point selection for linking
+            const machineDataPoints = document.getElementById('machine-data-points');
+            const gatewayDataPoints = document.getElementById('gateway-data-points');
+            let selectedMachinePoint = null;
+            let selectedGatewayPoint = null;
+            
+            machineDataPoints.querySelectorAll('.data-point-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    machineDataPoints.querySelectorAll('.data-point-item').forEach(i => i.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedMachinePoint = this.getAttribute('data-id');
+                    updateConnectionButton();
+                });
+            });
+            
+            gatewayDataPoints.querySelectorAll('.data-point-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    gatewayDataPoints.querySelectorAll('.data-point-item').forEach(i => i.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedGatewayPoint = this.getAttribute('data-id');
+                    updateConnectionButton();
+                });
+            });
+            
+            // Link button functionality
+            const linkButton = document.getElementById('linkButton');
+            linkButton.addEventListener('click', function() {
+                if (selectedMachinePoint && selectedGatewayPoint) {
+                    createConnection(selectedMachinePoint, selectedGatewayPoint);
+                    resetSelection();
+                } else {
+                    alert('Please select both a machine data point and a gateway data point to link.');
+                }
+            });
+            
+            // Save button functionality
+            const saveButton = document.getElementById('saveButton');
+            saveButton.addEventListener('click', function() {
+                const connections = document.querySelectorAll('.connection-item');
+                if (connections.length > 0) {
+                    alert('Connections saved successfully!');
+                } else {
+                    alert('No connections to save.');
+                }
+            });
+            
+            function updateConnectionButton() {
+                if (selectedMachinePoint && selectedGatewayPoint) {
+                    linkButton.disabled = false;
+                    linkButton.style.opacity = '1';
+                    linkButton.title = 'Create connection between selected data points';
+                } else {
+                    linkButton.disabled = true;
+                    linkButton.style.opacity = '0.7';
+                    linkButton.title = 'Select both a machine and gateway data point to create a connection';
+                }
+            }
+            
+            function resetSelection() {
+                machineDataPoints.querySelectorAll('.data-point-item').forEach(i => i.classList.remove('selected'));
+                gatewayDataPoints.querySelectorAll('.data-point-item').forEach(i => i.classList.remove('selected'));
+                selectedMachinePoint = null;
+                selectedGatewayPoint = null;
+                updateConnectionButton();
+            }
+            
+            function createConnection(machinePointId, gatewayPointId) {
+                const machinePoint = document.querySelector(`[data-id="${machinePointId}"]`);
+                const gatewayPoint = document.querySelector(`[data-id="${gatewayPointId}"]`);
+                
+                const machineName = machinePoint.querySelector('.data-point-name').textContent;
+                const machineValue = machinePoint.querySelector('.data-point-value').textContent;
+                const machineUnit = machinePoint.querySelector('.data-point-unit').textContent;
+                const machineSource = machinePoint.querySelector('.data-point-source').textContent;
+                
+                const gatewayName = gatewayPoint.querySelector('.data-point-name').textContent;
+                const gatewayValue = gatewayPoint.querySelector('.data-point-value').textContent;
+                const gatewayUnit = gatewayPoint.querySelector('.data-point-unit').textContent;
+                const gatewaySource = gatewayPoint.querySelector('.data-point-source').textContent;
+                
+                const connectionCanvas = document.getElementById('connection-canvas');
+                const noConnections = document.getElementById('no-connections');
+                
+                // Hide the no connections message
+                if (noConnections) {
+                    noConnections.style.display = 'none';
+                }
+                
+                const connectionItem = document.createElement('div');
+                connectionItem.className = 'connection-item';
+                connectionItem.innerHTML = `
+                    <div class="connection-source">
+                        <div class="data-point-name">${machineName}</div>
+                        <div class="data-point-value">${machineValue} ${machineUnit}</div>
+                        <div class="data-point-source">${machineSource}</div>
+                    </div>
+                    <div class="connection-arrow">
+                        <i class="fas fa-arrow-left"></i>
+                    </div>
+                    <div class="connection-target">
+                        <div class="data-point-name">${gatewayName}</div>
+                        <div class="data-point-value">${gatewayValue} ${gatewayUnit}</div>
+                        <div class="data-point-source">${gatewaySource}</div>
+                    </div>
+                    <div class="connection-details">
+                        <div class="connection-status status-connected">Connected</div>
+                        <div class="connection-actions">
+                            <i class="fas fa-cog" title="Configure connection"></i>
+                            <i class="fas fa-trash" title="Delete connection"></i>
+                        </div>
+                    </div>
+                `;
+                
+                // Add delete functionality
+                const deleteBtn = connectionItem.querySelector('.fa-trash');
+                deleteBtn.addEventListener('click', function() {
+                    connectionItem.remove();
+                    
+                    // Show no connections message if no connections left
+                    if (connectionCanvas.querySelectorAll('.connection-item').length === 0) {
+                        document.getElementById('no-connections').style.display = 'block';
+                    }
+                });
+                
+                connectionCanvas.appendChild(connectionItem);
+            }
+            
+            // Function to update data points based on selected machine
+            function updateDataPoints(machineName) {
+                const machineDataPoints = document.getElementById('machine-data-points');
+                machineDataPoints.innerHTML = '';
+                
+                if (machineName.includes('Crane-101')) {
+                    addDataPoint(machineDataPoints, 'm-dp1', 'Load Weight', '425', 'kg', 'Crane-101');
+                    addDataPoint(machineDataPoints, 'm-dp2', 'Power Consumption', '4.2', 'kW', 'Crane-101');
+                    addDataPoint(machineDataPoints, 'm-dp3', 'Motor Temperature', '68.3', '°C', 'Crane-101');
+                } else if (machineName.includes('Conveyor-205')) {
+                    addDataPoint(machineDataPoints, 'm-dp5', 'Belt Speed', '2.4', 'm/s', 'Conveyor-205');
+                    addDataPoint(machineDataPoints, 'm-dp6', 'Power Consumption', '3.1', 'kW', 'Conveyor-205');
+                }
+                
+                // Add click events to new data points
+                machineDataPoints.querySelectorAll('.data-point-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        machineDataPoints.querySelectorAll('.data-point-item').forEach(i => i.classList.remove('selected'));
+                        this.classList.add('selected');
+                        selectedMachinePoint = this.getAttribute('data-id');
+                        updateConnectionButton();
+                    });
+                });
+            }
+            
+            // Function to update gateway data points based on selected gateway
+            function updateGatewayDataPoints(gatewayName) {
+                const gatewayDataPoints = document.getElementById('gateway-data-points');
+                gatewayDataPoints.innerHTML = '';
+                
+                if (gatewayName.includes('Gateway-101')) {
+                    addDataPoint(gatewayDataPoints, 'g-dp1', 'Load Sensor', '425', 'kg', 'Gateway-101');
+                    addDataPoint(gatewayDataPoints, 'g-dp2', 'Power Meter', '4.2', 'kW', 'Gateway-101');
+                    addDataPoint(gatewayDataPoints, 'g-dp3', 'Temp Sensor', '68.3', '°C', 'Gateway-101');
+                } else if (gatewayName.includes('Gateway-102')) {
+                    addDataPoint(gatewayDataPoints, 'g-dp5', 'Speed Sensor', '2.4', 'm/s', 'Gateway-102');
+                    addDataPoint(gatewayDataPoints, 'g-dp6', 'Power Meter', '3.1', 'kW', 'Gateway-102');
+                }
+                
+                // Add click events to new data points
+                gatewayDataPoints.querySelectorAll('.data-point-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        gatewayDataPoints.querySelectorAll('.data-point-item').forEach(i => i.classList.remove('selected'));
+                        this.classList.add('selected');
+                        selectedGatewayPoint = this.getAttribute('data-id');
+                        updateConnectionButton();
+                    });
+                });
+            }
+            
+            // Helper function to add data points
+            function addDataPoint(container, id, name, value, unit, source) {
+                const point = document.createElement('li');
+                point.className = 'data-point-item';
+                point.setAttribute('data-id', id);
+                point.setAttribute('data-type', id.startsWith('m-') ? 'machine' : 'gateway');
+                point.innerHTML = `
+                    <div class="data-point-info">
+                        <div class="data-point-name">${name}</div>
+                        <div class="data-point-value">${value}</div>
+                        <div class="data-point-unit">${unit}</div>
+                        <div class="data-point-source">${source}</div>
+                    </div>
+                    <i class="fas fa-plug"></i>
+                `;
+                container.appendChild(point);
+            }
+            
+            // Simulate live data updates
+            setInterval(() => {
+                const dataPoints = document.querySelectorAll('.data-point-value');
+                dataPoints.forEach(point => {
+                    const parent = point.closest('.data-point-item');
+                    if (parent) {
+                        const unit = parent.querySelector('.data-point-unit').textContent;
+                        if (unit === 'kg') {
+                            const currentValue = parseFloat(point.textContent);
+                            const newValue = (currentValue + (Math.random() * 10 - 5)).toFixed(0);
+                            point.textContent = newValue;
+                        } else if (unit === 'kW') {
+                            const currentValue = parseFloat(point.textContent);
+                            const newValue = (currentValue + (Math.random() * 0.2 - 0.1)).toFixed(1);
+                            point.textContent = newValue;
+                        } else if (unit === '°C') {
+                            const currentValue = parseFloat(point.textContent);
+                            const newValue = (currentValue + (Math.random() * 0.4 - 0.2)).toFixed(1);
+                            point.textContent = newValue;
+                        } else if (unit === 'V') {
+                            const currentValue = parseFloat(point.textContent);
+                            const newValue = (currentValue + (Math.random() * 2 - 1)).toFixed(0);
+                            point.textContent = newValue;
+                        }
+                    }
+                });
+            }, 3000);
+            
+            // Initialize
+            updateConnectionButton();
+        });
+    </script>
+</body>
+</html>

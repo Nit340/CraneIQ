@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crane Monitoring - Temperature Monitoring</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2980b9;
+    --success-color: #2ecc71;
+    --warning-color: #f39c12;
+    --danger-color: #e74c3c;
+    --light-color: #ecf0f1;
+    --dark-color: #2c3e50;
+    --gray-color: #95a5a6;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f5f7fa;
+    color: #333;
+    overflow-x: hidden;
+}
+
+/* Main Container */
+.container {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    min-height: 100vh;
+    width: 100vw;
+    transition: grid-template-columns 0.3s ease;
+}
+
+.container.sidebar-expanded {
+    grid-template-columns: 250px 1fr;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    background-color: var(--dark-color);
+    color: white;
+    padding: 20px 0;
+    position: relative;
+    z-index: 10;
+    width: 60px;
+    height: 100vh;
+    transition: width 0.3s ease, background-color 0.2s ease;
+    overflow: hidden;
+}
+
+.sidebar:hover {
+    width: 250px;
+}
+
+.sidebar:hover .nav-link span {
+    display: inline;
+    opacity: 1;
+}
+
+.sidebar.expanded {
+    width: 250px;
+}
+
+.sidebar.expanded .nav-link span {
+    display: inline;
+    opacity: 1;
+}
+
+.logo {
+    text-align: center;
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: none;
+}
+
+.nav-link {
+    color: inherit;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 12px 15px;
+}
+
+.nav-item.active .nav-link {
+    color: white;
+}
+
+.nav-item:hover .nav-link {
+    color: white;
+}
+
+.nav-menu {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 100px);
+    justify-content: space-between;
+}
+
+.nav-item {
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.nav-item:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.nav-item.active {
+    background-color: var(--primary-color);
+}
+
+.nav-item i {
+    width: 30px;
+    text-align: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.nav-link span {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    margin-left: 10px;
+}
+
+/* Main Content */
+.main-content {
+    padding: 20px;
+    width: calc(100vw - 60px);
+    transition: width 0.3s ease;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+.container.sidebar-expanded .main-content {
+    width: calc(100vw - 250px);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.page-title {
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.page-title h1 {
+    font-size: 1.8rem;
+    color: var(--dark-color);
+}
+
+.page-title p {
+    font-size: 0.9rem;
+    color: var(--gray-color);
+}
+
+/* Filter Controls */
+.log-controls {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 20px;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    width: 100%;
+}
+
+.filter-group {
+    margin-bottom: 0;
+}
+
+.filter-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.filter-select, .filter-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    align-self: flex-end;
+}
+
+.btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-secondary {
+    background-color: white;
+    color: var(--dark-color);
+    border: 1px solid #ddd;
+}
+/* Chart Row Alignment Fix */
+.chart-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+    width: 100%;
+    align-items: stretch; /* This ensures all items stretch to same height */
+}
+
+.chart-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 20px;
+    height: 100%; /* Make height consistent */
+    min-height: 300px; /* Set minimum height */
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--dark-color);
+    flex-shrink: 0; /* Prevent title from shrinking */
+}
+
+.chart-wrapper {
+    width: 100%;
+    flex-grow: 1; /* Allow chart area to grow */
+    position: relative;
+    min-height: 200px; /* Minimum height for chart area */
+}
+
+.chart-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Temperature Log Table */
+.log-table-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 20px;
+    overflow-x: auto;
+    width: 100%;
+}
+
+.log-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.log-table th {
+    text-align: left;
+    padding: 12px 15px;
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: var(--dark-color);
+    border-bottom: 2px solid #eee;
+    position: sticky;
+    top: 0;
+}
+
+.log-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.log-table tr:last-child td {
+    border-bottom: none;
+}
+
+.log-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+.temp-status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-normal {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+    display: none;
+    padding-left: 20px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.dropdown-menu.show {
+    display: block;
+    max-height: 200px;
+}
+
+.dropdown-item {
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-item i {
+    margin-right: 10px;
+}
+
+.dropdown-toggle .dropdown-icon {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+}
+
+.dropdown-toggle.show .dropdown-icon,
+.sidebar:hover .dropdown-toggle.show .dropdown-icon {
+    transform: rotate(180deg);
+}
+
+/* Close dropdowns when sidebar is collapsed */
+.sidebar:not(:hover):not(.expanded) .dropdown-menu {
+    display: none !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+}
+
+.sidebar:not(:hover):not(.expanded) .dropdown-toggle.show .dropdown-icon {
+    transform: rotate(0deg) !important;
+}
+
+/* Account Dropdown */
+.user-info-wrapper {
+    --primary-color: #4361ee;
+    --danger-color: #ef233c;
+    --text-color: #2b2d42;
+    --hover-bg: #f8f9fa;
+    --transition-speed: 0.25s;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.account-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.account-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+}
+
+.account-trigger:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.account-trigger:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.account-trigger .fa-user-circle {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.account-trigger span {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.account-trigger .fa-caret-down {
+    font-size: 0.75rem;
+    transition: transform var(--transition-speed);
+}
+
+.account-trigger.active .fa-caret-down {
+    transform: rotate(180deg);
+}
+
+.account-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    background-color: white;
+    min-width: 180px;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 0;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-10px);
+    visibility: hidden;
+    transition: 
+        opacity var(--transition-speed) ease,
+        transform var(--transition-speed) ease;
+}
+
+.account-menu.show {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+.account-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: 
+        background-color var(--transition-speed),
+        color var(--transition-speed);
+}
+
+.account-menu-item:hover,
+.account-menu-item:focus {
+    background-color: var(--hover-bg);
+    color: var(--primary-color);
+}
+
+.account-menu-item i {
+    width: 1.25rem;
+    text-align: center;
+    color: inherit;
+}
+
+.account-menu-divider {
+    height: 1px;
+    background-color: #e9ecef;
+    margin: 0.5rem 0;
+}
+
+.logout-account-btn {
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+
+.logout-account-btn:hover,
+.logout-account-btn:focus {
+    color: var(--danger-color) !important;
+}
+
+.account-menu-item.plan-info {
+    background-color: #f8f9fa;
+    color: var(--dark-color);
+    font-weight: 600;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.account-menu-item.plan-info i {
+    margin-right: 8px;
+}
+
+/* Different colors for different plans */
+.plan-basic { color: var(--primary-color); }
+.plan-advanced { color: var(--success-color); }
+.plan-pro { color: gold; }
+
+.customer-logo {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 5px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification-success {
+    background-color: var(--success-color);
+}
+
+.notification-error {
+    background-color: var(--danger-color);
+}
+
+/* Settings dropdown without arrow */
+.settings-dropdown .dropdown-icon {
+    display: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .chart-row {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 992px) {
+    .log-controls {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .action-buttons {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
+    
+    .sidebar {
+        display: none;
+    }
+    
+    .main-content {
+        width: 100vw !important;
+        padding: 15px;
+    }
+    
+    .chart-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .log-controls {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        grid-column: 1;
+    }
+    
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 576px) {
+    .account-menu {
+        position: fixed;
+        top: auto;
+        bottom: 70px;
+        left: 20px;
+        right: 20px;
+        width: calc(100% - 40px);
+    }
+}
+    </style>
+</head>
+<body>
+<div class="container" id="mainContainer">
+        <!-- Sidebar Navigation -->
+    <div id="sidebar-container"></div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <div class="header-logo">CraneIQ</div>
+                </div>
+           
+               <div class="user-info-wrapper">
+    <div class="account-dropdown">
+        <div class="account-trigger" id="accountDropdownTrigger">
+           <img src="image/houzz.png" class="customer-logo">
+            <span>Hilton (Pro Plan)</span>
+            <i class="fas fa-caret-down"></i>
+        </div>
+        <div class="account-menu" id="accountDropdownMenu">
+            <div class="account-menu-item plan-info">
+                <i class="fas fa-crown" style="color: gold;"></i>
+                <span>Pro Plan</span>
+            </div>
+            <div class="account-menu-divider"></div>
+            <a href="#" class="account-menu-item">
+                <i class="fas fa-user"></i> Profile
+            </a>
+            <a href="#" class="account-menu-item">
+                <i class="fas fa-sync-alt"></i> Upgrade Plan
+            </a>
+            <div class="account-menu-divider"></div>
+            <button id="accountLogoutBtn" class="account-menu-item logout-account-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+</div>
+            </div>
+                 <div class="page-title">
+                                 <h1>Temperature Monitoring</h1>
+                    <p>Real-time and historical temperature measurements</p>
+                </div>
+            <!-- Filter Controls -->
+            <div class="log-controls">
+                <div class="filter-group">
+                    <label class="filter-label">Crane</label>
+                    <select class="filter-select" id="crane-filter">
+                        <option value="all">All Cranes</option>
+                        <option value="CRN-001">Gantry Crane #1 (CRN-001)</option>
+                        <option value="CRN-002">Overhead Crane #2 (CRN-002)</option>
+                        <option value="CRN-003">Jib Crane #3 (CRN-003)</option>
+                        <option value="CRN-004">Bridge Crane #4 (CRN-004)</option>
+                        <option value="CRN-005">Gantry Crane #5 (CRN-005)</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Component</label>
+                    <select class="filter-select" id="component-filter">
+                        <option value="all">All Components</option>
+                        <option value="hoist">Hoist Motor</option>
+                        <option value="travel">CT Motor</option>
+                        <option value="gearbox">LT Motor</option>
+                        <option value="gearbox">Gearbox</option> <!-- Added Gearbox option -->
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Date Range</label>
+                    <select class="filter-select" id="date-filter">
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="applyFilters">
+                        <i class="fas fa-filter"></i>
+                        Apply Filters
+                    </button>
+                    <button class="btn btn-secondary" id="resetFilters">
+                        <i class="fas fa-redo"></i>
+                        Reset
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Temperature Charts -->
+            <div class="chart-row">
+                <div class="chart-container">
+                    <div class="chart-title">Hoist Motor Temperature Trend</div>
+                    <div class="chart-wrapper">
+                        <canvas id="hoistTempChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">CT Motor Temperature Trend</div>
+                    <div class="chart-wrapper">
+                        <canvas id="travelTempChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">LT Motor Temperature Trend</div>
+                    <div class="chart-wrapper">
+                        <canvas id="gearboxTempChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">Gearbox Temperature Trend</div> <!-- Added Gearbox chart -->
+                    <div class="chart-wrapper">
+                        <canvas id="gearbox2TempChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Temperature Log Table -->
+            <div class="log-table-container">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Crane ID</th>
+                            <th>Component</th>
+                            <th>Temperature (°C)</th>
+                            <th>Warning Threshold</th>
+                            <th>Critical Threshold</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tempTableBody">
+                        <!-- Data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load the sidebar
+        fetch('sidebar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('sidebar-container').innerHTML = data;
+                initializeSidebar(); // Call this after loading
+            });
+
+        function initializeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            
+            if (sidebar && sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('expanded');
+                    document.querySelector('.container').classList.toggle('sidebar-expanded');
+                });
+
+                // Dropdown functionality
+                document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                    toggle.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const dropdown = this.closest('.dropdown');
+                        const menu = dropdown.querySelector('.dropdown-menu');
+                        
+                        // Close all other dropdowns
+                        closeAllDropdownsExcept(menu, this);
+                        
+                        // Toggle current dropdown
+                        menu.classList.toggle('show');
+                        this.classList.toggle('show');
+                    });
+                });
+
+                // Function to close all dropdowns
+                function closeAllDropdowns() {
+                    document.querySelectorAll('.dropdown-menu').forEach(m => {
+                        m.classList.remove('show');
+                    });
+                    document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                        t.classList.remove('show');
+                    });
+                }
+
+                // Function to close all dropdowns except a specific one
+                function closeAllDropdownsExcept(exceptMenu = null, exceptToggle = null) {
+                    document.querySelectorAll('.dropdown-menu').forEach(m => {
+                        if (m !== exceptMenu) m.classList.remove('show');
+                    });
+                    document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                        if (t !== exceptToggle) t.classList.remove('show');
+                    });
+                }
+
+                // Close dropdowns when sidebar is collapsed
+                sidebarToggle.addEventListener('click', function() {
+                    if (!sidebar.classList.contains('expanded')) {
+                        closeAllDropdowns();
+                    }
+                });
+
+                // Also close dropdowns when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!e.target.closest('.dropdown')) {
+                        closeAllDropdowns();
+                    }
+                });
+            }
+        }
+
+        const dropdownTrigger = document.getElementById('accountDropdownTrigger');
+        const dropdownMenu = document.getElementById('accountDropdownMenu');
+        const mainContainer = document.getElementById('mainContainer');
+        const logoutBtn = document.getElementById('accountLogoutBtn');
+        const refreshBtn = document.querySelector('.stats-refresh');
+
+        // Toggle dropdown when clicking the trigger
+        dropdownTrigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('show');
+        });
+
+        // Close dropdown when clicking anywhere else
+        document.addEventListener('click', function() {
+            dropdownMenu.classList.remove('show');
+        });
+        
+        // Prevent dropdown from closing when clicking inside it
+        dropdownMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+        
+        const userPlan = 'pro'; // This would come from your auth system
+
+        function displayUserPlan() {
+            // Option 1: For user dropdown
+            const planName = userPlan.charAt(0).toUpperCase() + userPlan.slice(1);
+            document.querySelector('.account-trigger span').textContent = `Hilton (${planName} Plan)`;
+            
+            // Update plan info in dropdown
+            const planItem = document.querySelector('.account-menu-item.plan-info');
+            planItem.innerHTML = `<i class="fas ${userPlan === 'pro' ? 'fa-crown' : userPlan === 'advanced' ? 'fa-star' : 'fa-user'}"></i>
+                                <span>${planName} Plan</span>`;
+            planItem.classList.add(`plan-${userPlan}`);
+        }
+
+        displayUserPlan();
+        
+        // Set active nav item
+        document.querySelectorAll('.nav-link').forEach(link => {
+            if (link.getAttribute('href') === 'temperature.html') {
+                link.parentElement.classList.add('active');
+            }
+        });
+        
+        // Sample temperature data
+        const tempData = {
+            timestamps: [
+                '08:00', '09:00', '10:00', '11:00', '12:00', 
+                '13:00', '14:00', '15:00', '16:00', '17:00'
+            ],
+            hoist: [65, 68, 72, 75, 78, 82, 85, 88, 85, 82],
+            travel: [55, 58, 62, 65, 68, 72, 75, 78, 75, 72],
+            gearbox: [60, 63, 67, 70, 73, 77, 80, 83, 80, 77],
+            gearbox2: [62, 65, 69, 72, 75, 79, 82, 85, 82, 79] // Added gearbox data
+        };
+        
+        // Table data
+        const tableData = [
+            { timestamp: '2023-06-15 08:23:45', crane: 'CRN-001', component: 'Hoist Motor', temp: 65, warn: 80, critical: 90, status: 'normal' },
+            { timestamp: '2023-06-15 08:45:12', crane: 'CRN-002', component: 'CT Motor', temp: 58, warn: 75, critical: 85, status: 'normal' },
+            { timestamp: '2023-06-15 09:12:33', crane: 'CRN-001', component: 'LT Motor', temp: 67, warn: 85, critical: 95, status: 'normal' },
+            { timestamp: '2023-06-15 10:05:27', crane: 'CRN-004', component: 'Hoist Motor', temp: 82, warn: 80, critical: 90, status: 'warning' },
+            { timestamp: '2023-06-15 10:45:52', crane: 'CRN-002', component: 'CT Motor', temp: 63, warn: 70, critical: 80, status: 'normal' },
+            { timestamp: '2023-06-15 11:15:06', crane: 'CRN-005', component: 'Hoist Motor', temp: 92, warn: 80, critical: 90, status: 'danger' },
+            { timestamp: '2023-06-15 11:52:41', crane: 'CRN-001', component: 'CT Motor', temp: 78, warn: 75, critical: 85, status: 'warning' },
+            { timestamp: '2023-06-15 12:30:15', crane: 'CRN-003', component: 'LT Motor', temp: 77, warn: 85, critical: 95, status: 'normal' },
+            { timestamp: '2023-06-15 13:18:37', crane: 'CRN-004', component: 'CT Motor', temp: 73, warn: 70, critical: 80, status: 'warning' },
+            { timestamp: '2023-06-15 14:05:22', crane: 'CRN-002', component: 'Hoist Motor', temp: 88, warn: 80, critical: 90, status: 'warning' },
+            { timestamp: '2023-06-15 14:35:18', crane: 'CRN-003', component: 'Gearbox', temp: 72, warn: 85, critical: 95, status: 'normal' }, // Added gearbox data
+            { timestamp: '2023-06-15 15:22:47', crane: 'CRN-001', component: 'Gearbox', temp: 89, warn: 85, critical: 95, status: 'warning' }  // Added gearbox data
+        ];
+        
+        // Initialize charts
+        const hoistCtx = document.getElementById('hoistTempChart').getContext('2d');
+        const travelCtx = document.getElementById('travelTempChart').getContext('2d');
+        const gearboxCtx = document.getElementById('gearboxTempChart').getContext('2d');
+        const gearbox2Ctx = document.getElementById('gearbox2TempChart').getContext('2d'); // Added gearbox chart context
+        let hoistChart, travelChart, gearboxChart, gearbox2Chart;
+        
+        // Helper function for chart options
+        function getChartOptions(warningThreshold, criticalThreshold) {
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    annotation: {
+                        annotations: {
+                            warningLine: {
+                                type: 'line',
+                                yMin: warningThreshold,
+                                yMax: warningThreshold,
+                                borderColor: '#f39c12',
+                                borderWidth: 2,
+                                borderDash: [6, 6],
+                                label: {
+                                    content: `Warning (${warningThreshold}°C)`,
+                                    enabled: true,
+                                    position: 'left'
+                                }
+                            },
+                            criticalLine: {
+                                type: 'line',
+                                yMin: criticalThreshold,
+                                yMax: criticalThreshold,
+                                borderColor: '#e74c3c',
+                                borderWidth: 2,
+                                borderDash: [6, 6],
+                                label: {
+                                    content: `Critical (${criticalThreshold}°C)`,
+                                    enabled: true,
+                                    position: 'left'
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 40,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Temperature (°C)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time of Day'
+                        }
+                    }
+                }
+            };
+        }
+        
+        function initCharts() {
+            // Hoist Motor Temperature Chart
+            hoistChart = new Chart(hoistCtx, {
+                type: 'line',
+                data: {
+                    labels: tempData.timestamps,
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: tempData.hoist,
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: getChartOptions(80, 90)
+            });
+            
+            // CT Motor Temperature Chart
+            travelChart = new Chart(travelCtx, {
+                type: 'line',
+                data: {
+                    labels: tempData.timestamps,
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: tempData.travel,
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: getChartOptions(75, 85)
+            });
+            
+            // LT Motor Temperature Chart
+            gearboxChart = new Chart(gearboxCtx, {
+                type: 'line',
+                data: {
+                    labels: tempData.timestamps,
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: tempData.gearbox,
+                        borderColor: '#2ecc71',
+                        backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: getChartOptions(85, 95)
+            });
+            
+            // Gearbox Temperature Chart
+            gearbox2Chart = new Chart(gearbox2Ctx, {
+                type: 'line',
+                data: {
+                    labels: tempData.timestamps,
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: tempData.gearbox2,
+                        borderColor: '#9b59b6',
+                        backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: getChartOptions(85, 95)
+            });
+        }
+        
+        // Populate table
+        function populateTable() {
+            const tableBody = document.getElementById('tempTableBody');
+            tableBody.innerHTML = '';
+            
+            tableData.forEach(item => {
+                const row = document.createElement('tr');
+                
+                let statusClass = '';
+                let statusText = '';
+                if (item.temp >= item.critical) {
+                    statusClass = 'status-danger';
+                    statusText = 'Critical';
+                } else if (item.temp >= item.warn) {
+                    statusClass = 'status-warning';
+                    statusText = 'Warning';
+                } else {
+                    statusClass = 'status-normal';
+                    statusText = 'Normal';
+                }
+                
+                row.innerHTML = `
+                    <td>${item.timestamp}</td>
+                    <td>${item.crane}</td>
+                    <td>${item.component}</td>
+                    <td>${item.temp}</td>
+                    <td>${item.warn}</td>
+                    <td>${item.critical}</td>
+                    <td><span class="temp-status ${statusClass}">${statusText}</span></td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+        
+        // Filter functionality
+        document.getElementById('applyFilters').addEventListener('click', function() {
+            const craneFilter = document.getElementById('crane-filter').value;
+            const componentFilter = document.getElementById('component-filter').value;
+            const dateFilter = document.getElementById('date-filter').value;
+            
+            // In a real app, this would filter the data
+            console.log('Filters:', {
+                crane: craneFilter,
+                component: componentFilter,
+                date: dateFilter
+            });
+            
+            // For demo, just show a loading effect
+            if (hoistChart) hoistChart.destroy();
+            if (travelChart) travelChart.destroy();
+            if (gearboxChart) gearboxChart.destroy();
+            if (gearbox2Chart) gearbox2Chart.destroy();
+            
+            // Simulate loading delay
+            setTimeout(() => {
+                initCharts();
+                populateTable();
+            }, 500);
+        });
+        
+        document.getElementById('resetFilters').addEventListener('click', function() {
+            document.getElementById('crane-filter').value = 'all';
+            document.getElementById('component-filter').value = 'all';
+            document.getElementById('date-filter').value = 'today';
+            
+            if (hoistChart) hoistChart.destroy();
+            if (travelChart) travelChart.destroy();
+            if (gearboxChart) gearboxChart.destroy();
+            if (gearbox2Chart) gearbox2Chart.destroy();
+            
+            initCharts();
+            populateTable();
+        });
+        
+        // Handle logout
+        logoutBtn.addEventListener('click', function() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        });
+        
+        // Optional: Check if user is logged in when page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            if (!localStorage.getItem('isLoggedIn')) {
+                window.location.href = 'index.html';
+            }
+        });
+        
+        // Initialize page
+        initCharts();
+        populateTable();
+    });
+</script>
+</body>
+</html>

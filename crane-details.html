@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crane Details Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-light: #5dade2;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --success-light: #58d68d;
+            --warning-color: #f39c12;
+            --warning-light: #f8c471;
+            --danger-color: #e74c3c;
+            --danger-light: #ec7063;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --dark-light: #34495e;
+            --gray-color: #95a5a6;
+            --gray-light: #bdc3c7;
+            --purple-color: #9b59b6;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-lg: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .dashboard-container {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            min-height: 100vh;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        .dashboard-container.sidebar-expanded {
+            grid-template-columns: 250px 1fr;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 20px 0;
+            position: relative;
+            z-index: 10;
+            width: 60px;
+            transition: width 0.3s ease, background-color 0.2s ease;
+            overflow: hidden;
+        }
+
+        .sidebar:hover {
+            width: 250px;
+        }
+
+        .sidebar:hover .nav-link span {
+            display: inline;
+            opacity: 1;
+        }
+
+        .sidebar.expanded {
+            width: 250px;
+        }
+
+        .sidebar.expanded .nav-link span {
+            display: inline;
+            opacity: 1;
+        }
+
+        .logo {
+            text-align: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: none;
+        }
+
+        .nav-link {
+            color: inherit;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px 15px;
+        }
+
+        .nav-item.active .nav-link {
+            color: white;
+        }
+
+        .nav-item:hover .nav-link {
+            color: white;
+        }
+
+        .nav-menu {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 100px);
+            justify-content: space-between;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+        }
+
+        .nav-item i {
+            width: 30px;
+            text-align: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .nav-link span {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            margin-left: 10px;
+        }
+
+        /* Dropdown Menu */
+        .dropdown-menu {
+            display: none;
+            padding-left: 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+            max-height: 200px;
+        }
+
+        .dropdown-item {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .dropdown-item i {
+            margin-right: 10px;
+        }
+
+        .dropdown-toggle .dropdown-icon {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .dropdown-toggle.show .dropdown-icon,
+        .sidebar:hover .dropdown-toggle.show .dropdown-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Close dropdowns when sidebar is collapsed */
+        .sidebar:not(:hover):not(.expanded) .dropdown-menu {
+            display: none !important;
+            max-height: 0 !important;
+            padding: 0 !important;
+        }
+
+        .sidebar:not(:hover):not(.expanded) .dropdown-toggle.show .dropdown-icon {
+            transform: rotate(0deg) !important;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 25px;
+            background-color: #f8f9fa;
+            overflow-y: auto;
+            width: calc(100vw - 60px);
+            transition: width 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .dashboard-container.sidebar-expanded .main-content {
+            width: calc(100vw - 250px);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        /* Crane Header */
+        .crane-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            background-color: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .crane-title {
+            font-size: 1.5rem;
+            color: var(--dark-color);
+            font-weight: 700;
+        }
+
+        .crane-status {
+            padding: 8px 15px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            box-shadow: var(--shadow-sm);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Back Button */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            margin-bottom: 15px;
+            transition: var(--transition);
+            border: 1px solid var(--gray-light);
+        }
+
+        .back-button:hover {
+            background-color: var(--gray-light);
+            color: var(--dark-color);
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .metric-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            padding: 12px;
+            transition: var(--transition);
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+            min-height: 120px;
+            min-width: 220px;
+            flex: 1;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .metric-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark-light);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .metric-title i {
+            color: var(--primary-color);
+            font-size: 0.8rem;
+        }
+
+        .metric-value {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--dark-color);
+            margin-bottom: 2px;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .metric-unit {
+            font-size: 0.8rem;
+            font-weight: 400;
+            margin-left: 4px;
+            color: var(--gray-color);
+        }
+
+        .metric-label {
+            font-size: 0.7rem;
+            color: var(--gray-color);
+            margin-bottom: 4px;
+        }
+
+        .metric-subtext {
+            font-size: 0.65rem;
+            color: var(--gray-color);
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .metric-trend {
+            display: flex;
+            align-items: center;
+            font-size: 0.6rem;
+            margin-top: 3px;
+        }
+
+        .trend-up {
+            color: var(--danger-color);
+        }
+
+        .trend-down {
+            color: var(--success-color);
+        }
+
+        .trend-neutral {
+            color: var(--gray-color);
+        }
+
+        /* Alert Badge */
+        .alert-badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 0.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .alert-warning {
+            background-color: var(--warning-light);
+            color: var(--warning-color);
+        }
+
+        .alert-danger {
+            background-color: var(--danger-light);
+            color: var(--danger-color);
+        }
+
+        /* Alerts Container */
+        .alerts-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .alerts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .alerts-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .alerts-count {
+            background-color: var(--danger-color);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+
+        .alert-item {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+
+        .alert-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            flex-shrink: 0;
+        }
+
+        .alert-icon-warning {
+            background-color: var(--warning-light);
+            color: var(--warning-color);
+        }
+
+        .alert-icon-danger {
+            background-color: var(--danger-light);
+            color: var(--danger-color);
+        }
+
+        .alert-time {
+            font-size: 0.6rem;
+            color: var(--gray-color);
+            margin-left: auto;
+        }
+
+        /* Status Indicators */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Status Container */
+        .status-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .status-header {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .status-item {
+            padding: 8px;
+            border-radius: 5px;
+            background-color: rgba(236, 240, 241, 0.3);
+            font-size: 0.7rem;
+        }
+
+        .status-name {
+            font-weight: 600;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.7rem;
+        }
+
+        .status-value {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-info {
+            font-size: 0.65rem;
+            color: var(--gray-color);
+        }
+
+        /* Chart containers */
+        .chart-container {
+            height: 300px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            padding: 10px;
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-container:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .chart-header {
+            padding: 0 0 10px 0;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .chart-header .card-title {
+            font-size: 0.9rem;
+        }
+
+        .chart-actions {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            display: flex;
+            gap: 5px;
+            z-index: 10;
+        }
+
+        .chart-btn {
+            background: white;
+            border: 1px solid var(--gray-light);
+            border-radius: 3px;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 9px;
+        }
+
+        .chart-btn:hover {
+            background: var(--light-color);
+        }
+
+        /* Chart canvas styling */
+        .chart-container canvas {
+            width: 100% !important;
+            height: calc(100% - 40px) !important;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+        }
+
+        /* Date range selector */
+        .date-range-selector {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 15px;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .date-range-selector label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--dark-light);
+        }
+
+        .date-range-selector input {
+            padding: 5px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--gray-light);
+            font-size: 0.7rem;
+            transition: var(--transition);
+        }
+
+        .date-range-selector input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .date-range-selector button {
+            padding: 5px 10px;
+            border-radius: 4px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: var(--transition);
+        }
+
+        .date-range-selector button:hover {
+            background: var(--secondary-color);
+        }
+
+        /* Status Colors */
+        .status-working {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .status-idle {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .status-off {
+            background-color: var(--gray-color);
+            color: white;
+        }
+
+        .status-overload {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .status-error {
+            background-color: var(--purple-color);
+            color: white;
+        }
+
+        .dot-working {
+            background-color: var(--success-color);
+        }
+
+        .dot-idle {
+            background-color: var(--warning-color);
+        }
+
+        .dot-off {
+            background-color: var(--gray-color);
+        }
+
+        .dot-error {
+            background-color: var(--danger-color);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse-warning {
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 0 2px rgba(243, 156, 18, 0.3);
+        }
+
+        .pulse-danger {
+            animation: pulse 1.5s infinite;
+            box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.3);
+        }
+
+        /* Layout adjustments */
+        .layout-main {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .charts-col {
+            grid-column: 1 / 2;
+        }
+
+        .metrics-col {
+            grid-column: 2 / 3;
+            align-self: start;
+            position: sticky;
+            top: 120px;
+        }
+
+        .metrics-grid-cards-right {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .key-metrics-section {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .key-metric {
+            min-width: 140px;
+        }
+
+        /* Timeline styling */
+        .timeline-panel {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            padding: 12px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .timeline-panel h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .timeline {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 360px;
+            overflow: auto;
+        }
+
+        .timeline li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding-left: 0;
+            border-left: none;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .layout-main {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-col {
+                grid-column: 1 / 2;
+                position: static;
+                order: -1;
+                margin-bottom: 20px;
+            }
+            
+            .metrics-grid-cards-right {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            
+            .metrics-grid-cards-right > * {
+                flex: 1 1 48%;
+                min-width: 280px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                width: 100vw !important;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+            
+            .metrics-grid-cards-right {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .main-content {
+                padding: 15px;
+            }
+            
+            .chart-container {
+                height: 200px;
+                padding: 8px;
+            }
+            
+            .chart-container canvas {
+                bottom: 8px;
+                left: 8px;
+                right: 8px;
+            }
+            
+            .key-metrics-section {
+                flex-direction: column;
+            }
+            
+            .key-metric {
+                width: 100%;
+            }
+        }
+
+        /* Account Dropdown */
+        .user-info-wrapper {
+            --primary-color: #4361ee;
+            --danger-color: #ef233c;
+            --text-color: #2b2d42;
+            --hover-bg: #f8f9fa;
+            --transition-speed: 0.25s;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .account-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .account-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+        }
+
+        .account-trigger:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .account-trigger:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        .account-trigger .fa-user-circle {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .account-trigger span {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .account-trigger .fa-caret-down {
+            font-size: 0.75rem;
+            transition: transform var(--transition-speed);
+        }
+
+        .account-trigger.active .fa-caret-down {
+            transform: rotate(180deg);
+        }
+
+        .account-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.5rem);
+            background-color: white;
+            min-width: 180px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem 0;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-10px);
+            visibility: hidden;
+            transition: 
+                opacity var(--transition-speed) ease,
+                transform var(--transition-speed) ease;
+        }
+
+        .account-menu.show {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .account-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 1rem;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: 
+                background-color var(--transition-speed),
+                color var(--transition-speed);
+        }
+
+        .account-menu-item:hover,
+        .account-menu-item:focus {
+            background-color: var(--hover-bg);
+            color: var(--primary-color);
+        }
+
+        .account-menu-item i {
+            width: 1.25rem;
+            text-align: center;
+            color: inherit;
+        }
+
+        .account-menu-divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 0.5rem 0;
+        }
+
+        .logout-account-btn {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font: inherit;
+            color: inherit;
+        }
+
+        .logout-account-btn:hover,
+        .logout-account-btn:focus {
+            color: var(--danger-color) !important;
+        }
+
+        .account-menu-item.plan-info {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            font-weight: 600;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .account-menu-item.plan-info i {
+            margin-right: 8px;
+        }
+
+        /* Different colors for different plans */
+        .plan-basic { color: var(--primary-color); }
+        .plan-advanced { color: var(--success-color); }
+        .plan-pro { color: gold; }
+
+        .customer-logo {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container" id="mainContainer">
+        <!-- Sidebar Container (will be populated by JavaScript) -->
+        <div id="sidebar-container"></div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Redesigned Content Section: Card-based, Tabbed, and Timeline Layout -->
+         
+            <div class="back-button" style="margin-bottom: 24px;">
+                <a href="dash.html" style="color:inherit;text-decoration:none;"><i class="fas fa-arrow-left"></i> Dashboard</a>
+            </div>
+
+            <div class="crane-header" style="margin-bottom: 32px;">
+                <div style="display:flex;align-items:center;gap:16px;">
+                    <h2 id="craneName" class="crane-title">Gantry Crane #1</h2>
+                    <span id="craneStatusBadge" class="crane-status status-working">Working</span>
+                </div>
+                <div style="font-size:13px;color:var(--gray-color);">Last updated: <span id="lastUpdated">21 Aug 2025, 10:15 AM</span></div>
+            </div>
+
+            <!-- Date range selector -->
+            <div class="date-range-selector">
+                <label for="startDate">From:</label>
+                <input type="date" id="startDate">
+                
+                <label for="endDate">To:</label>
+                <input type="date" id="endDate">
+                
+                <button id="applyDateRange">
+                    <i class="fas fa-filter"></i> Apply
+                </button>
+            </div>
+
+            <!-- Main layout: charts on the left, metrics column on the right -->
+            <div class="layout-main">
+                <div class="charts-col">
+                    <!-- Key Metrics Section -->
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:12px;flex-wrap:wrap;">
+                        <div class="metrics-top-header-left" style="display:flex;align-items:center;justify-content:flex-start;gap:12px;">
+                            <h3 style="margin:0;font-size:16px;color:var(--dark-color);">Key Metrics</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="key-metrics-section">
+                        <div class="metric-card key-metric">
+                            <div class="metric-title"><i class="fas fa-clock"></i> Cumulative Hours</div>
+                            <div class="metric-value">1,284<span class="metric-unit">hrs</span></div>
+                            <div class="metric-subtext">Since 2023-05-15</div>
+                        </div>
+
+                        <div class="metric-card key-metric">
+                            <div class="metric-title"><i class="fas fa-pause-circle"></i> Idle Time</div>
+                            <div class="metric-value">3.2<span class="metric-unit">hrs</span></div>
+                            <div class="metric-subtext">Today</div>
+                        </div>
+
+                        <div class="metric-card key-metric">
+                            <div class="metric-title"><i class="fas fa-play-circle"></i> Live Status</div>
+                            <div class="metric-value status-working">Active</div>
+                            <div class="metric-subtext">Current: Lifting</div>
+                        </div>
+
+                        <div class="metric-card key-metric">
+                            <div class="metric-title"><i class="fas fa-stop-circle"></i> Non-Working Time</div>
+                            <div class="metric-value">2.5<span class="metric-unit">hrs</span></div>
+                            <div class="metric-subtext">Today</div>
+                        </div>
+
+                        <div class="metric-card key-metric">
+                            <div class="metric-title"><i class="fas fa-tachometer-alt"></i> Duty Cycle</div>
+                            <div class="metric-value">82<span class="metric-unit">%</span></div>
+                            <div class="metric-subtext">Efficiency</div>
+                        </div>
+
+                        <div class="metric-card key-metric">
+                            <div class="metric-title"><i class="fas fa-star"></i> Efficiency Score</div>
+                            <div class="metric-value">87<span class="metric-unit">/100</span></div>
+                            <div class="metric-subtext">Based on recent usage</div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="charts-grid-two" style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 20px;">
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h3 class="card-title"><i class="fas fa-weight-hanging"></i> Load History</h3>
+                            </div>
+                            <div class="chart-actions">
+                                <button class="chart-btn zoom-in"><i class="fas fa-search-plus"></i></button>
+                                <button class="chart-btn zoom-out"><i class="fas fa-search-minus"></i></button>
+                                <button class="chart-btn reset-zoom"><i class="fas fa-sync-alt"></i></button>
+                            </div>
+                            <canvas id="loadChart"></canvas>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h3 class="card-title"><i class="fas fa-temperature-high"></i> Temperature Trend</h3>
+                            </div>
+                            <div class="chart-actions">
+                                <button class="chart-btn zoom-in"><i class="fas fa-search-plus"></i></button>
+                                <button class="chart-btn zoom-out"><i class="fas fa-search-minus"></i></button>
+                                <button class="chart-btn reset-zoom"><i class="fas fa-sync-alt"></i></button>
+                            </div>
+                            <canvas id="tempChart"></canvas>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h3 class="card-title"><i class="fas fa-vr-cardboard"></i> Vibration Trend</h3>
+                            </div>
+                            <div class="chart-actions">
+                                <button class="chart-btn zoom-in"><i class="fas fa-search-plus"></i></button>
+                                <button class="chart-btn zoom-out"><i class="fas fa-search-minus"></i></button>
+                                <button class="chart-btn reset-zoom"><i class="fas fa-sync-alt"></i></button>
+                            </div>
+                            <canvas id="vibrationChart"></canvas>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h3 class="card-title"><i class="fas fa-bolt"></i> Energy vs Load</h3>
+                            </div>
+                            <div class="chart-actions">
+                                <button class="chart-btn zoom-in"><i class="fas fa-search-plus"></i></button>
+                                <button class="chart-btn zoom-out"><i class="fas fa-search-minus"></i></button>
+                                <button class="chart-btn reset-zoom"><i class="fas fa-sync-alt"></i></button>
+                            </div>
+                            <canvas id="energyEfficiencyChart"></canvas>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <div class="chart-header">
+                                <h3 class="card-title"><i class="fas fa-tools"></i> Maintenance Forecast</h3>
+                            </div>
+                            <div class="chart-actions">
+                                <button class="chart-btn zoom-in"><i class="fas fa-search-plus"></i></button>
+                                <button class="chart-btn zoom-out"><i class="fas fa-search-minus"></i></button>
+                                <button class="chart-btn reset-zoom"><i class="fas fa-sync-alt"></i></button>
+                            </div>
+                            <canvas id="maintenanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metrics-col">
+                    <div class="metrics-grid-cards-right">
+                        <!-- Timeline Panel -->
+                        <div class="timeline-panel">
+                            <h4><i class="fas fa-stream"></i> Activity Timeline</h4>
+                            <ul class="timeline">
+                                <li><span class="status-dot dot-working"></span><div><strong>10:15 AM</strong> - Crane started operation (Lifting)</div></li>
+                                <li><span class="status-dot dot-error"></span><div><strong>10:05 AM</strong> - CT Motor temperature exceeded threshold (82°C)</div></li>
+                                <li><span class="status-dot dot-idle"></span><div><strong>9:50 AM</strong> - Load weight near capacity limit (5.2t)</div></li>
+                                <li><span class="status-dot dot-idle"></span><div><strong>9:30 AM</strong> - Hoist motor vibration increased by 15%</div></li>
+                                <li><span class="status-dot dot-working"></span><div><strong>8:00 AM</strong> - Crane completed scheduled maintenance</div></li>
+                            </ul>
+                        </div>
+
+                        <!-- Status Panel -->
+                        <div class="status-container">
+                            <h3 class="status-header"><i class="fas fa-cogs"></i> Motor Status</h3>
+                            <div class="status-grid">
+                                <div class="status-item">
+                                    <div class="status-name">
+                                        <span class="status-dot dot-working"></span>
+                                        <span>Hoist</span>
+                                    </div>
+                                    <div class="status-value">Running</div>
+                                    <div class="status-info">Temp: 68°C</div>
+                                </div>
+                                <div class="status-item">
+                                    <div class="status-name">
+                                        <span class="status-dot dot-working"></span>
+                                        <span>CT</span>
+                                    </div>
+                                    <div class="status-value">Running</div>
+                                    <div class="status-info">Temp: 72°C</div>
+                                </div>
+                                <div class="status-item">
+                                    <div class="status-name">
+                                        <span class="status-dot dot-idle"></span>
+                                        <span>LT</span>
+                                    </div>
+                                    <div class="status-value">Idle</div>
+                                    <div class="status-info">Temp: 45°C</div>
+                                </div>
+                                <div class="status-item">
+                                    <div class="status-name">
+                                        <span class="status-dot dot-working"></span>
+                                        <span>Overall</span>
+                                    </div>
+                                    <div class="status-value">Stable</div>
+                                    <div class="status-info">No issues</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Alerts Panel -->
+                        <div class="alerts-container">
+                            <div class="alerts-header">
+                                <h3 class="alerts-title"><i class="fas fa-exclamation-triangle"></i> Active Alerts</h3>
+                                <div class="alerts-count">3</div>
+                            </div>
+                            <div class="alerts-list">
+                                <div class="alert-item">
+                                    <div class="alert-icon alert-icon-danger">
+                                        <i class="fas fa-bolt"></i>
+                                    </div>
+                                    <div class="alert-text">CT Motor temperature exceeded threshold (82°C)</div>
+                                    <div class="alert-time">10 min ago</div>
+                                </div>
+                                <div class="alert-item">
+                                    <div class="alert-icon alert-icon-warning">
+                                        <i class="fas fa-weight-hanging"></i>
+                                    </div>
+                                    <div class="alert-text">Load weight near capacity limit (5.2t)</div>
+                                    <div class="alert-time">25 min ago</div>
+                                </div>
+                                <div class="alert-item">
+                                    <div class="alert-icon alert-icon-warning">
+                                        <i class="fas fa-cog"></i>
+                                    </div>
+                                    <div class="alert-text">Hoist motor vibration increased by 15%</div>
+                                    <div class="alert-time">42 min ago</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load the sidebar
+            fetch('sidebar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('sidebar-container').innerHTML = data;
+                    initializeSidebar(); // Call this after loading
+                });
+
+            function initializeSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                
+                if (sidebar && sidebarToggle) {
+                    sidebarToggle.addEventListener('click', function() {
+                        sidebar.classList.toggle('expanded');
+                        document.querySelector('.dashboard-container').classList.toggle('sidebar-expanded');
+                    });
+
+                    // Dropdown functionality
+                    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                        toggle.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const dropdown = this.closest('.dropdown');
+                            const menu = dropdown.querySelector('.dropdown-menu');
+                            
+                            // Close all other dropdowns
+                            closeAllDropdownsExcept(menu, this);
+                            
+                            // Toggle current dropdown
+                            menu.classList.toggle('show');
+                            this.classList.toggle('show');
+                        });
+                    });
+
+                    // Function to close all dropdowns
+                    function closeAllDropdowns() {
+                        document.querySelectorAll('.dropdown-menu').forEach(m => {
+                            m.classList.remove('show');
+                        });
+                        document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                            t.classList.remove('show');
+                        });
+                    }
+
+                    // Function to close all dropdowns except a specific one
+                    function closeAllDropdownsExcept(exceptMenu = null, exceptToggle = null) {
+                        document.querySelectorAll('.dropdown-menu').forEach(m => {
+                            if (m !== exceptMenu) m.classList.remove('show');
+                        });
+                        document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                            if (t !== exceptToggle) t.classList.remove('show');
+                        });
+                    }
+
+                    // Close dropdowns when sidebar is collapsed
+                    sidebarToggle.addEventListener('click', function() {
+                        if (!sidebar.classList.contains('expanded')) {
+                            closeAllDropdowns();
+                        }
+                    });
+
+                    // Also close dropdowns when clicking outside
+                    document.addEventListener('click', function(e) {
+                        if (!e.target.closest('.dropdown')) {
+                            closeAllDropdowns();
+                        }
+                    });
+                }
+            }
+
+            // Initialize charts and other functionality
+            Chart.register(ChartZoom);
+            // Initialize charts
+            const charts = {};
+            
+            // Set default dates (today and 7 days ago)
+            const today = new Date();
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(today.getDate() - 7);
+            
+            // Format dates for input fields (YYYY-MM-DD)
+            const formatDateForInput = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+            
+            // Set default date values
+            document.getElementById('startDate').value = formatDateForInput(sevenDaysAgo);
+            document.getElementById('endDate').value = formatDateForInput(today);
+            
+            // Generate time labels based on date range
+            const generateDateLabels = (startDate, endDate) => {
+                const labels = [];
+                const currentDate = new Date(startDate);
+                
+                // Check if it's the same day
+                const isSameDay = startDate.toDateString() === endDate.toDateString();
+                
+                if (isSameDay) {
+                    // Generate hourly labels for the same day
+                    for (let hour = 0; hour < 24; hour++) {
+                        const time = new Date(startDate);
+                        time.setHours(hour, 0, 0, 0);
+                        labels.push(time);
+                    }
+                } else {
+                    // Generate daily labels for date range
+                    while (currentDate <= endDate) {
+                        labels.push(new Date(currentDate));
+                        currentDate.setDate(currentDate.getDate() + 1);
+                    }
+                }
+                
+                return { labels, isSameDay };
+            };
+            
+            // Format labels based on whether we're showing days or hours
+            const formatLabel = (date, isSameDay) => {
+                if (isSameDay) {
+                    return date.toLocaleTimeString('en-US', { hour: '2-digit', hour12: true });
+                } else {
+                    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                }
+            };
+            
+            // Generate random data for the date range
+            const generateRandomData = (count, min, max) => {
+                return Array.from({length: count}, () => Math.floor(Math.random() * (max - min + 1)) + min);
+            };
+            
+            // Generate random current data with more variability
+            const generateCurrentData = (count, base, variability) => {
+                return Array.from({length: count}, () => {
+                    return base + (Math.random() * variability * 2 - variability);
+                });
+            };
+            
+            // Generate vibration data with more sensitivity
+            const generateVibrationData = (count, base, variability) => {
+                return Array.from({length: count}, () => {
+                    return Math.max(0, base + (Math.random() * variability * 2 - variability));
+                });
+            };
+            
+            // Generate efficiency data
+            const generateEfficiencyData = (count, base, variability) => {
+                return Array.from({length: count}, () => {
+                    return Math.max(50, Math.min(95, base + (Math.random() * variability * 2 - variability)));
+                });
+            };
+            
+            // Initialize all charts
+            const initCharts = (startDate, endDate) => {
+                const { labels, isSameDay } = generateDateLabels(startDate, endDate);
+                const formattedLabels = labels.map(d => formatLabel(d, isSameDay));
+                
+                // Common chart options with dynamic x-axis format
+                const getChartOptions = (yAxisLabel) => {
+                    return {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    title: function(context) {
+                                        return context[0].label;
+                                    }
+                                }
+                            },
+                            zoom: {
+                                zoom: {
+                                    wheel: {
+                                        enabled: true
+                                    },
+                                    pinch: {
+                                        enabled: true
+                                    },
+                                    mode: 'xy'
+                                },
+                                pan: {
+                                    enabled: true,
+                                    mode: 'xy'
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    callback: function(value) {
+                                        if (isSameDay) {
+                                            return this.getLabelForValue(value).replace(' AM', '').replace(' PM', '');
+                                        }
+                                        return this.getLabelForValue(value);
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: false,
+                                title: {
+                                    display: true,
+                                    text: yAxisLabel
+                                }
+                            }
+                        }
+                    };
+                };
+                
+                // Initialize Load Chart
+                const loadChartCtx = document.getElementById('loadChart').getContext('2d');
+                if (charts.load) charts.load.destroy();
+                charts.load = new Chart(loadChartCtx, {
+                    type: 'line',
+                    data: {
+                        labels: formattedLabels,
+                        datasets: [
+                            {
+                                label: 'Load (kg)',
+                                data: generateRandomData(labels.length, 1000, 5000),
+                                borderColor: '#3498db',
+                                backgroundColor: '#3498db20',
+                                borderWidth: 2,
+                                tension: 0.3,
+                                fill: true,
+                                pointRadius: 3,
+                                pointHoverRadius: 5
+                            },
+                            { // Capacity line
+                                data: Array(labels.length).fill(5000),
+                                borderColor: '#e74c3c',
+                                borderWidth: 1,
+                                borderDash: [5, 5],
+                                fill: false,
+                                pointRadius: 0,
+                                label: 'Capacity'
+                            }
+                        ]
+                    },
+                    options: getChartOptions('Load (kg)')
+                });
+                
+                // Initialize Temperature Chart
+                const tempChartCtx = document.getElementById('tempChart').getContext('2d');
+                if (charts.temp) charts.temp.destroy();
+                charts.temp = new Chart(tempChartCtx, {
+                    type: 'line',
+                    data: {
+                        labels: formattedLabels,
+                        datasets: [
+                            {
+                                label: 'Average Temperature (°C)',
+                                data: generateRandomData(labels.length, 50, 30),
+                                borderColor: '#e74c3c',
+                                backgroundColor: '#e74c3c20',
+                                borderWidth: 2,
+                                tension: 0.1,
+                                fill: true,
+                                pointRadius: 3,
+                                pointHoverRadius: 5
+                            },
+                            { // Threshold line
+                                data: Array(labels.length).fill(80),
+                                borderColor: '#e74c3c',
+                                borderWidth: 1,
+                                borderDash: [5, 5],
+                                fill: false,
+                                pointRadius: 0,
+                                label: 'Warning Level'
+                            }
+                        ]
+                    },
+                    options: getChartOptions('Temperature (°C)')
+                });
+                
+                // Initialize Vibration Chart
+                const vibrationChartCtx = document.getElementById('vibrationChart').getContext('2d');
+                if (charts.vibration) charts.vibration.destroy();
+                charts.vibration = new Chart(vibrationChartCtx, {
+                    type: 'line',
+                    data: {
+                        labels: formattedLabels,
+                        datasets: [
+                            {
+                                label: 'Average Vibration (mm/s)',
+                                data: generateVibrationData(labels.length, 1.5, 1),
+                                borderColor: '#9b59b6',
+                                backgroundColor: '#9b59b620',
+                                borderWidth: 2,
+                                tension: 0.1,
+                                fill: true,
+                                pointRadius: 3,
+                                pointHoverRadius: 5
+                            },
+                            { // Threshold line
+                                data: Array(labels.length).fill(3),
+                                borderColor: '#e74c3c',
+                                borderWidth: 1,
+                                borderDash: [5, 5],
+                                fill: false,
+                                pointRadius: 0,
+                                label: 'Warning Level'
+                            }
+                        ]
+                    },
+                    options: getChartOptions('Vibration (mm/s)')
+                });
+                
+                // Initialize Energy Efficiency Chart
+                const energyEfficiencyChartCtx = document.getElementById('energyEfficiencyChart').getContext('2d');
+                if (charts.energyEfficiency) charts.energyEfficiency.destroy();
+                charts.energyEfficiency = new Chart(energyEfficiencyChartCtx, {
+                    type: 'line',
+                    data: {
+                        labels: formattedLabels,
+                        datasets: [
+                            {
+                                label: 'Energy Consumption (kW)',
+                                data: generateRandomData(labels.length, 40, 20),
+                                borderColor: '#16a085',
+                                backgroundColor: '#16a08520',
+                                borderWidth: 2,
+                                tension: 0.1,
+                                fill: true,
+                                pointRadius: 3,
+                                pointHoverRadius: 5,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Efficiency (%)',
+                                data: generateEfficiencyData(labels.length, 80, 10),
+                                borderColor: '#2ecc71',
+                                backgroundColor: '#2ecc7120',
+                                borderWidth: 2,
+                                tension: 0.1,
+                                fill: true,
+                                pointRadius: 3,
+                                pointHoverRadius: 5,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            },
+                            zoom: {
+                                zoom: {
+                                    wheel: {
+                                        enabled: true
+                                    },
+                                    pinch: {
+                                        enabled: true
+                                    },
+                                    mode: 'xy'
+                                },
+                                pan: {
+                                    enabled: true,
+                                    mode: 'xy'
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    maxRotation: 45,
+                                    minRotation: 45,
+                                    callback: function(value) {
+                                        if (isSameDay) {
+                                            return this.getLabelForValue(value).replace(' AM', '').replace(' PM', '');
+                                        }
+                                        return this.getLabelForValue(value);
+                                    }
+                                }
+                            },
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Energy (kW)'
+                                },
+                                min: 20,
+                                max: 70
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Efficiency (%)'
+                                },
+                                grid: {
+                                    drawOnChartArea: false
+                                },
+                                min: 50,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+                
+                // Initialize Predictive Maintenance Chart
+                const maintenanceChartCtx = document.getElementById('maintenanceChart').getContext('2d');
+                if (charts.maintenance) charts.maintenance.destroy();
+                
+                // Generate maintenance forecast data
+                const maintenanceData = Array(labels.length).fill(0).map((_, i) => {
+                    const daysFromStart = i;
+                    // Simulate increasing maintenance need over time
+                    return Math.min(100, Math.max(0, 20 + (daysFromStart * 5) + (Math.random() * 10 - 5)));
+                });
+                
+                charts.maintenance = new Chart(maintenanceChartCtx, {
+                    type: 'line',
+                    data: {
+                        labels: formattedLabels,
+                        datasets: [
+                            {
+                                label: 'Maintenance Need Index',
+                                data: maintenanceData,
+                                borderColor: '#f39c12',
+                                backgroundColor: '#f39c1220',
+                                borderWidth: 2,
+                                tension: 0.3,
+                                fill: true,
+                                pointRadius: 3,
+                                pointHoverRadius: 5,
+                                pointBackgroundColor: '#f39c12'
+                            },
+                            { // Warning threshold
+                                data: Array(labels.length).fill(70),
+                                borderColor: '#f39c12',
+                                borderWidth: 1,
+                                borderDash: [5, 5],
+                                fill: false,
+                                pointRadius: 0,
+                                label: 'Warning Level'
+                            },
+                            { // Critical threshold
+                                data: Array(labels.length).fill(85),
+                                borderColor: '#e74c3c',
+                                borderWidth: 1,
+                                borderDash: [5, 5],
+                                fill: false,
+                                pointRadius: 0,
+                                label: 'Critical Level'
+                            }
+                        ]
+                    },
+                    options: getChartOptions('Maintenance Index')
+                });
+            };
+            
+            // Initial chart setup with default dates
+            initCharts(sevenDaysAgo, today);
+            
+            // Store charts globally for controls
+            window.charts = charts;
+            
+            // Set up date range filter
+            document.getElementById('applyDateRange').addEventListener('click', function() {
+                const startDate = new Date(document.getElementById('startDate').value);
+                const endDate = new Date(document.getElementById('endDate').value);
+                
+                // Validate dates
+                if (startDate > endDate) {
+                    alert('End date must be after start date');
+                    return;
+                }
+                
+                // Initialize new charts with selected date range
+                initCharts(startDate, endDate);
+            });
+            
+            // Set up zoom controls
+            document.querySelectorAll('.zoom-in').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const chartId = this.closest('.chart-container').querySelector('canvas').id.replace('Chart', '');
+                    if (charts[chartId]) {
+                        charts[chartId].zoom(1.1);
+                    }
+                });
+            });
+
+            document.querySelectorAll('.zoom-out').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const chartId = this.closest('.chart-container').querySelector('canvas').id.replace('Chart', '');
+                    if (charts[chartId]) {
+                        charts[chartId].zoom(0.9);
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.reset-zoom').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const chartId = this.closest('.chart-container').querySelector('canvas').id.replace('Chart', '');
+                    if (charts[chartId]) {
+                        charts[chartId].resetZoom();
+                    }
+                });
+            });
+            
+            // Load crane data
+            loadCraneData();
+            
+            function loadCraneData() {
+                // Get crane ID from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const craneId = urlParams.get('id') || 'CRN-002';
+                
+                // Sample crane data
+                const craneData = {
+                    name: `Gantry Crane ${craneId.slice(-1)}`,
+                    status: 'Working',
+                    operatingStatus: 'ON',
+                    craneNumber: `Crane #${craneId.slice(-1)}`,
+                    dutyCycle: `${Math.floor(Math.random() * 30) + 70}%`,
+                    loadWeight: `${(Math.random() * 3 + 4).toFixed(1)}`,
+                    loadDuration: `${Math.floor(Math.random() * 5) + 1}h ${Math.floor(Math.random() * 60)}m`,
+                    powerValue: `${(Math.random() * 20 + 40).toFixed(1)}`,
+                    voltageValue: '415V',
+                    hoistStatus: 'Running',
+                    ctStatus: 'Running',
+                    ltStatus: 'Idle',
+                    hoistTemp: `${Math.floor(Math.random() * 20) + 60}`,
+                    ctTemp: `${Math.floor(Math.random() * 20) + 65}`,
+                    ltTemp: `${Math.floor(Math.random() * 15) + 40}`
+                };
+                
+                // Update DOM with crane data
+                document.getElementById('craneName').textContent = craneData.name;
+                document.getElementById('craneStatusBadge').textContent = craneData.status;
+                
+                // Update last updated timestamp
+                document.getElementById('lastUpdated').textContent = new Date().toLocaleString('en-US', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            }
+        });
+    </script>
+</body>
+</html>

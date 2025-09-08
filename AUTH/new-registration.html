@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CraneIQ Pro - Complete Registration</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --error-color: #e74c3c;
+            --success-color: #2ecc71;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .logo {
+            margin-bottom: 30px;
+        }
+        
+        .logo h2 {
+            color: var(--dark-color);
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .logo p {
+            color: var(--dark-color);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+        
+        .verified-info {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: #2ecc71;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .verified-info i {
+            margin-right: 5px;
+        }
+        
+        .form .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .input-field {
+            position: relative;
+        }
+        
+        .input-field input {
+            width: 100%;
+            padding: 12px 15px 12px 40px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .input-field input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .input-field i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--dark-color);
+            opacity: 0.6;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 4px;
+            border: none;
+            background-color: #3498db;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: var(--dark-color);
+            opacity: 0.7;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .error {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+            display: block;
+        }
+        
+        .success {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: #2ecc71;
+            display: block;
+        }
+        
+        .password-strength {
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: var(--dark-color);
+            opacity: 0.7;
+        }
+        
+        .strength-meter {
+            height: 5px;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .strength-meter-fill {
+            height: 100%;
+            width: 0%;
+            background-color: #e74c3c;
+            transition: width 0.3s, background-color 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h2>CraneIQ Pro</h2>
+            <p>Complete Your Registration</p>
+        </div>
+        
+        <div class="verified-info">
+            <i class="fas fa-check-circle"></i>
+            <span id="verifiedIdentifier"></span> verified
+        </div>
+        
+        <div class="message" id="message"></div>
+        
+        <form class="form" id="registrationForm">
+            <div class="input-group">
+                <label for="fullName">Full Name</label>
+                <div class="input-field">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="fullName" name="fullName" placeholder="Enter your full name" required>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label for="password">Password</label>
+                <div class="input-field">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" name="password" placeholder="Create a password" required>
+                </div>
+                <div class="password-strength">
+                    Password strength: <span id="strengthText">Weak</span>
+                    <div class="strength-meter">
+                        <div class="strength-meter-fill" id="strengthMeter"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <div class="input-field">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" required>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn">Complete Registration</button>
+        </form>
+        
+        <div class="footer">
+            <p>© 2025 CraneIQ Pro. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script>
+        // Display verified identifier
+        const identifier = sessionStorage.getItem('signupIdentifier');
+        const method = sessionStorage.getItem('signupMethod');
+        
+        document.getElementById('verifiedIdentifier').textContent = method === 'mobile' ? 
+            `Mobile number +XXX-XXX-${identifier.slice(-4)}` : `Email ${identifier}`;
+        
+        // Password strength meter
+        const passwordInput = document.getElementById('password');
+        const strengthText = document.getElementById('strengthText');
+        const strengthMeter = document.getElementById('strengthMeter');
+        
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            let strength = 0;
+            
+            // Length check
+            if (password.length >= 8) strength += 1;
+            if (password.length >= 12) strength += 1;
+            
+            // Character variety checks
+            if (/[A-Z]/.test(password)) strength += 1;
+            if (/[0-9]/.test(password)) strength += 1;
+            if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+            
+            // Update strength meter
+            let width = 0;
+            let color = '#e74c3c'; // Error color
+            let text = 'Weak';
+            
+            if (strength >= 4) {
+                width = 100;
+                color = '#2ecc71'; // Success color
+                text = 'Strong';
+            } else if (strength >= 2) {
+                width = 66;
+                color = '#f39c12'; // Warning color
+                text = 'Medium';
+            } else if (strength >= 1) {
+                width = 33;
+                text = 'Weak';
+            }
+            
+            strengthMeter.style.width = `${width}%`;
+            strengthMeter.style.backgroundColor = color;
+            strengthText.textContent = text;
+            strengthText.style.color = color;
+        });
+        
+        // Form submission
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const fullName = document.getElementById('fullName').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                document.getElementById('message').textContent = 'Passwords do not match!';
+                document.getElementById('message').className = 'message error';
+                return;
+            }
+            
+            // Validate password strength (simple check)
+            if (password.length < 8) {
+                document.getElementById('message').textContent = 'Password must be at least 8 characters long!';
+                document.getElementById('message').className = 'message error';
+                return;
+            }
+            
+            // Store registration data (in real app, this would send to server)
+            sessionStorage.setItem('registrationName', fullName);
+            sessionStorage.setItem('registrationPassword', password);
+            
+            // Show success message
+            document.getElementById('message').textContent = 'Registration complete! Redirecting...';
+            document.getElementById('message').className = 'message success';
+            
+            // Redirect to waiting approval page
+            setTimeout(() => {
+                window.location.href = 'waiting-approval.html';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

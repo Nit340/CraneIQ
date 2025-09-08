@@ -1,0 +1,2444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Gateway Type</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --gray-color: #95a5a6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            min-height: 100vh;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        .container.sidebar-expanded {
+            grid-template-columns: 250px 1fr;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 20px 0;
+            position: relative;
+            z-index: 10;
+            width: 60px;
+            transition: width 0.3s ease, background-color 0.2s ease;
+            overflow: hidden;
+        }
+
+        .sidebar:hover {
+            width: 250px;
+        }
+
+        .sidebar:hover .nav-link span {
+            display: inline;
+            opacity: 1;
+        }
+
+        .sidebar.expanded {
+            width: 250px;
+        }
+
+        .sidebar.expanded .nav-link span {
+            display: inline;
+            opacity: 1;
+        }
+
+        .logo {
+            text-align: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+
+        .nav-link {
+            color: inherit;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px 15px;
+        }
+
+        .nav-item.active .nav-link {
+            color: white;
+        }
+
+        .nav-item:hover .nav-link {
+            color: white;
+        }
+
+        .nav-menu {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 100px);
+            justify-content: space-between;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+        }
+
+        .nav-item i {
+            width: 30px;
+            text-align: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .nav-link span {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            margin-left: 10px;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .page-title {
+            margin-bottom: 20px;
+        }
+
+        .page-title h1 {
+            font-size: 1.8rem;
+            color: var(--dark-color);
+        }
+
+        .page-title p {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary {
+            background-color: var(--gray-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        /* Form Container */
+        .table-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 15px;
+            overflow-x: auto;
+        }
+
+        /* Section Styles */
+        .section {
+            margin-bottom: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 15px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            color: var(--dark-color);
+            font-weight: 600;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        /* Gateway Type Header */
+        .gateway-type-header {
+            background-color: var(--light-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-color);
+            position: relative;
+        }
+
+        .gateway-type-header h2 {
+            color: var(--dark-color);
+            margin-bottom: 10px;
+        }
+
+        .gateway-type-header .form-group {
+            max-width: 500px;
+        }
+
+        .required-field::after {
+            content: " *";
+            color: var(--danger-color);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 600px;
+            max-width: 90%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray-color);
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Dropdown menu styles */
+        .dropdown-menu {
+            display: none;
+            padding-left: 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+            max-height: 200px;
+        }
+
+        .dropdown-item {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .dropdown-item i {
+            margin-right: 10px;
+        }
+
+        .dropdown-toggle .dropdown-icon {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .dropdown-toggle.show .dropdown-icon,
+        .sidebar:hover .dropdown-toggle.show .dropdown-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Close dropdowns when sidebar is collapsed */
+        .sidebar:not(:hover):not(.expanded) .dropdown-menu {
+            display: none !important;
+            max-height: 0 !important;
+            padding: 0 !important;
+        }
+
+        .sidebar:not(:hover):not(.expanded) .dropdown-toggle.show .dropdown-icon {
+            transform: rotate(0deg) !important;
+        }
+
+        /* Account Dropdown */
+        .user-info-wrapper {
+            --primary-color: #4361ee;
+            --danger-color: #ef233c;
+            --text-color: #2b2d42;
+            --hover-bg: #f8f9fa;
+            --transition-speed: 0.25s;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .account-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .account-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+        }
+
+        .account-trigger:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .account-trigger:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        .account-trigger .fa-user-circle {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .account-trigger span {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .account-trigger .fa-caret-down {
+            font-size: 0.75rem;
+            transition: transform var(--transition-speed);
+        }
+
+        .account-trigger.active .fa-caret-down {
+            transform: rotate(180deg);
+        }
+
+        .account-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.5rem);
+            background-color: white;
+            min-width: 180px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem 0;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-10px);
+            visibility: hidden;
+            transition:
+                opacity var(--transition-speed) ease,
+                transform var(--transition-speed) ease;
+        }
+
+        .account-menu.show {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .account-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 1rem;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition:
+                background-color var(--transition-speed),
+                color var(--transition-speed);
+        }
+
+        .account-menu-item:hover,
+        .account-menu-item:focus {
+            background-color: var(--hover-bg);
+            color: var(--primary-color);
+            outline: none;
+        }
+
+        .account-menu-item i {
+            width: 1.25rem;
+            text-align: center;
+            color: inherit;
+        }
+
+        .account-menu-divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 0.5rem 0;
+        }
+
+        .logout-account-btn {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font: inherit;
+            color: inherit;
+        }
+
+        .logout-account-btn:hover,
+        .logout-account-btn:focus {
+            color: var(--danger-color) !important;
+        }
+
+        .account-menu-item.plan-info {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            font-weight: 600;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .account-menu-item.plan-info i {
+            margin-right: 8px;
+        }
+
+        /* Different colors for different plans */
+        .plan-basic {
+            color: var(--primary-color);
+        }
+
+        .plan-advanced {
+            color: var(--success-color);
+        }
+
+        .plan-pro {
+            color: gold;
+        }
+
+        .customer-logo {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Notification Modal Styles */
+        .notification-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .notification-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+
+        .notification-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .notification-icon.success {
+            color: var(--success-color);
+        }
+
+        .notification-icon.warning {
+            color: var(--warning-color);
+        }
+
+        .notification-icon.error {
+            color: var(--danger-color);
+        }
+
+        .notification-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark-color);
+        }
+
+        .notification-message {
+            margin-bottom: 20px;
+            color: var(--dark-color);
+        }
+
+        .notification-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Confirmation Modal Styles */
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .confirmation-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .confirmation-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--dark-color);
+        }
+
+        .confirmation-message {
+            margin-bottom: 20px;
+            color: var(--dark-color);
+        }
+
+        .confirmation-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Existing Gateway Types Table */
+        .existing-types-section {
+            margin-top: 30px;
+            display: none; /* Initially hidden */
+        }
+
+        .existing-types-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .existing-types-table th,
+        .existing-types-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .existing-types-table th {
+            background-color: var(--light-color);
+            font-weight: 600;
+        }
+
+        .existing-types-table tr:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .table-btn {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .table-btn-edit {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .table-btn-delete {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        /* Field item styling */
+        .field-item {
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+        }
+
+        .field-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .field-title {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .field-properties {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        /* Enhanced field modal styling */
+        .field-config-group {
+            margin-bottom: 15px;
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            background-color: #f9f9f9;
+        }
+
+        .field-config-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .field-config-title i {
+            color: var(--primary-color);
+        }
+
+        /* Validation error styling */
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .input-error {
+            border-color: var(--danger-color) !important;
+        }
+
+        /* Protocol-specific fields */
+        .protocol-fields {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            background-color: #f9f9f9;
+        }
+
+        .protocol-fields.active {
+            display: block;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .field-properties {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 95%;
+            }
+        }
+        
+        /* Toggle switch for required field */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            margin-left: 10px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+ 
+        .field-edit-btn {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .field-edit-btn:hover {
+            background-color: var(--secondary-color);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="mainContainer">
+        <!-- Sidebar Navigation -->
+        <div id="sidebar-container"></div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <div class="header-logo">CraneIQ</div>
+                </div>
+             
+                <div class="user-info-wrapper">
+                    <div class="account-dropdown">
+                        <div class="account-trigger" id="accountDropdownTrigger">
+                            <div class="customer-logo">H</div>
+                            <span>Hilton (Pro Plan)</span>
+                            <i class="fas fa-caret-down"></i>
+                        </div>
+                        <div class="account-menu" id="accountDropdownMenu">
+                            <div class="account-menu-item plan-info">
+                                <i class="fas fa-crown" style="color: gold;"></i>
+                                <span>Pro Plan</span>
+                            </div>
+                            <div class="account-menu-divider"></div>
+                            <a href="#" class="account-menu-item">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="#" class="account-menu-item">
+                                <i class="fas fa-sync-alt"></i> Upgrade Plan
+                            </a>
+                            <div class="account-menu-divider"></div>
+                            <button id="accountLogoutBtn" class="account-menu-item logout-account-btn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="page-title">
+                <h1>Create New Gateway Type</h1>
+                <p>Define a new gateway type and its properties</p>
+            </div>
+
+            <!-- Gateway Type Name Section -->
+            <div class="gateway-type-header">
+                <h2>Gateway Type Identification</h2>
+                <div class="form-group">
+                    <label for="gateway-type-name" class="required-field">Gateway Type Name</label>
+                    <input type="text" id="gateway-type-name" placeholder="e.g., MQTT Gateway, HTTP Gateway" required>
+                    <div class="error-message" id="gateway-type-name-error">Gateway type name is required</div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="add-section-btn" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Section
+                </button>
+            </div>
+
+            <div class="table-container">
+                <!-- Basic Details Section -->
+                <div class="section" id="basic-details">
+                    <div class="section-header">
+                        <h3 class="section-title">Basic Details</h3>
+                        <div class="section-actions">
+                            <button class="btn btn-primary add-field-basic" data-section="basic-details">
+                                <i class="fas fa-plus"></i> Add Field
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="gateway-name" class="required-field">Gateway Name</label>
+                                <input type="text" id="gateway-name" placeholder="Enter gateway name" required>
+                                <div class="error-message" id="gateway-name-error">Gateway name is required</div>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="device-token" class="required-field">Device Token</label>
+                                <input type="text" id="device-token" placeholder="Enter device token" required>
+                                <div class="error-message" id="device-token-error">Device token is required</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-fields" id="basic-details-fields"></div>
+                </div>
+
+                <!-- Protocol Details Section -->
+                <div class="section" id="protocol-details">
+                    <div class="section-header">
+                        <h3 class="section-title">Protocol Details</h3>
+                    </div>
+                    <div class="form-group">
+                        <label for="protocol" class="required-field">Protocol</label>
+                        <select id="protocol">
+                            <option value="">Select a protocol</option>
+                            <option value="mqtt">MQTT</option>
+                            <option value="http">HTTP</option>
+                            <option value="modbus">Modbus</option>
+                            <option value="opcua">OPC-UA</option>
+                        </select>
+                        <div class="error-message" id="protocol-error">Protocol selection is required</div>
+                    </div>
+
+                  
+                    <!-- MQTT Protocol Fields -->
+<div class="protocol-fields" id="mqtt-fields">
+    <h4>MQTT Configuration</h4>
+    <div class="form-group">
+        <label for="mqtt-broker" class="required-field">Broker URL</label>
+        <input type="text" id="mqtt-broker" placeholder="mqtt://broker.example.com:1883">
+    </div>
+    <div class="form-row">
+        <div class="form-col">
+            <div class="form-group">
+                <label for="mqtt-username">Username</label>
+                <input type="text" id="mqtt-username" placeholder="Enter username">
+            </div>
+        </div>
+        <div class="form-col">
+            <div class="form-group">
+                <label for="mqtt-password">Password</label>
+                <input type="text" id="mqtt-password" placeholder="Enter password">
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="mqtt-topic-pub" class="required-field">Publish Topic</label>
+        <input type="text" id="mqtt-topic-pub" placeholder="e.g., device/data">
+    </div>
+    <div class="form-group">
+        <label for="mqtt-topic-sub" class="required-field">Subscribe Topic</label>
+        <input type="text" id="mqtt-topic-sub" placeholder="e.g., device/control">
+    </div>
+    <div class="form-group">
+        <label for="mqtt-qos">QoS Level</label>
+        <select id="mqtt-qos">
+            <option value="0">0 - At most once</option>
+            <option value="1">1 - At least once</option>
+            <option value="2">2 - Exactly once</option>
+        </select>
+    </div>
+    <!-- MQTT Poll Interval -->
+    <div class="form-group">
+        <label for="mqtt-poll-interval">Poll Interval (ms)</label>
+        <input type="number" id="mqtt-poll-interval" placeholder="Enter poll interval" min="100">
+    </div>
+</div>
+
+<!-- HTTP Protocol Fields -->
+<div class="protocol-fields" id="http-fields">
+    <h4>HTTP Configuration</h4>
+    <div class="form-group">
+        <label for="http-url" class="required-field">API Endpoint URL</label>
+        <input type="text" id="http-url" placeholder="https://api.example.com/data">
+    </div>
+    <div class="form-group">
+        <label for="http-method">HTTP Method</label>
+        <select id="http-method">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="PATCH">PATCH</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="http-auth-type">Authentication Type</label>
+        <select id="http-auth-type">
+            <option value="none">None</option>
+            <option value="basic">Basic Auth</option>
+            <option value="bearer">Bearer Token</option>
+            <option value="api-key">API Key</option>
+        </select>
+    </div>
+    <div class="form-group" id="http-auth-fields">
+        <!-- Dynamic auth fields will be inserted here -->
+    </div>
+    <!-- HTTP Poll Interval -->
+    <div class="form-group">
+        <label for="http-poll-interval">Poll Interval (ms)</label>
+        <input type="number" id="http-poll-interval" placeholder="Enter poll interval" min="100">
+    </div>
+</div>
+
+                    <!-- Modbus Protocol Fields -->
+                    <div class="protocol-fields" id="modbus-fields">
+                        <h4>Modbus Configuration</h4>
+                        <div class="form-group">
+                            <label for="modbus-type" class="required-field">Modbus Type</label>
+                            <select id="modbus-type">
+                                <option value="tcp">Modbus TCP/IP</option>
+                                <option value="rtu">Modbus RTU</option>
+                                <option value="ascii">Modbus ASCII</option>
+                            </select>
+                        </div>
+                        
+                        <!-- TCP/IP Configuration -->
+                        <div class="modbus-config" id="modbus-tcp-config">
+                            <div class="form-group">
+                                <label for="modbus-ip" class="required-field">IP Address</label>
+                                <input type="text" id="modbus-ip" placeholder="192.168.1.100">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="modbus-port" class="required-field">Port</label>
+                                        <input type="number" id="modbus-port" value="502" min="1" max="65535">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="modbus-slave-id" class="required-field">Slave ID</label>
+                                        <input type="number" id="modbus-slave-id" value="1" min="1" max="247">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- RTU/ASCII Configuration -->
+                        <div class="modbus-config" id="modbus-serial-config" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="modbus-serial-port" class="required-field">Serial Port</label>
+                                        <input type="text" id="modbus-serial-port" placeholder="COM1 or /dev/ttyUSB0">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="modbus-baudrate" class="required-field">Baud Rate</label>
+                                        <select id="modbus-baudrate">
+                                            <option value="9600">9600</option>
+                                            <option value="19200">19200</option>
+                                            <option value="38400">38400</option>
+                                            <option value="57600">57600</option>
+                                            <option value="115200">115200</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="modbus-parity">Parity</label>
+                                        <select id="modbus-parity">
+                                            <option value="none">None</option>
+                                            <option value="even">Even</option>
+                                            <option value="odd">Odd</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="modbus-data-bits">Data Bits</label>
+                                        <input type="number" id="modbus-data-bits" value="8" min="5" max="8">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="modbus-stop-bits">Stop Bits</label>
+                                        <input type="number" id="modbus-stop-bits" value="1" min="1" max="2" step="0.5">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="modbus-slave-id-serial" class="required-field">Slave ID</label>
+                                <input type="number" id="modbus-slave-id-serial" value="1" min="1" max="247">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modbus-timeout">Timeout (ms)</label>
+                            <input type="number" id="modbus-timeout" value="5000" min="100">
+                        </div>
+                    </div>
+
+                    <!-- OPC-UA Protocol Fields -->
+                    <div class="protocol-fields" id="opcua-fields">
+                        <h4>OPC-UA Configuration</h4>
+                        <div class="form-group">
+                            <label for="opcua-endpoint" class="required-field">Endpoint URL</label>
+                            <input type="text" id="opcua-endpoint" placeholder="opc.tcp://localhost:4840">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="opcua-security-mode">Security Mode</label>
+                            <select id="opcua-security-mode">
+                                <option value="None">None</option>
+                                <option value="Sign">Sign</option>
+                                <option value="SignAndEncrypt">Sign and Encrypt</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="opcua-security-policy">Security Policy</label>
+                            <select id="opcua-security-policy">
+                                <option value="None">None</option>
+                                <option value="Basic128Rsa15">Basic128Rsa15</option>
+                                <option value="Basic256">Basic256</option>
+                                <option value="Basic256Sha256">Basic256Sha256</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="opcua-auth-mode">Authentication Mode</label>
+                            <select id="opcua-auth-mode">
+                                <option value="Anonymous">Anonymous</option>
+                                <option value="UsernamePassword">Username/Password</option>
+                                <option value="Certificate">Certificate</option>
+                            </select>
+                        </div>
+                        
+                        <div id="opcua-auth-fields" style="display: none;">
+                            <div class="form-row" id="opcua-user-pass-fields" style="display: none;">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="opcua-username">Username</label>
+                                        <input type="text" id="opcua-username" placeholder="Enter username">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="opcua-password">Password</label>
+                                        <input type="password" id="opcua-password" placeholder="Enter password">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" id="opcua-certificate-fields" style="display: none;">
+                                <label for="opcua-certificate">Certificate File</label>
+                                <input type="file" id="opcua-certificate">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="opcua-timeout">Timeout (ms)</label>
+                            <input type="number" id="opcua-timeout" value="10000" min="1000">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="opcua-reconnect-interval">Reconnect Interval (ms)</label>
+                            <input type="number" id="opcua-reconnect-interval" value="5000" min="1000">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Sections Container -->
+                <div id="dynamic-sections"></div>
+            </div>
+
+            <!-- Action buttons at the bottom -->
+            <div class="action-buttons" style="margin-top: 20px;">
+                <button id="save-form-btn" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Gateway Type
+                </button>
+                <button id="cancel-btn" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button id="view-existing-btn" class="btn btn-secondary">
+                    <i class="fas fa-list"></i> View Existing Types
+                </button>
+            </div>
+
+            <!-- Gateway Type Table -->
+            <div class="section existing-types-section" id="existing-types-section">
+                <div class="section-header">
+                    <h3 class="section-title">Gateway Types</h3>
+                </div>
+                <table class="existing-types-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Gateway Name</th>
+                            <th>Device Token</th>
+                            <th>Protocol</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="existing-types-body">
+                        <!-- Will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Section Creation -->
+    <div class="modal" id="section-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Section</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="section-name" class="required-field">Section Name</label>
+                    <input type="text" id="section-name" placeholder="Enter section name" required>
+                    <div class="error-message" id="section-name-error">Section name is required</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-section">Cancel</button>
+                <button class="btn btn-primary" id="confirm-section">Add Section</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple Modal for Basic Details Field Creation -->
+    <div class="modal" id="basic-field-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="basic-field-modal-title">Add New Field to Basic Details</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="field-config-group">
+                    <div class="field-config-title">
+                        <i class="fas fa-font"></i>
+                        <span>Basic Information</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="basic-field-name" class="required-field">Field Name</label>
+                        <input type="text" id="basic-field-name" placeholder="Enter field name" required>
+                        <div class="error-message" id="basic-field-name-error">Field name is required</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="basic-field-description">Description</label>
+                        <textarea id="basic-field-description" placeholder="Enter field description" rows="2"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Hidden field to store field ID for editing -->
+                <input type="hidden" id="basic-field-id">
+                
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-basic-field">Cancel</button>
+                <button class="btn btn-primary" id="confirm-basic-field">Add Field</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div class="notification-modal" id="notification-modal">
+        <div class="notification-content">
+            <div class="notification-icon" id="notification-icon">
+                <i class="fas fa-check-circle success"></i>
+            </div>
+            <h3 class="notification-title" id="notification-title">Success!</h3>
+            <p class="notification-message" id="notification-message">Operation completed successfully.</p>
+            <div class="notification-actions">
+                <button class="btn btn-primary" id="notification-ok-btn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="confirmation-modal" id="confirmation-modal">
+        <div class="confirmation-content">
+            <h3 class="confirmation-title" id="confirmation-title">Confirm Action</h3>
+            <p class="confirmation-message" id="confirmation-message">Are you sure you want to perform this action?</p>
+            <div class="confirmation-actions">
+                <button class="btn btn-secondary" id="confirmation-cancel-btn">Cancel</button>
+                <button class="btn btn-primary" id="confirmation-ok-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize sample data for existing gateway types
+            const sampleGatewayTypes = [
+                { id: 'GT001', name: 'MQTT Gateway', gatewayName: 'Main MQTT Gateway', deviceToken: 'tok_mqtt123', protocol: 'MQTT' },
+                { id: 'GT002', name: 'HTTP Gateway', gatewayName: 'HTTP Data Gateway', deviceToken: 'tok_http456', protocol: 'HTTP' },
+                { id: 'GT003', name: 'Modbus Gateway', gatewayName: 'Modbus RTU Gateway', deviceToken: 'tok_modbus789', protocol: 'Modbus' },
+                { id: 'GT004', name: 'OPC-UA Gateway', gatewayName: 'OPC-UA Server Gateway', deviceToken: 'tok_opcua012', protocol: 'OPC-UA' }
+            ];
+
+            // Load the sidebar from sidebar.html
+            fetch('sidebar.html')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load sidebar');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    document.getElementById('sidebar-container').innerHTML = data;
+                    initializeSidebar();
+                })
+                .catch(error => {
+                    console.error('Error loading sidebar:', error);
+                    // Fallback minimal sidebar
+                    document.getElementById('sidebar-container').innerHTML = `
+                        <div class="sidebar" id="sidebar">
+                            <div class="nav-menu">
+                                <div>
+                                    <div class="nav-item">
+                                        <a href="machine.html" class="nav-link">
+                                            <i class="fas fa-cogs"></i>
+                                            <span>Machines</span>
+                                        </a>
+                                    </div>
+                                    <div class="nav-item">
+                                        <a href="device.html" class="nav-link">
+                                            <i class="fas fa-microchip"></i>
+                                            <span>Devices</span>
+                                        </a>
+                                    </div>
+                                    <div class="nav-item active">
+                                        <a href="gateway.html" class="nav-link">
+                                            <i class="fas fa-server"></i>
+                                            <span>Gateways</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    initializeSidebar();
+                });
+
+            function initializeSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                if (!sidebar) return;
+
+                // Toggle sidebar on hover
+                sidebar.addEventListener('mouseenter', function () {
+                    this.classList.add('expanded');
+                    document.querySelector('.container').classList.add('sidebar-expanded');
+                });
+
+                sidebar.addEventListener('mouseleave', function () {
+                    this.classList.remove('expanded');
+                    document.querySelector('.container').classList.remove('sidebar-expanded');
+                });
+
+                // Dropdown functionality
+                document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                    toggle.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const dropdown = this.closest('.dropdown');
+                        const menu = dropdown.querySelector('.dropdown-menu');
+
+                        // Close all other dropdowns
+                        document.querySelectorAll('.dropdown-menu').forEach(m => {
+                            if (m !== menu) m.classList.remove('show');
+                        });
+
+                        // Toggle current dropdown
+                        menu.classList.toggle('show');
+                        this.classList.toggle('show');
+                    });
+                });
+
+                // Close dropdowns when clicking outside
+                document.addEventListener('click', function (e) {
+                    if (!e.target.closest('.dropdown')) {
+                        document.querySelectorAll('.dropdown-menu').forEach(m => {
+                            m.classList.remove('show');
+                        });
+                        document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                            t.classList.remove('show');
+                        });
+                    }
+                });
+            }
+
+            // Account dropdown functionality
+            const accountDropdownTrigger = document.getElementById('accountDropdownTrigger');
+            const accountDropdownMenu = document.getElementById('accountDropdownMenu');
+
+            if (accountDropdownTrigger && accountDropdownMenu) {
+                accountDropdownTrigger.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    accountDropdownMenu.classList.toggle('show');
+                });
+
+                // Close when clicking outside
+                document.addEventListener('click', function () {
+                    accountDropdownMenu.classList.remove('show');
+                });
+            }
+
+            // Logout button functionality
+            const accountLogoutBtn = document.getElementById('accountLogoutBtn');
+            if (accountLogoutBtn) {
+                accountLogoutBtn.addEventListener('click', function () {
+                    if (confirm('Are you sure you want to logout?')) {
+                        // In a real app, you would redirect to logout
+                        showNotification('Logged out successfully!', 'success');
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 1500);
+                    }
+                });
+            }
+
+            // Protocol selection handler
+            const protocolSelect = document.getElementById('protocol');
+            if (protocolSelect) {
+                protocolSelect.addEventListener('change', function() {
+                    // Hide all protocol fields
+                    document.querySelectorAll('.protocol-fields').forEach(field => {
+                        field.classList.remove('active');
+                    });
+                    
+                    // Show selected protocol fields
+                    const selectedProtocol = this.value;
+                    if (selectedProtocol) {
+                        document.getElementById(selectedProtocol + '-fields').classList.add('active');
+                        
+                        // Special handling for Modbus type selection
+                        if (selectedProtocol === 'modbus') {
+                            const modbusType = document.getElementById('modbus-type');
+                            if (modbusType) {
+                                modbusType.addEventListener('change', handleModbusTypeChange);
+                                // Trigger initial setup
+                                handleModbusTypeChange();
+                            }
+                        }
+                        
+                        // Special handling for OPC-UA auth mode
+                        if (selectedProtocol === 'opcua') {
+                            const opcuaAuthMode = document.getElementById('opcua-auth-mode');
+                            if (opcuaAuthMode) {
+                                opcuaAuthMode.addEventListener('change', handleOpcuaAuthModeChange);
+                                // Trigger initial setup
+                                handleOpcuaAuthModeChange();
+                            }
+                        }
+                    }
+                    
+                    // Update HTTP auth fields based on selection
+                    updateHttpAuthFields();
+                });
+            }
+            
+            // HTTP auth type selection handler
+            const httpAuthType = document.getElementById('http-auth-type');
+            if (httpAuthType) {
+                httpAuthType.addEventListener('change', updateHttpAuthFields);
+            }
+            
+            // Function to update HTTP authentication fields
+            function updateHttpAuthFields() {
+                const authType = document.getElementById('http-auth-type').value;
+                const authFieldsContainer = document.getElementById('http-auth-fields');
+                
+                // Clear existing fields
+                authFieldsContainer.innerHTML = '';
+                
+                // Add fields based on auth type
+                switch(authType) {
+                    case 'basic':
+                        authFieldsContainer.innerHTML = `
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="http-username" class="required-field">Username</label>
+                                        <input type="text" id="http-username" placeholder="Enter username">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="http-password" class="required-field">Password</label>
+                                        <input type="password" id="http-password" placeholder="Enter password">
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                    case 'bearer':
+                        authFieldsContainer.innerHTML = `
+                            <div class="form-group">
+                                <label for="http-bearer-token" class="required-field">Bearer Token</label>
+                                <input type="text" id="http-bearer-token" placeholder="Enter bearer token">
+                            </div>
+                        `;
+                        break;
+                    case 'api-key':
+                        authFieldsContainer.innerHTML = `
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="http-api-key" class="required-field">API Key</label>
+                                        <input type="text" id="http-api-key" placeholder="Enter API key">
+                                    </div>
+                                </div>
+                                <div class="form-col">
+                                    <div class="form-group">
+                                        <label for="http-api-key-location">Key Location</label>
+                                        <select id="http-api-key-location">
+                                            <option value="header">Header</option>
+                                            <option value="query">Query Parameter</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" id="http-api-key-name-container">
+                                <label for="http-api-key-name">Key Name</label>
+                                <input type="text" id="http-api-key-name" placeholder="e.g., X-API-Key">
+                            </div>
+                        `;
+                        break;
+                }
+            }
+
+            // Add Modbus type change handler
+            function handleModbusTypeChange() {
+                const modbusType = document.getElementById('modbus-type').value;
+                
+                if (modbusType === 'tcp') {
+                    document.getElementById('modbus-tcp-config').style.display = 'block';
+                    document.getElementById('modbus-serial-config').style.display = 'none';
+                } else {
+                    document.getElementById('modbus-tcp-config').style.display = 'none';
+                    document.getElementById('modbus-serial-config').style.display = 'block';
+                }
+            }
+
+            // Add OPC-UA auth mode change handler
+            function handleOpcuaAuthModeChange() {
+                const authMode = document.getElementById('opcua-auth-mode').value;
+                const authFields = document.getElementById('opcua-auth-fields');
+                
+                // Hide all auth fields first
+                document.getElementById('opcua-user-pass-fields').style.display = 'none';
+                document.getElementById('opcua-certificate-fields').style.display = 'none';
+                
+                if (authMode === 'Anonymous') {
+                    authFields.style.display = 'none';
+                } else {
+                    authFields.style.display = 'block';
+                    
+                    if (authMode === 'UsernamePassword') {
+                        document.getElementById('opcua-user-pass-fields').style.display = 'flex';
+                    } else if (authMode === 'Certificate') {
+                        document.getElementById('opcua-certificate-fields').style.display = 'block';
+                    }
+                }
+            }
+
+            // Modal functionality
+            const sectionModal = document.getElementById('section-modal');
+            const basicFieldModal = document.getElementById('basic-field-modal');
+            const notificationModal = document.getElementById('notification-modal');
+            const confirmationModal = document.getElementById('confirmation-modal');
+
+            // Open section modal
+            document.getElementById('add-section-btn').addEventListener('click', function () {
+                document.getElementById('section-name').value = '';
+                hideError('section-name-error');
+                sectionModal.style.display = 'flex';
+            });
+
+            // Close modals when clicking on close button
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    sectionModal.style.display = 'none';
+                    basicFieldModal.style.display = 'none';
+                });
+            });
+
+            // Close modals when clicking outside
+            window.addEventListener('click', function (event) {
+                if (event.target === sectionModal) {
+                    sectionModal.style.display = 'none';
+                }
+                if (event.target === basicFieldModal) {
+                    basicFieldModal.style.display = 'none';
+                }
+                if (event.target === notificationModal) {
+                    notificationModal.style.display = 'none';
+                }
+                if (event.target === confirmationModal) {
+                    confirmationModal.style.display = 'none';
+                }
+            });
+
+            // Cancel buttons
+            document.getElementById('cancel-section').addEventListener('click', function () {
+                sectionModal.style.display = 'none';
+            });
+
+            document.getElementById('cancel-basic-field').addEventListener('click', function () {
+                basicFieldModal.style.display = 'none';
+            });
+
+            // Confirm section creation
+            document.getElementById('confirm-section').addEventListener('click', function () {
+                const sectionName = document.getElementById('section-name').value.trim();
+                if (!sectionName) {
+                    showError('section-name-error', 'Section name is required');
+                    return;
+                }
+
+                addNewSection(sectionName);
+                sectionModal.style.display = 'none';
+            });
+
+            // Add new section function
+            function addNewSection(sectionName) {
+                const sectionId = sectionName.toLowerCase().replace(/\s+/g, '-');
+                const dynamicSections = document.getElementById('dynamic-sections');
+
+                const newSection = document.createElement('div');
+                newSection.className = 'section';
+                newSection.id = sectionId;
+
+                newSection.innerHTML = `
+                    <div class="section-header">
+                        <h3 class="section-title">${sectionName}</h3>
+                        <div class="section-actions">
+                            <button class="btn btn-primary add-field-basic" data-section="${sectionId}">
+                                <i class="fas fa-plus"></i> Add Field
+                            </button>
+                            <button class="btn btn-danger delete-section" data-section="${sectionId}">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div class="section-fields" id="${sectionId}-fields"></div>
+                `;
+
+                dynamicSections.appendChild(newSection);
+
+                // Add event listeners to the new buttons
+                newSection.querySelector('.add-field-basic').addEventListener('click', function () {
+                    openBasicFieldModal(this.dataset.section);
+                });
+
+                newSection.querySelector('.delete-section').addEventListener('click', function () {
+                    const sectionToDelete = this.dataset.section;
+                    showConfirmation(
+                        'Delete Section',
+                        'Are you sure you want to delete this section? All fields in this section will be lost.',
+                        function () {
+                            document.getElementById(sectionToDelete).remove();
+                        }
+                    );
+                });
+            }
+
+            // Add field to basic details section
+            document.querySelectorAll('.add-field-basic').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    openBasicFieldModal(this.dataset.section);
+                });
+            });
+
+            // Function to open basic field modal
+            function openBasicFieldModal(sectionId) {
+                document.getElementById('basic-field-modal-title').textContent = 'Add New Field to ' + 
+                    (sectionId === 'basic-details' ? 'Basic Details' : document.getElementById(sectionId).querySelector('.section-title').textContent);
+                document.getElementById('basic-field-name').value = '';
+                document.getElementById('basic-field-description').value = '';
+                document.getElementById('basic-field-id').value = '';
+                document.getElementById('confirm-basic-field').textContent = 'Add Field';
+                document.getElementById('confirm-basic-field').dataset.section = sectionId;
+                document.getElementById('confirm-basic-field').dataset.mode = 'add';
+                hideError('basic-field-name-error');
+                basicFieldModal.style.display = 'flex';
+            }
+
+            // Confirm basic field creation
+            document.getElementById('confirm-basic-field').addEventListener('click', function () {
+                const sectionId = this.dataset.section;
+                const fieldName = document.getElementById('basic-field-name').value.trim();
+                
+                if (!fieldName) {
+                    showError('basic-field-name-error', 'Field name is required');
+                    return;
+                }
+
+                const fieldData = {
+                    name: fieldName,
+                    description: document.getElementById('basic-field-description').value.trim()
+                };
+
+                addBasicField(sectionId, fieldData);
+                basicFieldModal.style.display = 'none';
+            });
+
+            // Add basic field function
+            function addBasicField(sectionId, fieldData) {
+                const fieldId = 'field-' + Date.now();
+                const fieldsContainer = document.getElementById(sectionId + '-fields');
+                
+                const fieldItem = document.createElement('div');
+                fieldItem.className = 'field-item';
+                fieldItem.id = fieldId;
+                
+                fieldItem.innerHTML = `
+                    <div class="field-header">
+                        <div class="field-title">${fieldData.name}</div>
+                        <div>
+                            <button class="field-edit-btn" data-section="${sectionId}" data-field="${fieldId}">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-danger" data-section="${sectionId}" data-field="${fieldId}" style="padding: 3px 6px; font-size: 12px;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    ${fieldData.description ? `<p>${fieldData.description}</p>` : ''}
+                `;
+                
+                fieldsContainer.appendChild(fieldItem);
+                
+                // Add event listener to edit button
+                fieldItem.querySelector('.field-edit-btn').addEventListener('click', function() {
+                    const section = this.dataset.section;
+                    const field = this.dataset.field;
+                    const fieldElement = document.getElementById(field);
+                    
+                    const fieldData = {
+                        name: fieldElement.querySelector('.field-title').textContent,
+                        description: fieldElement.querySelector('p') ? fieldElement.querySelector('p').textContent : ''
+                    };
+                    
+                    openBasicFieldModalForEdit(section, field, fieldData);
+                });
+                
+                // Add event listener to delete button
+                fieldItem.querySelector('.btn-danger').addEventListener('click', function() {
+                    const field = this.dataset.field;
+                    document.getElementById(field).remove();
+                });
+            }
+
+            // Open basic field modal for editing
+            function openBasicFieldModalForEdit(sectionId, fieldId, fieldData) {
+                document.getElementById('basic-field-modal-title').textContent = 'Edit Field';
+                document.getElementById('basic-field-name').value = fieldData.name || '';
+                document.getElementById('basic-field-description').value = fieldData.description || '';
+                document.getElementById('basic-field-id').value = fieldId;
+                document.getElementById('confirm-basic-field').textContent = 'Update Field';
+                document.getElementById('confirm-basic-field').dataset.section = sectionId;
+                document.getElementById('confirm-basic-field').dataset.mode = 'edit';
+                hideError('basic-field-name-error');
+                basicFieldModal.style.display = 'flex';
+            }
+
+            // Save form button
+            document.getElementById('save-form-btn').addEventListener('click', function () {
+                if (validateForm()) {
+                    const gatewayTypeData = gatherFormData();
+                    
+                    // Save to localStorage (in a real app, this would be an API call)
+                    saveGatewayType(gatewayTypeData);
+                    
+                    showNotification('Gateway type created successfully!', 'success');
+                    
+                    // Reset form
+                    resetForm();
+                    
+                    // Refresh existing types table
+                    renderExistingGatewayTypes();
+                }
+            });
+
+            // Cancel button
+            document.getElementById('cancel-btn').addEventListener('click', function () {
+                showConfirmation(
+                    'Cancel Creation',
+                    'Are you sure you want to cancel? All unsaved changes will be lost.',
+                    function () {
+                        resetForm();
+                        showNotification('Creation cancelled', 'warning');
+                    }
+                );
+            });
+
+            // View existing types button
+            document.getElementById('view-existing-btn').addEventListener('click', function () {
+                const existingTypesSection = document.getElementById('existing-types-section');
+                if (existingTypesSection.style.display === 'none' || existingTypesSection.style.display === '') {
+                    existingTypesSection.style.display = 'block';
+                    renderExistingGatewayTypes();
+                } else {
+                    existingTypesSection.style.display = 'none';
+                }
+            });
+
+            // Form validation
+            function validateForm() {
+                let isValid = true;
+                
+                // Validate gateway type name
+                const gatewayTypeName = document.getElementById('gateway-type-name').value.trim();
+                if (!gatewayTypeName) {
+                    showError('gateway-type-name-error', 'Gateway type name is required');
+                    isValid = false;
+                } else {
+                    hideError('gateway-type-name-error');
+                }
+                
+                // Validate gateway name
+                const gatewayName = document.getElementById('gateway-name').value.trim();
+                if (!gatewayName) {
+                    showError('gateway-name-error', 'Gateway name is required');
+                    isValid = false;
+                } else {
+                    hideError('gateway-name-error');
+                }
+                
+                // Validate device token
+                const deviceToken = document.getElementById('device-token').value.trim();
+                if (!deviceToken) {
+                    showError('device-token-error', 'Device token is required');
+                    isValid = false;
+                } else {
+                    hideError('device-token-error');
+                }
+                
+                // Validate protocol
+                const protocol = document.getElementById('protocol').value;
+                if (!protocol) {
+                    showError('protocol-error', 'Protocol selection is required');
+                    isValid = false;
+                } else {
+                    hideError('protocol-error');
+                    
+                    // Validate protocol-specific fields
+                    if (protocol === 'mqtt') {
+                        const mqttBroker = document.getElementById('mqtt-broker').value.trim();
+                        const mqttPubTopic = document.getElementById('mqtt-topic-pub').value.trim();
+                        const mqttSubTopic = document.getElementById('mqtt-topic-sub').value.trim();
+                        
+                        if (!mqttBroker) {
+                            showNotification('MQTT broker URL is required', 'error');
+                            isValid = false;
+                        }
+                        if (!mqttPubTopic) {
+                            showNotification('MQTT publish topic is required', 'error');
+                            isValid = false;
+                        }
+                        if (!mqttSubTopic) {
+                            showNotification('MQTT subscribe topic is required', 'error');
+                            isValid = false;
+                        }
+                    } else if (protocol === 'http') {
+                        const httpUrl = document.getElementById('http-url').value.trim();
+                        if (!httpUrl) {
+                            showNotification('HTTP endpoint URL is required', 'error');
+                            isValid = false;
+                        }
+                        
+                        // Validate auth fields based on auth type
+                        const authType = document.getElementById('http-auth-type').value;
+                        if (authType === 'basic') {
+                            const httpUsername = document.getElementById('http-username').value.trim();
+                            const httpPassword = document.getElementById('http-password').value.trim();
+                            if (!httpUsername || !httpPassword) {
+                                showNotification('HTTP basic authentication requires both username and password', 'error');
+                                isValid = false;
+                            }
+                        } else if (authType === 'bearer') {
+                            const httpBearerToken = document.getElementById('http-bearer-token').value.trim();
+                            if (!httpBearerToken) {
+                                showNotification('Bearer token is required', 'error');
+                                isValid = false;
+                            }
+                        } else if (authType === 'api-key') {
+                            const httpApiKey = document.getElementById('http-api-key').value.trim();
+                            if (!httpApiKey) {
+                                showNotification('API key is required', 'error');
+                                isValid = false;
+                            }
+                        }
+                    } else if (protocol === 'modbus') {
+                        const modbusType = document.getElementById('modbus-type').value;
+                        
+                        if (modbusType === 'tcp') {
+                            const modbusIp = document.getElementById('modbus-ip').value.trim();
+                            const modbusPort = document.getElementById('modbus-port').value;
+                            const modbusSlaveId = document.getElementById('modbus-slave-id').value;
+                            
+                            if (!modbusIp) {
+                                showNotification('Modbus IP address is required', 'error');
+                                isValid = false;
+                            }
+                            if (!modbusPort) {
+                                showNotification('Modbus port is required', 'error');
+                                isValid = false;
+                            }
+                            if (!modbusSlaveId) {
+                                showNotification('Modbus slave ID is required', 'error');
+                                isValid = false;
+                            }
+                        } else {
+                            const modbusSerialPort = document.getElementById('modbus-serial-port').value.trim();
+                            const modbusBaudrate = document.getElementById('modbus-baudrate').value;
+                            const modbusSlaveIdSerial = document.getElementById('modbus-slave-id-serial').value;
+                            
+                            if (!modbusSerialPort) {
+                                showNotification('Modbus serial port is required', 'error');
+                                isValid = false;
+                            }
+                            if (!modbusBaudrate) {
+                                showNotification('Modbus baud rate is required', 'error');
+                                isValid = false;
+                            }
+                            if (!modbusSlaveIdSerial) {
+                                showNotification('Modbus slave ID is required', 'error');
+                                isValid = false;
+                            }
+                        }
+                    } else if (protocol === 'opcua') {
+                        const opcuaEndpoint = document.getElementById('opcua-endpoint').value.trim();
+                        if (!opcuaEndpoint) {
+                            showNotification('OPC-UA endpoint URL is required', 'error');
+                            isValid = false;
+                        }
+                        
+                        // Validate auth fields based on auth mode
+                        const authMode = document.getElementById('opcua-auth-mode').value;
+                        if (authMode === 'UsernamePassword') {
+                            const opcuaUsername = document.getElementById('opcua-username').value.trim();
+                            const opcuaPassword = document.getElementById('opcua-password').value.trim();
+                            if (!opcuaUsername || !opcuaPassword) {
+                                showNotification('OPC-UA username/password authentication requires both username and password', 'error');
+                                isValid = false;
+                            }
+                        } else if (authMode === 'Certificate') {
+                            const opcuaCertificate = document.getElementById('opcua-certificate').value;
+                            if (!opcuaCertificate) {
+                                showNotification('OPC-UA certificate is required', 'error');
+                                isValid = false;
+                            }
+                        }
+                    }
+                }
+                
+                return isValid;
+            }
+// Gather form data
+function gatherFormData() {
+    const gatewayTypeName = document.getElementById('gateway-type-name').value.trim();
+    const gatewayName = document.getElementById('gateway-name').value.trim();
+    const deviceToken = document.getElementById('device-token').value.trim();
+    const protocol = document.getElementById('protocol').value;
+    
+    // Gather protocol configuration
+    let protocolConfig = {};
+    if (protocol === 'mqtt') {
+        protocolConfig = {
+            broker: document.getElementById('mqtt-broker').value.trim(),
+            username: document.getElementById('mqtt-username').value.trim(),
+            password: document.getElementById('mqtt-password').value.trim(),
+            publishTopic: document.getElementById('mqtt-topic-pub').value.trim(),
+            subscribeTopic: document.getElementById('mqtt-topic-sub').value.trim(),
+            qos: document.getElementById('mqtt-qos').value,
+            pollInterval: document.getElementById('mqtt-poll-interval').value // Added poll interval
+        };
+    } else if (protocol === 'http') {
+        const authType = document.getElementById('http-auth-type').value;
+        let authConfig = {};
+        
+        if (authType === 'basic') {
+            authConfig = {
+                type: 'basic',
+                username: document.getElementById('http-username').value.trim(),
+                password: document.getElementById('http-password').value.trim()
+            };
+        } else if (authType === 'bearer') {
+            authConfig = {
+                type: 'bearer',
+                token: document.getElementById('http-bearer-token').value.trim()
+            };
+        } else if (authType === 'api-key') {
+            authConfig = {
+                type: 'api-key',
+                key: document.getElementById('http-api-key').value.trim(),
+                location: document.getElementById('http-api-key-location').value,
+                name: document.getElementById('http-api-key-name').value.trim()
+            };
+        }
+        
+        protocolConfig = {
+            url: document.getElementById('http-url').value.trim(),
+            method: document.getElementById('http-method').value,
+            auth: authConfig,
+            pollInterval: document.getElementById('http-poll-interval').value // Added poll interval
+        };
+    } else if (protocol === 'modbus') {
+        const modbusType = document.getElementById('modbus-type').value;
+        
+        if (modbusType === 'tcp') {
+            protocolConfig = {
+                type: 'tcp',
+                ip: document.getElementById('modbus-ip').value.trim(),
+                port: document.getElementById('modbus-port').value,
+                slaveId: document.getElementById('modbus-slave-id').value,
+                timeout: document.getElementById('modbus-timeout').value
+            };
+        } else {
+            protocolConfig = {
+                type: modbusType,
+                serialPort: document.getElementById('modbus-serial-port').value.trim(),
+                baudrate: document.getElementById('modbus-baudrate').value,
+                parity: document.getElementById('modbus-parity').value,
+                dataBits: document.getElementById('modbus-data-bits').value,
+                stopBits: document.getElementById('modbus-stop-bits').value,
+                slaveId: document.getElementById('modbus-slave-id-serial').value,
+                timeout: document.getElementById('modbus-timeout').value
+            };
+        }
+    } else if (protocol === 'opcua') {
+        const authMode = document.getElementById('opcua-auth-mode').value;
+        let authConfig = {};
+        
+        if (authMode === 'UsernamePassword') {
+            authConfig = {
+                type: 'username_password',
+                username: document.getElementById('opcua-username').value.trim(),
+                password: document.getElementById('opcua-password').value.trim()
+            };
+        } else if (authMode === 'Certificate') {
+            authConfig = {
+                type: 'certificate',
+                certificate: document.getElementById('opcua-certificate').value
+            };
+        }
+        
+        protocolConfig = {
+            endpoint: document.getElementById('opcua-endpoint').value.trim(),
+            securityMode: document.getElementById('opcua-security-mode').value,
+            securityPolicy: document.getElementById('opcua-security-policy').value,
+            auth: authConfig,
+            timeout: document.getElementById('opcua-timeout').value,
+            reconnectInterval: document.getElementById('opcua-reconnect-interval').value
+        };
+    }
+    
+    // ... rest of the function remains the same
+
+                
+                // Gather fields from basic details section
+                const basicDetailsFields = [];
+                const basicFieldsContainer = document.getElementById('basic-details-fields');
+                basicFieldsContainer.querySelectorAll('.field-item').forEach(field => {
+                    const fieldName = field.querySelector('.field-title').textContent;
+                    const description = field.querySelector('p') ? field.querySelector('p').textContent : '';
+                    basicDetailsFields.push({ name: fieldName, description: description });
+                });
+                
+                // Gather dynamic sections
+                const dynamicSections = [];
+                document.getElementById('dynamic-sections').querySelectorAll('.section').forEach(section => {
+                    const sectionName = section.querySelector('.section-title').textContent;
+                    const sectionId = section.id;
+                    
+                    const sectionFields = [];
+                    section.querySelectorAll('.field-item').forEach(field => {
+                        const fieldName = field.querySelector('.field-title').textContent;
+                        const description = field.querySelector('p') ? field.querySelector('p').textContent : '';
+                        sectionFields.push({ name: fieldName, description: description });
+                    });
+                    
+                    dynamicSections.push({ name: sectionName, fields: sectionFields });
+                });
+                
+                return {
+                    id: 'GT' + Date.now(),
+                    name: gatewayTypeName,
+                    gatewayName: gatewayName,
+                    deviceToken: deviceToken,
+                    protocol: protocol,
+                    protocolConfig: protocolConfig,
+                    basicDetailsFields: basicDetailsFields,
+                    dynamicSections: dynamicSections,
+                    createdAt: new Date().toISOString()
+                };
+            }
+
+            // Save gateway type to localStorage
+            function saveGatewayType(gatewayTypeData) {
+                try {
+                    // Get existing gateway types or initialize empty array
+                    const existingTypes = JSON.parse(localStorage.getItem('gatewayTypes')) || [];
+                    
+                    // Add new gateway type
+                    existingTypes.push(gatewayTypeData);
+                    
+                    // Save back to localStorage
+                    localStorage.setItem('gatewayTypes', JSON.stringify(existingTypes));
+                    
+                    return true;
+                } catch (error) {
+                    console.error('Error saving gateway type:', error);
+                    showNotification('Error saving gateway type', 'error');
+                    return false;
+                }
+            }
+
+            // Reset form
+            function resetForm() {
+                document.getElementById('gateway-type-name').value = '';
+                document.getElementById('gateway-name').value = '';
+                document.getElementById('device-token').value = '';
+                document.getElementById('protocol').value = '';
+                
+                // Hide all protocol fields
+                document.querySelectorAll('.protocol-fields').forEach(field => {
+                    field.classList.remove('active');
+                });
+    document.getElementById('mqtt-broker').value = '';
+    document.getElementById('mqtt-username').value = '';
+    document.getElementById('mqtt-password').value = '';
+    document.getElementById('mqtt-topic-pub').value = '';
+    document.getElementById('mqtt-topic-sub').value = '';
+    document.getElementById('mqtt-qos').value = '0';
+    document.getElementById('mqtt-poll-interval').value = ''; // Added reset for MQTT poll interval
+    
+    // Reset HTTP fields
+    document.getElementById('http-url').value = '';
+    document.getElementById('http-method').value = 'GET';
+    document.getElementById('http-auth-type').value = 'none';
+    document.getElementById('http-poll-interval').value = ''; // Added reset for HTTP poll interval
+                
+                // Reset Modbus fields
+                document.getElementById('modbus-type').value = 'tcp';
+                document.getElementById('modbus-ip').value = '';
+                document.getElementById('modbus-port').value = '502';
+                document.getElementById('modbus-slave-id').value = '1';
+                document.getElementById('modbus-serial-port').value = '';
+                document.getElementById('modbus-baudrate').value = '9600';
+                document.getElementById('modbus-parity').value = 'none';
+                document.getElementById('modbus-data-bits').value = '8';
+                document.getElementById('modbus-stop-bits').value = '1';
+                document.getElementById('modbus-slave-id-serial').value = '1';
+                document.getElementById('modbus-timeout').value = '5000';
+                
+                // Reset OPC-UA fields
+                document.getElementById('opcua-endpoint').value = '';
+                document.getElementById('opcua-security-mode').value = 'None';
+                document.getElementById('opcua-security-policy').value = 'None';
+                document.getElementById('opcua-auth-mode').value = 'Anonymous';
+                document.getElementById('opcua-username').value = '';
+                document.getElementById('opcua-password').value = '';
+                document.getElementById('opcua-certificate').value = '';
+                document.getElementById('opcua-timeout').value = '10000';
+                document.getElementById('opcua-reconnect-interval').value = '5000';
+                
+                // Clear all fields from sections
+                document.getElementById('basic-details-fields').innerHTML = '';
+                
+                // Clear dynamic sections
+                document.getElementById('dynamic-sections').innerHTML = '';
+            }
+
+            // Render existing gateway types
+            function renderExistingGatewayTypes() {
+                const tableBody = document.getElementById('existing-types-body');
+                tableBody.innerHTML = '';
+                
+                // Get gateway types from localStorage or use sample data
+                let gatewayTypes = [];
+                try {
+                    gatewayTypes = JSON.parse(localStorage.getItem('gatewayTypes')) || sampleGatewayTypes;
+                } catch (error) {
+                    console.error('Error loading gateway types:', error);
+                    gatewayTypes = sampleGatewayTypes;
+                }
+                
+                if (gatewayTypes.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td colspan="6" style="text-align: center;">No gateway types found</td>`;
+                    tableBody.appendChild(row);
+                    return;
+                }
+                
+                gatewayTypes.forEach(type => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${type.id}</td>
+                        <td>${type.name}</td>
+                        <td>${type.gatewayName}</td>
+                        <td>${type.deviceToken}</td>
+                        <td>${type.protocol}</td>
+                        <td class="table-actions">
+                            <button class="table-btn table-btn-edit" data-id="${type.id}">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="table-btn table-btn-delete" data-id="${type.id}">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+                // Add event listeners to edit and delete buttons
+                document.querySelectorAll('.table-btn-edit').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const typeId = this.dataset.id;
+                        showNotification(`Editing gateway type ${typeId}`, 'success');
+                        // In a real app, you would load the gateway type data into the form
+                    });
+                });
+                
+                document.querySelectorAll('.table-btn-delete').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const typeId = this.dataset.id;
+                        showConfirmation(
+                            'Delete Gateway Type',
+                            `Are you sure you want to delete gateway type ${typeId}?`,
+                            function() {
+                                // In a real app, you would delete the gateway type
+                                showNotification(`Gateway type ${typeId} deleted`, 'success');
+                                renderExistingGatewayTypes();
+                            }
+                        );
+                    });
+                });
+            }
+
+            // Show error message
+            function showError(elementId, message) {
+                const errorElement = document.getElementById(elementId);
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+                
+                // Add error class to input
+                const inputId = elementId.replace('-error', '');
+                const inputElement = document.getElementById(inputId);
+                if (inputElement) {
+                    inputElement.classList.add('input-error');
+                }
+            }
+
+            // Hide error message
+            function hideError(elementId) {
+                const errorElement = document.getElementById(elementId);
+                errorElement.style.display = 'none';
+                
+                // Remove error class from input
+                const inputId = elementId.replace('-error', '');
+                const inputElement = document.getElementById(inputId);
+                if (inputElement) {
+                    inputElement.classList.remove('input-error');
+                }
+            }
+
+            // Show notification
+            function showNotification(message, type) {
+                const notificationIcon = document.getElementById('notification-icon');
+                const notificationTitle = document.getElementById('notification-title');
+                const notificationMessage = document.getElementById('notification-message');
+                
+                // Set icon and title based on type
+                if (type === 'success') {
+                    notificationIcon.innerHTML = '<i class="fas fa-check-circle success"></i>';
+                    notificationTitle.textContent = 'Success!';
+                } else if (type === 'warning') {
+                    notificationIcon.innerHTML = '<i class="fas fa-exclamation-triangle warning"></i>';
+                    notificationTitle.textContent = 'Warning!';
+                } else {
+                    notificationIcon.innerHTML = '<i class="fas fa-times-circle error"></i>';
+                    notificationTitle.textContent = 'Error!';
+                }
+                
+                notificationMessage.textContent = message;
+                notificationModal.style.display = 'flex';
+            }
+
+            // Show confirmation dialog
+            function showConfirmation(title, message, confirmCallback) {
+                const confirmationTitle = document.getElementById('confirmation-title');
+                const confirmationMessage = document.getElementById('confirmation-message');
+                
+                confirmationTitle.textContent = title;
+                confirmationMessage.textContent = message;
+                
+                // Set up confirm button
+                const confirmButton = document.getElementById('confirmation-ok-btn');
+                confirmButton.onclick = function() {
+                    confirmationModal.style.display = 'none';
+                    if (confirmCallback) confirmCallback();
+                };
+                
+                confirmationModal.style.display = 'flex';
+            }
+
+            // Notification OK button
+            document.getElementById('notification-ok-btn').addEventListener('click', function() {
+                notificationModal.style.display = 'none';
+            });
+
+            // Confirmation cancel button
+            document.getElementById('confirmation-cancel-btn').addEventListener('click', function() {
+                confirmationModal.style.display = 'none';
+            });
+
+            // Initialize the page
+            function init() {
+                // Add event listeners to form inputs to clear errors when typing
+                document.getElementById('gateway-type-name').addEventListener('input', function() {
+                    hideError('gateway-type-name-error');
+                });
+                
+                document.getElementById('gateway-name').addEventListener('input', function() {
+                    hideError('gateway-name-error');
+                });
+                
+                document.getElementById('device-token').addEventListener('input', function() {
+                    hideError('device-token-error');
+                });
+                
+                document.getElementById('protocol').addEventListener('change', function() {
+                    hideError('protocol-error');
+                });
+                
+                // Initially hide the existing types section
+                document.getElementById('existing-types-section').style.display = 'none';
+            }
+
+            // Run initialization
+            init();
+        });
+    </script>
+</body>
+
+</html>

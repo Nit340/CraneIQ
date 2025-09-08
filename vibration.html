@@ -1,0 +1,2212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crane Monitoring - Vibration Monitoring</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-gauge@0.3.0/dist/chartjs-gauge.min.js"></script>
+    <style>
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2980b9;
+    --success-color: #2ecc71;
+    --warning-color: #f39c12;
+    --danger-color: #e74c3c;
+    --light-color: #ecf0f1;
+    --dark-color: #2c3e50;
+    --gray-color: #95a5a6;
+    --pulley-color: #9b59b6;
+    --wheels-color: #f1c40f;
+    --hook-color: #1abc9c;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f5f7fa;
+    color: #333;
+    overflow-x: hidden;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    min-height: 100vh;
+    transition: grid-template-columns 0.3s ease;
+}
+
+.container.sidebar-expanded {
+    grid-template-columns: 250px 1fr;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    background-color: var(--dark-color);
+    color: white;
+    padding: 20px 0;
+    position: relative;
+    z-index: 10;
+    width: 60px;
+    transition: width 0.3s ease;
+    overflow: hidden;
+}
+
+.sidebar:hover {
+    width: 250px;
+}
+
+.sidebar:hover .nav-link span {
+    display: inline;
+    opacity: 1;
+}
+
+.sidebar.expanded {
+    width: 250px;
+}
+
+.sidebar.expanded .nav-link span {
+    display: inline;
+    opacity: 1;
+}
+
+.logo {
+    text-align: center;
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: none;
+}
+
+.nav-menu {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 100px);
+    justify-content: space-between;
+}
+
+.nav-item {
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.nav-item:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.nav-item.active {
+    background-color: var(--primary-color);
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 15px;
+}
+
+.nav-item.active .nav-link {
+    color: white;
+}
+
+.nav-item:hover .nav-link {
+    color: white;
+}
+
+.nav-link i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.nav-link span {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    margin-left: 10px;
+}
+
+/* Main Content */
+.main-content {
+    padding: 20px;
+    width: 100%;
+    transition: all 0.3s ease;
+    overflow-x: auto;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.page-title {
+    margin-bottom: 20px;
+}
+
+.page-title h1 {
+    font-size: 1.8rem;
+    color: var(--dark-color);
+    margin-bottom: 5px;
+}
+
+.page-title p {
+    font-size: 0.9rem;
+    color: var(--gray-color);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Filter Controls */
+.log-controls {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 20px;
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.filter-group {
+    margin-bottom: 0;
+}
+
+.filter-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.filter-select, .filter-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    align-self: flex-end;
+}
+
+.btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+}
+
+.btn-secondary {
+    background-color: white;
+    color: var(--dark-color);
+    border: 1px solid #ddd;
+}
+
+.btn-secondary:hover {
+    background-color: #f8f9fa;
+}
+
+/* Overview Panel */
+.overview-panel {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 20px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.overview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.overview-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--dark-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.overview-chart {
+    height: 350px;
+    margin-bottom: 20px;
+    min-width: 300px;
+    width: 100%;
+}
+
+.parameter-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.parameter-card {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.parameter-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 10px 0;
+    color: var(--dark-color);
+}
+
+.parameter-label {
+    font-size: 0.9rem;
+    color: var(--gray-color);
+}
+
+.parameter-unit {
+    font-size: 0.8rem;
+    color: var(--gray-color);
+    margin-top: 5px;
+}
+
+/* Component vibration panels */
+.component-panel {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 20px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.component-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.component-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--dark-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.component-status {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.axis-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.axis-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid transparent;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.axis-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.axis-btn.active {
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.axis-btn[data-axis="all"] {
+    background-color: var(--dark-color);
+    color: white;
+}
+
+.axis-btn[data-axis="all"].active {
+    background-color: var(--dark-color);
+    border-color: var(--dark-color);
+}
+
+.axis-btn[data-axis="x"] {
+    border-color: #3498db;
+    color: #3498db;
+}
+
+.axis-btn[data-axis="x"].active {
+    background-color: #3498db;
+    color: white;
+}
+
+.axis-btn[data-axis="y"] {
+    border-color: #2ecc71;
+    color: #2ecc71;
+}
+
+.axis-btn[data-axis="y"].active {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.axis-btn[data-axis="z"] {
+    border-color: #e74c3c;
+    color: #e74c3c;
+}
+
+.axis-btn[data-axis="z"].active {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.axis-btn i {
+    font-size: 0.9rem;
+}
+
+.combined-chart {
+    height: 300px;
+    margin-bottom: 20px;
+    min-width: 300px;
+    width: 100%;
+}
+
+.vibration-meters {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.vibration-meter {
+    height: 180px;
+    position: relative;
+    min-width: 150px;
+}
+
+.meter-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    font-weight: bold;
+    z-index: 2;
+}
+
+/* Status indicators */
+.status-normal {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-monitoring {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+/* Settings Panel Styles */
+.settings-container {
+    display: none;
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 400px;
+    height: 100vh;
+    background-color: white;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 20px;
+    transition: transform 0.3s ease;
+}
+
+.settings-container.show {
+    display: block;
+    transform: translateX(0);
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.settings-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.close-settings {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--gray-color);
+}
+
+.settings-section {
+    margin-bottom: 25px;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--dark-color);
+}
+
+.settings-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--dark-color);
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5);
+    z-index: 999;
+}
+
+.overlay.show {
+    display: block;
+}
+
+/* Dropdown menu styles */
+.dropdown-menu {
+    display: none;
+    padding-left: 20px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.dropdown-menu.show {
+    display: block;
+    max-height: 200px;
+}
+
+.dropdown-item {
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-item i {
+    margin-right: 10px;
+}
+
+.dropdown-toggle .dropdown-icon {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+}
+
+.dropdown-toggle.show .dropdown-icon,
+.sidebar:hover .dropdown-toggle.show .dropdown-icon {
+    transform: rotate(180deg);
+}
+
+/* Close dropdowns when sidebar is collapsed */
+.sidebar:not(:hover):not(.expanded) .dropdown-menu {
+    display: none !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+}
+
+.sidebar:not(:hover):not(.expanded) .dropdown-toggle.show .dropdown-icon {
+    transform: rotate(0deg) !important;
+}
+
+/* Account Dropdown */
+.user-info-wrapper {
+    --primary-color: #4361ee;
+    --danger-color: #ef233c;
+    --text-color: #2b2d42;
+    --hover-bg: #f8f9fa;
+    --transition-speed: 0.25s;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.account-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.account-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+}
+
+.account-trigger:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.account-trigger:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.account-trigger .fa-user-circle {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.account-trigger span {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.account-trigger .fa-caret-down {
+    font-size: 0.75rem;
+    transition: transform var(--transition-speed);
+}
+
+.account-trigger.active .fa-caret-down {
+    transform: rotate(180deg);
+}
+
+.account-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    background-color: white;
+    min-width: 180px;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 0;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-10px);
+    visibility: hidden;
+    transition: 
+        opacity var(--transition-speed) ease,
+        transform var(--transition-speed) ease;
+}
+
+.account-menu.show {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+.account-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: 
+        background-color var(--transition-speed),
+        color var(--transition-speed);
+}
+
+.account-menu-item:hover,
+.account-menu-item:focus {
+    background-color: var(--hover-bg);
+    color: var(--primary-color);
+}
+
+.account-menu-item i {
+    width: 1.25rem;
+    text-align: center;
+    color: inherit;
+}
+
+.account-menu-divider {
+    height: 1px;
+    background-color: #e9ecef;
+    margin: 0.5rem 0;
+}
+
+.logout-account-btn {
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+
+.logout-account-btn:hover,
+.logout-account-btn:focus {
+    color: var(--danger-color) !important;
+}
+
+.account-menu-item.plan-info {
+    background-color: #f8f9fa;
+    color: var(--dark-color);
+    font-weight: 600;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.account-menu-item.plan-info i {
+    margin-right: 8px;
+}
+
+/* Different colors for different plans */
+.plan-basic { color: var(--primary-color); }
+.plan-advanced { color: var(--success-color); }
+.plan-pro { color: gold; }
+
+.customer-logo {
+    width:30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 5px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification-success {
+    background-color: var(--success-color);
+}
+
+.notification-error {
+    background-color: var(--danger-color);
+}
+
+/* Settings dropdown without arrow */
+.settings-dropdown .dropdown-icon {
+    display: none;
+}
+
+/* Component grid layout */
+.components-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 20px;
+}
+
+.component-panel {
+    min-width: 0; /* Allows panels to shrink below min-content */
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .parameter-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .vibration-meters {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .components-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
+    
+    .sidebar {
+        display: none;
+    }
+    
+    .log-controls {
+        grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+        grid-column: 1;
+        justify-content: flex-start;
+    }
+    
+    .vibration-meters {
+        grid-template-columns: 1fr;
+    }
+    
+    .parameter-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .overview-chart,
+    .combined-chart {
+        height: 250px;
+    }
+    
+    .settings-container {
+        width: 100%;
+    }
+    
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .header-left, .header-right {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .page-title {
+        order: -1;
+        width: 100%;
+    }
+    
+    .components-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Ensure content resizes with sidebar */
+@media (min-width: 769px) {
+    .container.sidebar-expanded .main-content {
+        width: calc(100vw - 250px);
+    }
+    
+    .container:not(.sidebar-expanded) .main-content {
+        width: calc(100vw - 60px);
+    }
+    
+    .overview-panel,
+    .component-panel {
+        max-width: 100%;
+    }
+}
+
+/* Chart specific adjustments */
+canvas {
+    max-width: 100%;
+    height: auto !important;
+}
+</style>
+</head>
+<body>
+ <div class="container" id="mainContainer">
+              <!-- Sidebar Navigation -->
+     <div id="sidebar-container"></div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <div class="header-logo">CraneIQ</div>
+                </div>
+              
+                <div class="header-right">
+                    <div class="user-info-wrapper">
+                        <div class="account-dropdown">
+                            <div class="account-trigger" id="accountDropdownTrigger">
+                               <img src="image/houzz.png" class="customer-logo">
+                                <span>Hilton (Pro Plan)</span>
+                                <i class="fas fa-caret-down"></i>
+                            </div>
+                            <div class="account-menu" id="accountDropdownMenu">
+                                <div class="account-menu-item plan-info">
+                                    <i class="fas fa-crown" style="color: gold;"></i>
+                                    <span>Pro Plan</span>
+                                </div>
+                                <div class="account-menu-divider"></div>
+                                <a href="#" class="account-menu-item">
+                                    <i class="fas fa-user"></i> Profile
+                                </a>
+                                <a href="#" class="account-menu-item">
+                                    <i class="fas fa-sync-alt"></i> Upgrade Plan
+                                </a>
+                                <div class="account-menu-divider"></div>
+                                <button id="accountLogoutBtn" class="account-menu-item logout-account-btn">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </button>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+              <div class="page-title">
+                    <h1>Vibration Monitoring</h1>
+                    <p>Real-time vibration analysis of crane components</p>
+                </div>
+            
+            <!-- Filter Controls -->
+            <div class="log-controls">
+                <div class="filter-group">
+                    <label class="filter-label">Crane</label>
+                    <select class="filter-select" id="crane-filter">
+                        <option value="all">All Cranes</option>
+                        <option value="CRN-001" selected>EOT Crane #1 (CRN-001)</option>
+                        <option value="CRN-002">EOT Crane #2 (CRN-002)</option>
+                        <option value="CRN-003">EOT Crane #3 (CRN-003)</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Date Range</label>
+                    <select class="filter-select" id="date-filter">
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary" id="applyFilters">
+                        <i class="fas fa-filter"></i>
+                        Apply Filters
+                    </button>
+                    <button class="btn btn-secondary" id="resetFilters">
+                        <i class="fas fa-redo"></i>
+                        Reset
+                    </button>
+                    <button id="openSettings" class="btn btn-primary">
+                            <i class="fas fa-cog"></i> Settings
+                        </button>
+                </div>
+            </div>
+            
+            <!-- Overview Panel -->
+            <div class="overview-panel">
+                <div class="overview-header">
+                    <div class="overview-title">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Vibration Overview</span>
+                    </div>
+                    <div class="component-status status-monitoring">Monitoring</div>
+                </div>
+                
+                <div class="overview-chart">
+                    <canvas id="overviewChart"></canvas>
+                </div>
+                
+                <div class="parameter-cards">
+                    <div class="parameter-card">
+                        <div class="parameter-label">Peak Acceleration</div>
+                        <div class="parameter-value">2.8</div>
+                        <div class="parameter-unit">m/s² RMS</div>
+                    </div>
+                    <div class="parameter-card">
+                        <div class="parameter-label">Velocity</div>
+                        <div class="parameter-value">4.2</div>
+                        <div class="parameter-unit">mm/s RMS</div>
+                    </div>
+                    <div class="parameter-card">
+                        <div class="parameter-label">Displacement</div>
+                        <div class="parameter-value">0.12</div>
+                        <div class="parameter-unit">mm P-P</div>
+                    </div>
+                    <div class="parameter-card">
+                        <div class="parameter-label">Dominant Frequency</div>
+                        <div class="parameter-value">12.5</div>
+                        <div class="parameter-unit">Hz</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Components Grid -->
+            <div class="components-grid">
+                <!-- Hoist Motor Panel -->
+                <div class="component-panel">
+                    <div class="component-header">
+                        <div class="component-name">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Hoist Motor</span>
+                        </div>
+                        <div class="component-status status-warning">Warning</div>
+                    </div>
+                    
+                    <div class="axis-controls">
+                        <button class="axis-btn active" data-axis="all">
+                            <i class="fas fa-layer-group"></i>
+                            All Axes
+                        </button>
+                        <button class="axis-btn" data-axis="x">
+                            <i class="fas fa-arrows-alt-h"></i>
+                            X-Axis
+                        </button>
+                        <button class="axis-btn" data-axis="y">
+                            <i class="fas fa-arrows-alt-v"></i>
+                            Y-Axis
+                        </button>
+                        <button class="axis-btn" data-axis="z">
+                            <i class="fas fa-arrow-right"></i>
+                            Z-Axis
+                        </button>
+                    </div>
+                    
+                    <div class="combined-chart">
+                        <canvas id="hoistCombinedChart"></canvas>
+                    </div>
+                    
+                    <div class="vibration-meters">
+                        <div class="vibration-meter">
+                            <canvas id="hoistXMeter"></canvas>
+                            <div class="meter-value" id="hoistXValue">2.1</div>
+                        </div>
+                        <div class="vibration-meter">
+                            <canvas id="hoistYMeter"></canvas>
+                            <div class="meter-value" id="hoistYValue">3.8</div>
+                        </div>
+                        <div class="vibration-meter">
+                            <canvas id="hoistZMeter"></canvas>
+                            <div class="meter-value" id="hoistZValue">1.9</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Travel Motor Panel -->
+                <div class="component-panel">
+                    <div class="component-header">
+                        <div class="component-name">
+                            <i class="fas fa-arrows-alt-h"></i>
+                            <span>Travel Motor</span>
+                        </div>
+                        <div class="component-status status-normal">Normal</div>
+                    </div>
+                    
+                    <div class="axis-controls">
+                        <button class="axis-btn active" data-axis="all">
+                            <i class="fas fa-layer-group"></i>
+                            All Axes
+                        </button>
+                        <button class="axis-btn" data-axis="x">
+                            <i class="fas fa-arrows-alt-h"></i>
+                            X-Axis
+                        </button>
+                        <button class="axis-btn" data-axis="y">
+                            <i class="fas fa-arrows-alt-v"></i>
+                            Y-Axis
+                        </button>
+                        <button class="axis-btn" data-axis="z">
+                            <i class="fas fa-arrow-right"></i>
+                            Z-Axis
+                        </button>
+                    </div>
+                    
+                    <div class="combined-chart">
+                        <canvas id="travelCombinedChart"></canvas>
+                    </div>
+                    
+                    <div class="vibration-meters">
+                        <div class="vibration-meter">
+                            <canvas id="travelXMeter"></canvas>
+                            <div class="meter-value" id="travelXValue">1.7</div>
+                        </div>
+                        <div class="vibration-meter">
+                            <canvas id="travelYMeter"></canvas>
+                            <div class="meter-value" id="travelYValue">1.3</div>
+                        </div>
+                        <div class="vibration-meter">
+                            <canvas id="travelZMeter"></canvas>
+                            <div class="meter-value" id="travelZValue">1.4</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Trolley Motor Panel -->
+                <div class="component-panel">
+                    <div class="component-header">
+                        <div class="component-name">
+                            <i class="fas fa-arrows-alt"></i>
+                            <span>Trolley Motor</span>
+                        </div>
+                        <div class="component-status status-danger">Critical</div>
+                    </div>
+                    
+                    <div class="axis-controls">
+                        <button class="axis-btn active" data-axis="all">
+                            <i class="fas fa-layer-group"></i>
+                            All Axes
+                        </button>
+                        <button class="axis-btn" data-axis="x">
+                            <i class="fas fa-arrows-alt-h"></i>
+                            X-Axis
+                        </button>
+                        <button class="axis-btn" data-axis="y">
+                            <i class="fas fa-arrows-alt-v"></i>
+                            Y-Axis
+                        </button>
+                        <button class="axis-btn" data-axis="z">
+                            <i class="fas fa-arrow-right"></i>
+                            Z-Axis
+                        </button>
+                    </div>
+                    
+                    <div class="combined-chart">
+                        <canvas id="trolleyCombinedChart"></canvas>
+                    </div>
+                    
+                    <div class="vibration-meters">
+                        <div class="vibration-meter">
+                            <canvas id="trolleyXMeter"></canvas>
+                            <div class="meter-value" id="trolleyXValue">2.9</div>
+                        </div>
+                        <div class="vibration-meter">
+                            <canvas id="trolleyYMeter"></canvas>
+                            <div class="meter-value" id="trolleyYValue">3.1</div>
+                        </div>
+                        <div class="vibration-meter">
+                            <canvas id="trolleyZMeter"></canvas>
+                            <div class="meter-value" id="trolleyZValue">7.6</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gearbox Panel -->
+                <div class="component-panel">
+                    <div class="component-header">
+                        <div class="component-name">
+                            <i class="fas fa-cogs"></i>
+                            <span>Gearbox</span>
+                        </div>
+                        <div class="component-status status-normal">Normal</div>
+                    </div>
+                    
+                    <div class="axis-controls">
+                        <button class="axis-btn active" data-axis="all">
+                            <i class="fas fa-layer-group"></i>
+                            All Axes
+                        </button>
+                        <button class="axis-btn" data-axis="x">
+                            <i class="fas fa-arrows-alt-h"></i>
+                            X-Axis
+                        </button>
+                        <button class="axis-btn" data-axis="y">
+                            <i class="fas fa-arrows-alt-v"></i>
+                            Y-Axis
+                        </button>
+                        <button class="axis-btn" data-axis="z">
+                            <i class="fas fa-arrow-right"></i>
+                            Z-Axis
+                        </button>
+                    </div>
+                    
+                    <div class="combined-chart">
+                        <canvas id="gearboxCombinedChart"></canvas>
+                    </div>
+                    
+                    <div class="vibration-meters">
+                        <div class="vibration-meter">
+                            <canvas id="gearboxXMeter"></canvas>
+                            <div class="meter-value" id="gearboxXValue">2.4</div>
+                        </div>
+                        <div class="vibration-meter">
+                            <canvas id="gearboxYMeter"></canvas>
+                            <div class="meter-value" id="gearboxYValue">2.9</div>
+                        </div>
+                        <div class="vibration-meter">
+                            <canvas id="gearboxZMeter"></canvas>
+                            <div class="meter-value" id="gearboxZValue">4.1</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pulley Panel -->
+                <div class="component-panel">
+                    <div class="component-header">
+                        <div class="component-name">
+                            <i class="fas fa-circle-notch"></i>
+                            <span>Pulley</span>
+                        </div>
+                        <div class="component-status status-warning">Warning</div>
+                    </div>
+                    
+                    <div class="axis-controls">
+                        <button class="axis-btn active" data-axis="all">
+                            <i class="fas fa-layer-group"></i>
+                            All Axes
+                        </button>
+                        <button class="axis-btn" data-axis="x">
+                            <i class="fas fa-arrows-alt-h"></i>
+                            X-Axis
+                        </button>
+                        <button class="axis-btn" data-axis="y">
+                            <i class="fas fa-arrows-alt-v"></i>
+                            Y-Axis
+                        </button>
+                        <button class="axis-btn" data-axis="z">
+                            <i class="fas fa-arrow-right"></i>
+                            Z-Axis
+                        </button>
+                    </div>
+                    
+                    <div class="combined-chart">
+                        <canvas id="pulleyCombinedChart"></canvas>
+                    </div>
+                    
+                    <div class="vibration-meters">
+                        <div class="vibration-meter">
+                            <canvas id="pulleyXMeter"></canvas>
+                            <div class="meter-value" id="pulleyXValue">3.2</div>
+                        </div>
+                        <div class="vibration-meter">
+                            <canvas id="pulleyYMeter"></canvas>
+                            <div class="meter-value" id="pulleyYValue">4.5</div>
+                        </div>
+                        <div class="vibration-meter">
+                            <canvas id="pulleyZMeter"></canvas>
+                            <div class="meter-value" id="pulleyZValue">2.8</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Wheels Panel -->
+                <div class="component-panel">
+                    <div class="component-header">
+                        <div class="component-name">
+                            <i class="fas fa-cog"></i>
+                            <span>Wheels</span>
+                        </div>
+                        <div class="component-status status-normal">Normal</div>
+                    </div>
+                    
+                    <div class="axis-controls">
+                        <button class="axis-btn active" data-axis="all">
+                            <i class="fas fa-layer-group"></i>
+                            All Axes
+                        </button>
+                        <button class="axis-btn" data-axis="x">
+                            <i class="fas fa-arrows-alt-h"></i>
+                            X-Axis
+                        </button>
+                        <button class="axis-btn" data-axis="y">
+                            <i class="fas fa-arrows-alt-v"></i>
+                            Y-Axis
+                        </button>
+                        <button class="axis-btn" data-axis="z">
+                            <i class="fas fa-arrow-right"></i>
+                            Z-Axis
+                        </button>
+                    </div>
+                    
+                    <div class="combined-chart">
+                        <canvas id="wheelsCombinedChart"></canvas>
+                    </div>
+                    
+                    <div class="vibration-meters">
+                        <div class="vibration-meter">
+                            <canvas id="wheelsXMeter"></canvas>
+                            <div class="meter-value" id="wheelsXValue">1.9</div>
+                        </div>
+                        <div class="vibration-meter">
+                            <canvas id="wheelsYMeter"></canvas>
+                            <div class="meter-value" id="wheelsYValue">2.3</div>
+                        </div>
+                        <div class="vibration-meter">
+                            <canvas id="wheelsZMeter"></canvas>
+                            <div class="meter-value" id="wheelsZValue">1.7</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Hook Panel -->
+                <div class="component-panel">
+                    <div class="component-header">
+                        <div class="component-name">
+                            <i class="fas fa-link"></i>
+                            <span>Hook</span>
+                        </div>
+                        <div class="component-status status-normal">Normal</div>
+                    </div>
+                    
+                    <div class="axis-controls">
+                        <button class="axis-btn active" data-axis="all">
+                            <i class="fas fa-layer-group"></i>
+                            All Axes
+                        </button>
+                        <button class="axis-btn" data-axis="x">
+                            <i class="fas fa-arrows-alt-h"></i>
+                            X-Axis
+                        </button>
+                        <button class="axis-btn" data-axis="y">
+                            <i class="fas fa-arrows-alt-v"></i>
+                            Y-Axis
+                        </button>
+                        <button class="axis-btn" data-axis="z">
+                            <i class="fas fa-arrow-right"></i>
+                            Z-Axis
+                        </button>
+                    </div>
+                    
+                    <div class="combined-chart">
+                        <canvas id="hookCombinedChart"></canvas>
+                    </div>
+                    
+                    <div class="vibration-meters">
+                        <div class="vibration-meter">
+                            <canvas id="hookXMeter"></canvas>
+                            <div class="meter-value" id="hookXValue">1.2</div>
+                        </div>
+                        <div class="vibration-meter">
+                            <canvas id="hookYMeter"></canvas>
+                            <div class="meter-value" id="hookYValue">1.5</div>
+                        </div>
+                        <div class="vibration-meter">
+                            <canvas id="hookZMeter"></canvas>
+                            <div class="meter-value" id="hookZValue">0.9</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Panel -->
+    <div class="overlay" id="settingsOverlay"></div>
+    
+    <div class="settings-container" id="settingsPanel">
+        <div class="settings-header">
+            <h3 class="settings-title">Settings</h3>
+            <button class="close-settings" id="closeSettings">&times;</button>
+        </div>
+        
+        <div class="settings-section">
+            <h4 class="section-title">Crane Configuration</h4>
+            <div class="settings-form">
+                <div class="form-group">
+                    <label class="form-label">Crane ID</label>
+                    <select class="form-control">
+                        <option>CRN-001</option>
+                        <option>CRN-002</option>
+                        <option>CRN-003</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Site</label>
+                    <select class="form-control">
+                        <option>Site A</option>
+                        <option>Site B</option>
+                        <option>Site C</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <h4 class="section-title">Components</h4>
+            <div class="settings-form">
+                <div class="form-group">
+                    <label class="form-label">Component</label>
+                    <select class="form-control">
+                        <option>LT Drive</option>
+                        <option>Hoist</option>
+                        <option>CT Motor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sub-Components</label>
+                    <select class="form-control">
+                        <option>Motor</option>
+                        <option>Gearbox</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Monitor Mode</label>
+                    <select class="form-control">
+                        <option>Decoupled</option>
+                        <option>Coupled</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button class="btn btn-secondary" id="cancelSettings">Cancel</button>
+            <button class="btn btn-primary" id="saveSettings">Save</button>
+        </div>
+    </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load the sidebar
+        fetch('sidebar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('sidebar-container').innerHTML = data;
+                initializeSidebar(); // Call this after loading
+            });
+
+        function initializeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            
+            if (sidebar && sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('expanded');
+                    document.querySelector('.container').classList.toggle('sidebar-expanded');
+                });
+
+                // Dropdown functionality
+                document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                    toggle.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const dropdown = this.closest('.dropdown');
+                        const menu = dropdown.querySelector('.dropdown-menu');
+                        
+                        // Close all other dropdowns
+                        closeAllDropdownsExcept(menu, this);
+                        
+                        // Toggle current dropdown
+                        menu.classList.toggle('show');
+                        this.classList.toggle('show');
+                    });
+                });
+
+                // Function to close all dropdowns
+                function closeAllDropdowns() {
+                    document.querySelectorAll('.dropdown-menu').forEach(m => {
+                        m.classList.remove('show');
+                    });
+                    document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                        t.classList.remove('show');
+                    });
+                }
+
+                // Function to close all dropdowns except a specific one
+                function closeAllDropdownsExcept(exceptMenu = null, exceptToggle = null) {
+                    document.querySelectorAll('.dropdown-menu').forEach(m => {
+                        if (m !== exceptMenu) m.classList.remove('show');
+                    });
+                    document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                        if (t !== exceptToggle) t.classList.remove('show');
+                    });
+                }
+
+                // Close dropdowns when sidebar is collapsed
+                sidebarToggle.addEventListener('click', function() {
+                    if (!sidebar.classList.contains('expanded')) {
+                        closeAllDropdowns();
+                    }
+                });
+
+                // Also close dropdowns when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!e.target.closest('.dropdown')) {
+                        closeAllDropdowns();
+                    }
+                });
+            }
+        }
+
+        const dropdownTrigger = document.getElementById('accountDropdownTrigger');
+        const dropdownMenu = document.getElementById('accountDropdownMenu');
+        const mainContainer = document.getElementById('mainContainer');
+        const logoutBtn = document.getElementById('accountLogoutBtn');
+        const refreshBtn = document.querySelector('.stats-refresh');
+
+        // Toggle dropdown when clicking the trigger
+        dropdownTrigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('show');
+        });
+
+        // Close dropdown when clicking anywhere else
+        document.addEventListener('click', function() {
+            dropdownMenu.classList.remove('show');
+        });
+        
+        // Prevent dropdown from closing when clicking inside it
+        dropdownMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+        
+        const userPlan = 'pro'; // This would come from your auth system
+
+        function displayUserPlan() {
+            // Option 1: For user dropdown
+            const planName = userPlan.charAt(0).toUpperCase() + userPlan.slice(1);
+            document.querySelector('.account-trigger span').textContent = `Hilton (${planName} Plan)`;
+            
+            // Update plan info in dropdown
+            const planItem = document.querySelector('.account-menu-item.plan-info');
+            planItem.innerHTML = `<i class="fas ${userPlan === 'pro' ? 'fa-crown' : userPlan === 'advanced' ? 'fa-star' : 'fa-user'}"></i>
+                                <span>${planName} Plan</span>`;
+            planItem.classList.add(`plan-${userPlan}`);
+        }
+
+        displayUserPlan();
+        
+        // Set active nav item
+        document.querySelectorAll('.nav-link').forEach(link => {
+            if (link.getAttribute('href') === 'vibration.html') {
+                link.parentElement.classList.add('active');
+            }
+        });
+        
+        // Sample vibration data for each component and axis
+        const vibrationData = {
+            timestamps: ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+            
+            hoist: {
+                x: [1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1],
+                y: [2.5, 2.7, 2.9, 3.1, 3.3, 3.5, 3.7, 3.9, 4.1, 4.3],
+                z: [1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9]
+            },
+            
+            travel: {
+                x: [1.8, 1.7, 1.8, 1.9, 2.0, 2.1, 2.0, 1.9, 1.8, 1.7],
+                y: [1.2, 1.3, 1.2, 1.3, 1.4, 1.3, 1.2, 1.3, 1.4, 1.3],
+                z: [1.5, 1.4, 1.5, 1.6, 1.5, 1.4, 1.5, 1.6, 1.5, 1.4]
+            },
+            
+            trolley: {
+                x: [2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9],
+                y: [2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1],
+                z: [5.8, 6.0, 6.2, 6.4, 6.6, 6.8, 7.0, 7.2, 7.4, 7.6]
+            },
+            
+            gearbox: {
+                x: [1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4],
+                y: [2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9],
+                z: [3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.0, 4.1]
+            },
+            
+            pulley: {
+                x: [2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4],
+                y: [3.8, 3.9, 4.0, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7],
+                z: [2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9]
+            },
+            
+            wheels: {
+                x: [1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 1.9, 1.8, 1.9, 1.8],
+                y: [2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.4, 2.3, 2.2, 2.1],
+                z: [1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.6, 1.5, 1.4, 1.3]
+            },
+            
+            hook: {
+                x: [0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.2, 1.1, 1.2, 1.1],
+                y: [1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.6, 1.5, 1.4, 1.3],
+                z: [0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.0, 0.9, 0.8, 0.7]
+            },
+            
+            overview: {
+                timestamps: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                hoist: [2.1, 2.3, 2.8, 3.2, 3.5, 3.8],
+                travel: [1.8, 1.9, 2.1, 2.3, 2.5, 2.7],
+                trolley: [3.5, 4.0, 4.8, 5.2, 5.8, 6.4],
+                gearbox: [2.5, 2.7, 3.0, 3.3, 3.6, 3.9],
+                pulley: [3.2, 3.4, 3.8, 4.2, 4.5, 4.8],
+                wheels: [1.8, 1.9, 2.1, 2.3, 2.5, 2.7],
+                hook: [1.0, 1.1, 1.3, 1.5, 1.7, 1.9]
+            }
+        };
+        
+        // Chart instances
+        const charts = {
+            overview: null,
+            hoist: null,
+            travel: null,
+            trolley: null,
+            gearbox: null,
+            pulley: null,
+            wheels: null,
+            hook: null
+        };
+        
+        // Initialize all charts
+        function initCharts() {
+            // Create overview chart
+            createOverviewChart();
+            
+            // Create component charts
+            charts.hoist = createCombinedChart('hoistCombinedChart', 'Hoist Motor', vibrationData.hoist);
+            charts.travel = createCombinedChart('travelCombinedChart', 'Travel Motor', vibrationData.travel);
+            charts.trolley = createCombinedChart('trolleyCombinedChart', 'Trolley Motor', vibrationData.trolley);
+            charts.gearbox = createCombinedChart('gearboxCombinedChart', 'Gearbox', vibrationData.gearbox);
+            charts.pulley = createCombinedChart('pulleyCombinedChart', 'Pulley', vibrationData.pulley);
+            charts.wheels = createCombinedChart('wheelsCombinedChart', 'Wheels', vibrationData.wheels);
+            charts.hook = createCombinedChart('hookCombinedChart', 'Hook', vibrationData.hook);
+            
+            // Create meters for all components
+            createMeter('hoistXMeter', vibrationData.hoist.x[vibrationData.hoist.x.length - 1], 'hoistXValue');
+            createMeter('hoistYMeter', vibrationData.hoist.y[vibrationData.hoist.y.length - 1], 'hoistYValue');
+            createMeter('hoistZMeter', vibrationData.hoist.z[vibrationData.hoist.z.length - 1], 'hoistZValue');
+            
+            createMeter('travelXMeter', vibrationData.travel.x[vibrationData.travel.x.length - 1], 'travelXValue');
+            createMeter('travelYMeter', vibrationData.travel.y[vibrationData.travel.y.length - 1], 'travelYValue');
+            createMeter('travelZMeter', vibrationData.travel.z[vibrationData.travel.z.length - 1], 'travelZValue');
+            
+            createMeter('trolleyXMeter', vibrationData.trolley.x[vibrationData.trolley.x.length - 1], 'trolleyXValue');
+            createMeter('trolleyYMeter', vibrationData.trolley.y[vibrationData.trolley.y.length - 1], 'trolleyYValue');
+            createMeter('trolleyZMeter', vibrationData.trolley.z[vibrationData.trolley.z.length - 1], 'trolleyZValue');
+            
+            createMeter('gearboxXMeter', vibrationData.gearbox.x[vibrationData.gearbox.x.length - 1], 'gearboxXValue');
+            createMeter('gearboxYMeter', vibrationData.gearbox.y[vibrationData.gearbox.y.length - 1], 'gearboxYValue');
+            createMeter('gearboxZMeter', vibrationData.gearbox.z[vibrationData.gearbox.z.length - 1], 'gearboxZValue');
+            
+            createMeter('pulleyXMeter', vibrationData.pulley.x[vibrationData.pulley.x.length - 1], 'pulleyXValue');
+            createMeter('pulleyYMeter', vibrationData.pulley.y[vibrationData.pulley.y.length - 1], 'pulleyYValue');
+            createMeter('pulleyZMeter', vibrationData.pulley.z[vibrationData.pulley.z.length - 1], 'pulleyZValue');
+            
+            createMeter('wheelsXMeter', vibrationData.wheels.x[vibrationData.wheels.x.length - 1], 'wheelsXValue');
+            createMeter('wheelsYMeter', vibrationData.wheels.y[vibrationData.wheels.y.length - 1], 'wheelsYValue');
+            createMeter('wheelsZMeter', vibrationData.wheels.z[vibrationData.wheels.z.length - 1], 'wheelsZValue');
+            
+            createMeter('hookXMeter', vibrationData.hook.x[vibrationData.hook.x.length - 1], 'hookXValue');
+            createMeter('hookYMeter', vibrationData.hook.y[vibrationData.hook.y.length - 1], 'hookYValue');
+            createMeter('hookZMeter', vibrationData.hook.z[vibrationData.hook.z.length - 1], 'hookZValue');
+        }
+        
+        // Create overview vibration chart
+        function createOverviewChart() {
+            const ctx = document.getElementById('overviewChart').getContext('2d');
+            charts.overview = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: vibrationData.overview.timestamps,
+                    datasets: [
+                        {
+                            label: 'Hoist Motor',
+                            data: vibrationData.overview.hoist,
+                            borderColor: '#3498db',
+                            backgroundColor: '#3498db20',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Travel Motor',
+                            data: vibrationData.overview.travel,
+                            borderColor: '#2ecc71',
+                            backgroundColor: '#2ecc7120',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Trolley Motor',
+                            data: vibrationData.overview.trolley,
+                            borderColor: '#e74c3c',
+                            backgroundColor: '#e74c3c20',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Gearbox',
+                            data: vibrationData.overview.gearbox,
+                            borderColor: '#9b59b6',
+                            backgroundColor: '#9b59b620',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Pulley',
+                            data: vibrationData.overview.pulley,
+                            borderColor: '#f39c12',
+                            backgroundColor: '#f39c1220',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Wheels',
+                            data: vibrationData.overview.wheels,
+                            borderColor: '#f1c40f',
+                            backgroundColor: '#f1c40f20',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Hook',
+                            data: vibrationData.overview.hook,
+                            borderColor: '#1abc9c',
+                            backgroundColor: '#1abc9c20',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} mm/s`;
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Combined Vibration Velocity Trend',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        annotation: {
+                            annotations: {
+                                warningLine: {
+                                    type: 'line',
+                                    yMin: 4.5,
+                                    yMax: 4.5,
+                                    borderColor: '#f39c12',
+                                    borderWidth: 2,
+                                    borderDash: [6, 6],
+                                    label: {
+                                        content: 'Warning Threshold (4.5 mm/s)',
+                                        enabled: true,
+                                        position: 'left'
+                                    }
+                                },
+                                dangerLine: {
+                                    type: 'line',
+                                    yMin: 7.1,
+                                    yMax: 7.1,
+                                    borderColor: '#e74c3c',
+                                    borderWidth: 2,
+                                    borderDash: [6, 6],
+                                    label: {
+                                        content: 'Danger Threshold (7.1 mm/s)',
+                                        enabled: true,
+                                        position: 'left'
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Vibration Velocity (mm/s RMS)'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+        
+        // Create combined chart with all axes
+        function createCombinedChart(canvasId, componentName, componentData) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: vibrationData.timestamps,
+                    datasets: [
+                        {
+                            label: 'X-Axis (Longitudinal)',
+                            data: componentData.x,
+                            borderColor: '#3498db',
+                            backgroundColor: '#3498db20',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Y-Axis (Vertical)',
+                            data: componentData.y,
+                            borderColor: '#2ecc71',
+                            backgroundColor: '#2ecc7120',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Z-Axis (Lateral)',
+                            data: componentData.z,
+                            borderColor: '#e74c3c',
+                            backgroundColor: '#e74c3c20',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y.toFixed(2)} mm/s`;
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: componentName + ' Vibration',
+                            font: {
+                                size: 16
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Vibration (mm/s)'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+        
+        // Create vibration meter
+        function createMeter(canvasId, value, valueElementId) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const color = getVibrationColor(value);
+            
+            // Update the displayed value
+            document.getElementById(valueElementId).textContent = value.toFixed(1);
+            document.getElementById(valueElementId).style.color = color;
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [value, 10 - value], // 10 is max for visualization
+                        backgroundColor: [
+                            color,
+                            '#f5f5f5'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    rotation: -90,
+                    circumference: 180,
+                    cutout: '80%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+        }
+        
+        // Get color based on vibration level
+        function getVibrationColor(value) {
+            if (value >= 7.1) return '#e74c3c'; // Danger
+            if (value >= 4.5) return '#f39c12'; // Warning
+            return '#2ecc71'; // Normal
+        }
+        
+        // Toggle axis visibility
+        function setupAxisToggles() {
+            document.querySelectorAll('.axis-controls').forEach(controlGroup => {
+                const buttons = controlGroup.querySelectorAll('.axis-btn');
+                const component = controlGroup.closest('.component-panel').querySelector('.component-name span').textContent.toLowerCase();
+                
+                buttons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        // Update button states
+                        buttons.forEach(btn => btn.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        // Get selected axis
+                        const axis = this.getAttribute('data-axis');
+                        
+                        // Update chart
+                        updateChartVisibility(charts[component], axis);
+                    });
+                });
+            });
+        }
+        
+        // Update chart visibility based on selected axis
+        function updateChartVisibility(chart, axis) {
+            chart.data.datasets.forEach(dataset => {
+                if (axis === 'all') {
+                    dataset.hidden = false;
+                } else {
+                    const datasetAxis = dataset.label.toLowerCase().charAt(0);
+                    dataset.hidden = datasetAxis !== axis;
+                }
+            });
+            chart.update();
+        }
+        
+        // Settings panel functionality
+        const settingsPanel = document.getElementById('settingsPanel');
+        const settingsOverlay = document.getElementById('settingsOverlay');
+        const openSettingsBtn = document.getElementById('openSettings');
+        const closeSettingsBtn = document.getElementById('closeSettings');
+        const cancelSettingsBtn = document.getElementById('cancelSettings');
+        
+        function openSettings() {
+            settingsPanel.classList.add('show');
+            settingsOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeSettings() {
+            settingsPanel.classList.remove('show');
+            settingsOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+        }
+        
+        openSettingsBtn.addEventListener('click', openSettings);
+        closeSettingsBtn.addEventListener('click', closeSettings);
+        cancelSettingsBtn.addEventListener('click', closeSettings);
+        settingsOverlay.addEventListener('click', closeSettings);
+        
+        // Save settings functionality
+        document.getElementById('saveSettings').addEventListener('click', function() {
+            // Here you would save the settings to your backend or localStorage
+            alert('Settings saved successfully!');
+            closeSettings();
+        });
+        
+        // Filter functionality
+        document.getElementById('applyFilters').addEventListener('click', function() {
+            const craneFilter = document.getElementById('crane-filter').value;
+            const dateFilter = document.getElementById('date-filter').value;
+            
+            // In a real app, this would filter the data
+            console.log('Filters applied:', {
+                crane: craneFilter,
+                date: dateFilter
+            });
+            
+            // For demo, just show a loading effect
+            document.querySelectorAll('.overview-chart, .combined-chart, .vibration-meter').forEach(el => {
+                el.style.opacity = '0.5';
+            });
+            
+            setTimeout(() => {
+                document.querySelectorAll('.overview-chart, .combined-chart, .vibration-meter').forEach(el => {
+                    el.style.opacity = '1';
+                });
+            }, 800);
+        });
+        
+        // Initialize all charts and controls
+        initCharts();
+        setupAxisToggles();
+
+        // Simulate real-time updates (demo only)
+        setInterval(function() {
+            // Update overview chart with new data point
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const currentTime = `${hours}:${minutes}`;
+            
+            // Add new data point every minute
+            if (minutes % 5 === 0 && !vibrationData.timestamps.includes(currentTime)) {
+                // Update hoist motor data
+                const lastHoistY = vibrationData.hoist.y[vibrationData.hoist.y.length - 1];
+                vibrationData.hoist.y.push(Math.min(lastHoistY + (Math.random() * 0.4 - 0.2), 5.0));
+                
+                // Update travel motor data
+                const lastTravelX = vibrationData.travel.x[vibrationData.travel.x.length - 1];
+                vibrationData.travel.x.push(Math.max(1.0, lastTravelX + (Math.random() * 0.2 - 0.1)));
+                
+                // Update trolley motor data
+                const lastTrolleyZ = vibrationData.trolley.z[vibrationData.trolley.z.length - 1];
+                vibrationData.trolley.z.push(Math.min(lastTrolleyZ + (Math.random() * 0.3 - 0.1), 8.0));
+                
+                // Update gearbox data
+                const lastGearboxY = vibrationData.gearbox.y[vibrationData.gearbox.y.length - 1];
+                vibrationData.gearbox.y.push(Math.min(lastGearboxY + (Math.random() * 0.3 - 0.15), 5.5));
+                
+                // Update pulley data
+                const lastPulleyY = vibrationData.pulley.y[vibrationData.pulley.y.length - 1];
+                vibrationData.pulley.y.push(Math.min(lastPulleyY + (Math.random() * 0.3 - 0.1), 5.2));
+                
+                // Update wheels data
+                const lastWheelsX = vibrationData.wheels.x[vibrationData.wheels.x.length - 1];
+                vibrationData.wheels.x.push(Math.max(1.0, lastWheelsX + (Math.random() * 0.2 - 0.1)));
+                
+                // Update hook data
+                const lastHookY = vibrationData.hook.y[vibrationData.hook.y.length - 1];
+                vibrationData.hook.y.push(Math.min(lastHookY + (Math.random() * 0.2 - 0.1), 2.0));
+                
+                // Update timestamps
+                vibrationData.timestamps.push(currentTime);
+                
+                // Keep only last 10 data points
+                if (vibrationData.timestamps.length > 10) {
+                    vibrationData.timestamps.shift();
+                    vibrationData.hoist.y.shift();
+                    vibrationData.travel.x.shift();
+                    vibrationData.trolley.z.shift();
+                    vibrationData.gearbox.y.shift();
+                    vibrationData.pulley.y.shift();
+                    vibrationData.wheels.x.shift();
+                    vibrationData.hook.y.shift();
+                }
+                
+                // Update charts
+                charts.hoist.update();
+                charts.travel.update();
+                charts.trolley.update();
+                charts.gearbox.update();
+                charts.pulley.update();
+                charts.wheels.update();
+                charts.hook.update();
+                
+                // Update meters
+                createMeter('hoistYMeter', vibrationData.hoist.y[vibrationData.hoist.y.length - 1], 'hoistYValue');
+                createMeter('travelXMeter', vibrationData.travel.x[vibrationData.travel.x.length - 1], 'travelXValue');
+                createMeter('trolleyZMeter', vibrationData.trolley.z[vibrationData.trolley.z.length - 1], 'trolleyZValue');
+                createMeter('gearboxYMeter', vibrationData.gearbox.y[vibrationData.gearbox.y.length - 1], 'gearboxYValue');
+                createMeter('pulleyYMeter', vibrationData.pulley.y[vibrationData.pulley.y.length - 1], 'pulleyYValue');
+                createMeter('wheelsXMeter', vibrationData.wheels.x[vibrationData.wheels.x.length - 1], 'wheelsXValue');
+                createMeter('hookYMeter', vibrationData.hook.y[vibrationData.hook.y.length - 1], 'hookYValue');
+                
+                // Update status indicators based on new values
+                updateStatusIndicators();
+            }
+        }, 60000); // Update every minute
+    });
+    
+    function updateStatusIndicators() {
+        // In a real implementation, this would check actual thresholds
+        // For demo purposes, we'll just maintain the initial states
+    }
+    console.log(Chart.version);
+</script>
+</body>
+</html>

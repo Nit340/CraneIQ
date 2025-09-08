@@ -1,0 +1,1917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gateway Configuration | CraneIQ Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --gray-color: #95a5a6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            min-height: 100vh;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        .container.sidebar-expanded {
+            grid-template-columns: 250px 1fr;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 20px 0;
+            position: relative;
+            z-index: 10;
+            width: 60px;
+            transition: width 0.3s ease, background-color 0.2s ease;
+            overflow: hidden;
+        }
+
+        .sidebar:hover {
+            width: 250px;
+        }
+
+        .sidebar:hover .nav-link span {
+            display: inline;
+            opacity: 1;
+        }
+
+        .sidebar.expanded {
+            width: 250px;
+        }
+
+        .sidebar.expanded .nav-link span {
+            display: inline;
+            opacity: 1;
+        }
+
+        .logo {
+            text-align: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: none;
+        }
+
+        .nav-link {
+            color: inherit;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px 15px;
+        }
+
+        .nav-item.active .nav-link {
+            color: white;
+        }
+
+        .nav-item:hover .nav-link {
+            color: white;
+        }
+
+        .nav-menu {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 100px);
+            justify-content: space-between;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+        }
+
+        .nav-item i {
+            width: 30px;
+            text-align: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .nav-link span {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            margin-left: 10px;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .page-title {
+            margin-bottom: 20px;
+        }
+
+        .page-title h1 {
+            font-size: 1.8rem;
+            color: var(--dark-color);
+        }
+
+        .page-title p {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }  
+        
+        /* Form Container - Updated Design */
+        .form-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 30px;
+            margin-top: 20px;
+            border: 1px solid #eaeaea;
+        }
+        
+        /* Gateway Type Selector */
+        .gateway-type-selector {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .gateway-type-selector label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 0.9rem;
+        }
+        
+        .gateway-type-selector select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            background-color: white;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+        
+        .gateway-type-selector select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        }
+        
+        /* Selection Grid */
+        .selection-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .sections-panel, .fields-panel {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #eaeaea;
+        }
+
+        .panel-header {
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            color: var(--dark-color);
+            font-size: 1rem;
+        }
+
+        .section-item {
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 4px solid transparent;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .section-item:hover {
+            background-color: #e8f4ff;
+            transform: translateY(-2px);
+        }
+
+        .section-item.active {
+            background-color: #e8f4ff;
+            border-left-color: var(--primary-color);
+        }
+
+        .section-item label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 0;
+            font-weight: 600;
+        }
+
+        .section-item input {
+            margin-right: 12px;
+        }
+
+        .field-item {
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            margin-bottom: 10px;
+            background-color: white;
+            border-radius: 6px;
+            transition: all 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .field-item:hover {
+            background-color: #e8f4ff;
+            transform: translateY(-2px);
+        }
+
+        .field-item label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 0;
+            font-weight: 600;
+        }
+
+        .field-item input {
+            margin-right: 12px;
+        }
+
+        .select-all-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #e8f4ff;
+            border-radius: 6px;
+        }
+
+        .select-all-container label {
+            margin-bottom: 0;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .select-all-container input {
+            margin-right: 10px;
+        }
+                
+        /* Basic Details Section - Use the same grid layout as custom sections */
+        .basic-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary-color);
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .basic-section .section-header {
+            grid-column: span 2;
+            margin: 0 0 15px 0;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            color: var(--dark-color);
+            font-size: 1.3rem;
+        }
+
+        /* Protocol Sections */
+        .protocol-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary-color);
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .protocol-section .section-header {
+            grid-column: span 2;
+            margin: 0 0 15px 0;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            color: var(--dark-color);
+            font-size: 1.3rem;
+        }
+
+        /* Form Grid Layout - Applied to ALL sections */
+        .basic-section .form-grid,
+        .protocol-section .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        /* Field items - Same for ALL sections */
+        .basic-section .field-item,
+        .protocol-section .field-item {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        /* Form groups - Same for ALL sections */
+        .basic-section .form-group,
+        .protocol-section .form-group {
+            margin-bottom: 20px;
+        }
+
+        /* Labels - Same for ALL sections */
+        .basic-section label,
+        .protocol-section label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 0.9rem;
+        }
+
+        /* Inputs - Same for ALL sections */
+        .basic-section input[type="text"],
+        .basic-section input[type="number"],
+        .basic-section input[type="date"],
+        .basic-section input[type="time"],
+        .basic-section input[type="datetime-local"],
+        .basic-section select,
+        .basic-section textarea,
+        .protocol-section input[type="text"],
+        .protocol-section input[type="number"],
+        .protocol-section input[type="date"],
+        .protocol-section input[type="time"],
+        .protocol-section input[type="datetime-local"],
+        .protocol-section select,
+        .protocol-section textarea {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        /* Focus states - Same for ALL sections */
+        .basic-section input[type="text"]:focus,
+        .basic-section input[type="number"]:focus,
+        .basic-section input[type="date"]:focus,
+        .basic-section input[type="time"]:focus,
+        .basic-section input[type="datetime-local"]:focus,
+        .basic-section select:focus,
+        .basic-section textarea:focus,
+        .protocol-section input[type="text"]:focus,
+        .protocol-section input[type="number"]:focus,
+        .protocol-section input[type="date"]:focus,
+        .protocol-section input[type="time"]:focus,
+        .protocol-section input[type="datetime-local"]:focus,
+        .protocol-section select:focus,
+        .protocol-section textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        }
+
+        /* Full width items - Same for ALL sections */
+        .basic-section .full-width,
+        .protocol-section .full-width {
+            grid-column: span 2;
+        }
+
+        /* Remove any special basic field styling */
+        .basic-field {
+            /* No special styling - should match custom fields */
+        }
+                
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background-color: var(--gray-color);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+            transform: translateY(-2px);
+        }
+        
+        /* Section Headers */
+        .section-header {
+            grid-column: span 2;
+            margin: 25px 0 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            color: var(--dark-color);
+            font-size: 1.3rem;
+        }
+        
+        .field-input {
+            margin-left: 0;
+        }
+        
+        /* Derivative Field Button */
+        .derivative-btn {
+            margin-top: 8px;
+            padding: 6px 12px;
+            background-color: #f8f9fa;
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+        
+        .derivative-btn:hover {
+            background-color: #e9ecef;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background-color: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: translateY(-50px);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #eaeaea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.2s;
+        }
+        
+        .modal-close:hover {
+            color: var(--danger-color);
+        }
+        
+        .modal-body {
+            padding: 25px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid #eaeaea;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        
+        /* Derivative Expression Builder */
+        .expression-builder {
+            margin-bottom: 20px;
+        }
+        
+        .expression-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .available-fields {
+            margin-top: 20px;
+        }
+        
+        .fields-list {
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #eaeaea;
+            border-radius: 6px;
+            padding: 10px;
+        }
+        
+        .field-pill {
+            display: inline-block;
+            background-color: #e8f4ff;
+            color: var(--primary-color);
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        
+        .field-pill:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        /* Expression Controls */
+        .expression-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .expression-btn {
+            padding: 8px 12px;
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .expression-btn:hover {
+            background-color: #e9ecef;
+            border-color: var(--primary-color);
+        }
+        
+        .expression-btn.operator {
+            background-color: #e8f4ff;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .selection-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .full-width, .section-header {
+                grid-column: span 1;
+            }
+            
+            .modal {
+                width: 95%;
+                margin: 20px;
+            }
+        }
+        
+        /* Account Dropdown */
+        .user-info-wrapper {
+            --primary-color: #4361ee;
+            --danger-color: #ef233c;
+            --text-color: 2b2d42;
+            --hover-bg: #f8f9fa;
+            --transition-speed: 0.25s;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .account-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .account-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+        }
+
+        .account-trigger:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .customer-logo {
+            width:30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .account-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.5rem);
+            background-color: white;
+            min-width: 180px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem 0;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-10px);
+            visibility: hidden;
+            transition: 
+                opacity var(--transition-speed) ease,
+                transform var(--transition-speed) ease;
+        }
+
+        .account-menu.show {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .account-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 1rem;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: 
+                background-color var(--transition-speed),
+                color var(--transition-speed);
+        }
+
+        .account-menu-item:hover,
+        .account-menu-item:focus {
+            background-color: var(--hover-bg);
+            color: var(--primary-color);
+        }
+
+        .account-menu-item i {
+            width: 1.25rem;
+            text-align: center;
+            color: inherit;
+        }
+
+        .account-menu-divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 0.5rem 0;
+        }
+
+        .logout-account-btn {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font: inherit;
+            color: inherit;
+        }
+
+        .logout-account-btn:hover,
+        .logout-account-btn:focus {
+            color: var(--danger-color) !important;
+        }
+        .account-menu-item.plan-info {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            font-weight: 600;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .account-menu-item.plan-info i {
+            margin-right: 8px;
+        }
+
+        /* Different colors for different plans */
+        .plan-basic { color: var(--primary-color); }
+        .plan-advanced { color: var(--success-color); }
+        .plan-pro { color: gold; }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-success {
+            background-color: var(--success-color);
+        }
+
+        .notification-error {
+            background-color: var(--danger-color);
+        }
+        
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .input-error {
+            border-color: var(--danger-color) !important;
+        }
+        
+        .required-field::after {
+            content: " *";
+            color: var(--danger-color);
+        }
+        
+        .select-all-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #e8f4ff;
+            border-radius: 6px;
+        }
+        
+        .no-validation {
+            border: 1px solid #ddd !important;
+        }
+        
+        .no-validation:focus {
+            border-color: var(--primary-color) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <!-- Sidebar Navigation -->
+        <div id="sidebar-container"></div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <div class="header-logo">CraneIQ</div>
+                </div>
+             
+                <div class="user-info-wrapper">
+                    <div class="account-dropdown">
+                        <div class="account-trigger" id="accountDropdownTrigger">
+                            <div class="customer-logo">H</div>
+                            <span>Hilton (Pro Plan)</span>
+                            <i class="fas fa-caret-down"></i>
+                        </div>
+                        <div class="account-menu" id="accountDropdownMenu">
+                            <div class="account-menu-item plan-info">
+                                <i class="fas fa-crown" style="color: gold;"></i>
+                                <span>Pro Plan</span>
+                            </div>
+                            <div class="account-menu-divider"></div>
+                            <a href="#" class="account-menu-item">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="#" class="account-menu-item">
+                                <i class="fas fa-sync-alt"></i> Upgrade Plan
+                            </a>
+                            <div class="account-menu-divider"></div>
+                            <button id="accountLogoutBtn" class="account-menu-item logout-account-btn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page-title">
+                <h1>Gateway Configuration</h1>
+                <p>Configure gateway settings and communication protocols</p>
+            </div>
+            
+            <div class="form-container">
+                <form id="gatewayForm">
+                    <div class="gateway-type-selector">
+                        <label for="gatewayTypeDropdown" class="required-field">Gateway Type:</label>
+                        <select id="gatewayTypeDropdown" class="form-control" required>
+                            <option value="">Select Gateway Type</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                        <input type="hidden" id="gatewayTypeId" name="gatewayTypeId">
+                    </div>
+                    
+                    <!-- Selection Grid -->
+                    <div class="selection-grid">
+                        <div class="sections-panel">
+                            <div class="panel-header">Sections</div>
+                            <div class="select-all-container">
+                                <input type="checkbox" id="select-all-sections">
+                                <label for="select-all-sections">Select All Sections</label>
+                            </div>
+                            <div id="sections-container">
+                                <!-- Sections will be populated here -->
+                            </div>
+                        </div>
+                        
+                        <div class="fields-panel">
+                            <div class="panel-header">Fields</div>
+                            <div class="select-all-container">
+                                <input type="checkbox" id="select-all-fields">
+                                <label for="select-all-fields">Select All Fields</label>
+                            </div>
+                            <div id="fields-container">
+                                <!-- Fields will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dynamic form sections will be inserted here -->
+                    <div id="dynamic-form-sections"></div>
+                    
+                    <div class="form-actions">
+                        <button type="button" id="cancelBtn" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Configuration
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Derivative Field Modal -->
+    <div class="modal-overlay" id="derivativeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Define Derivative Field</h3>
+                <button class="modal-close" id="closeDerivativeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="expression-builder">
+                    <label for="derivativeExpression">Expression:</label>
+                    <textarea id="derivativeExpression" class="expression-input" placeholder="Enter expression (e.g., current * voltage)"></textarea>
+                    
+                    <div class="expression-controls">
+                        <button class="expression-btn" data-value="+">+</button>
+                        <button class="expression-btn" data-value="-">-</button>
+                        <button class="expression-btn" data-value="*">*</button>
+                        <button class="expression-btn" data-value="/">/</button>
+                        <button class="expression-btn" data-value="(">(</button>
+                        <button class="expression-btn" data-value=")">)</button>
+                        <button class="expression-btn" data-value="0">0</button>
+                        <button class="expression-btn" data-value="1">1</button>
+                        <button class="expression-btn" data-value="2">2</button>
+                        <button class="expression-btn" data-value="3">3</button>
+                        <button class="expression-btn" data-value="4">4</button>
+                        <button class="expression-btn" data-value="5">5</button>
+                        <button class="expression-btn" data-value="6">6</button>
+                        <button class="expression-btn" data-value="7">7</button>
+                        <button class="expression-btn" data-value="8">8</button>
+                        <button class="expression-btn" data-value="9">9</button>
+                        <button class="expression-btn" data-value=".">.</button>
+                    </div>
+                    
+                    <div class="available-fields">
+                        <label>Available Data Points:</label>
+                        <div class="fields-list" id="availableFieldsList">
+                            <!-- Available fields will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelDerivative">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveDerivative">Save Expression</button>
+            </div>
+        </div>
+    </div>
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load the sidebar
+    fetch('sidebar.html')
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('sidebar-container').innerHTML = data;
+            initializeSidebar();
+        });
+
+    function initializeSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        
+        if (sidebar && sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('expanded');
+                document.querySelector('.container').classList.toggle('sidebar-expanded');
+            });
+
+            // Dropdown functionality
+            document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const dropdown = this.closest('.dropdown');
+                    const menu = dropdown.querySelector('.dropdown-menu');
+                    
+                    // Close all other dropdowns
+                    document.querySelectorAll('.dropdown-menu').forEach(m => {
+                        if (m !== menu) m.classList.remove('show');
+                    });
+                    
+                    // Toggle current dropdown
+                    menu.classList.toggle('show');
+                });
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    document.querySelectorAll('.dropdown-menu').forEach(m => {
+                        m.classList.remove('show');
+                    });
+                }
+            });
+        }
+    }
+
+    // Account dropdown functionality
+    const accountDropdownTrigger = document.getElementById('accountDropdownTrigger');
+    const accountDropdownMenu = document.getElementById('accountDropdownMenu');
+    
+    accountDropdownTrigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        accountDropdownMenu.classList.toggle('show');
+    });
+    
+    // Close account dropdown when clicking elsewhere
+    document.addEventListener('click', function() {
+        accountDropdownMenu.classList.remove('show');
+    });
+
+   function loadGatewayTypes() {
+    // Try multiple possible storage keys where gateway types might be stored
+    const possibleKeys = ['gatewayTypes', 'sampleGatewayTypes'];
+    let gatewayTypes = [];
+    
+    for (const key of possibleKeys) {
+        const storedData = localStorage.getItem(key);
+        if (storedData) {
+            try {
+                const parsedData = JSON.parse(storedData);
+                if (Array.isArray(parsedData)) {
+                    gatewayTypes = parsedData;
+                    console.log(`Loaded gateway types from key: ${key}`, gatewayTypes);
+                    break;
+                }
+            } catch (e) {
+                console.error(`Error parsing data from key ${key}:`, e);
+            }
+        }
+    }
+    
+    // If gateway types were found, check if they need conversion
+    if (gatewayTypes.length > 0) {
+        // Check if the first item is in the old format (has protocol field)
+        const needsConversion = gatewayTypes[0].hasOwnProperty('protocol');
+        
+        if (needsConversion) {
+            console.log("Converting gateway types from old format to new format");
+            gatewayTypes = gatewayTypes.map(type => convertGatewayTypeFormat(type));
+        }
+    } else {
+        // If no gateway types found, create some sample data for demonstration
+        console.log("No gateway types found in localStorage, creating sample data");
+        gatewayTypes = [
+            {
+                id: 'GT001',
+                name: 'Modbus Gateway',
+                fields: {
+                    basicDetails: {
+                        gatewayName: { type: 'text', required: true, placeholder: 'Enter gateway name' },
+                        gatewayId: { type: 'text', required: true, placeholder: 'Enter gateway ID' },
+                        location: { type: 'text', placeholder: 'Enter gateway location' },
+                        description: { type: 'text', placeholder: 'Enter description' }
+                    },
+                    modbusProtocol: {
+                        ipAddress: { type: 'text', required: true, placeholder: 'Enter IP address' },
+                        port: { type: 'number', required: true, placeholder: 'Enter port number', default: 502 },
+                        slaveId: { type: 'number', required: true, placeholder: 'Enter slave ID' },
+                        timeout: { type: 'number', placeholder: 'Enter timeout in ms', default: 5000 },
+                        pollingInterval: { type: 'number', placeholder: 'Enter polling interval in ms', default: 10000 }
+                    }
+                }
+            },
+            {
+                id: 'GT002', 
+                name: 'OPC-UA Gateway',
+                fields: {
+                    basicDetails: {
+                        gatewayName: { type: 'text', required: true, placeholder: 'Enter gateway name' },
+                        gatewayId: { type: 'text', required: true, placeholder: 'Enter gateway ID' },
+                        location: { type: 'text', placeholder: 'Enter gateway location' },
+                        description: { type: 'text', placeholder: 'Enter description' }
+                    },
+                    opcuaProtocol: {
+                        endpointUrl: { type: 'text', required: true, placeholder: 'Enter endpoint URL' },
+                        securityPolicy: { type: 'select', options: ['None', 'Basic256', 'Basic256Sha256'], default: 'None' },
+                        messageSecurityMode: { type: 'select', options: ['None', 'Sign', 'SignAndEncrypt'], default: 'None' },
+                        authenticationMode: { type: 'select', options: ['Anonymous', 'Username/Password'], default: 'Anonymous' },
+                        username: { type: 'text', placeholder: 'Enter username' },
+                        password: { type: 'password', placeholder: 'Enter password' }
+                    }
+                }
+            },
+            {
+                id: 'GT003',
+                name: 'MQTT Gateway',
+                fields: {
+                    basicDetails: {
+                        gatewayName: { type: 'text', required: true, placeholder: 'Enter gateway name' },
+                        gatewayId: { type: 'text', required: true, placeholder: 'Enter gateway ID' },
+                        location: { type: 'text', placeholder: 'Enter gateway location' },
+                        description: { type: 'text', placeholder: 'Enter description' }
+                    },
+                    mqttProtocol: {
+                        brokerUrl: { type: 'text', required: true, placeholder: 'Enter broker URL' },
+                        port: { type: 'number', required: true, placeholder: 'Enter port number', default: 1883 },
+                        clientId: { type: 'text', placeholder: 'Enter client ID' },
+                        username: { type: 'text', placeholder: 'Enter username' },
+                        password: { type: 'password', placeholder: 'Enter password' },
+                        topic: { type: 'text', required: true, placeholder: 'Enter topic' },
+                        qos: { type: 'select', options: ['0', '1', '2'], default: '0' }
+                    }
+                }
+            }
+        ];
+        
+        // Save sample data to localStorage for future use
+        localStorage.setItem('gatewayTypes', JSON.stringify(gatewayTypes));
+    }
+    
+    return gatewayTypes;
+}
+
+// Helper function to convert from the old format to the new format
+function convertGatewayTypeFormat(oldType) {
+    const newType = {
+        id: oldType.id,
+        name: oldType.name,
+        fields: {
+            basicDetails: {
+                gatewayName: { 
+                    type: 'text', 
+                    required: true, 
+                    placeholder: 'Enter gateway name',
+                    value: oldType.gatewayName || ''
+                },
+                deviceToken: {
+                    type: 'text',
+                    required: true,
+                    placeholder: 'Enter device token',
+                    value: oldType.deviceToken || ''
+                }
+            }
+        }
+    };
+    
+    // Add basic details fields if they exist
+    if (oldType.basicDetailsFields && Array.isArray(oldType.basicDetailsFields)) {
+        oldType.basicDetailsFields.forEach(field => {
+            newType.fields.basicDetails[field.name.replace(/\s+/g, '').toLowerCase()] = {
+                type: 'text',
+                required: false,
+                placeholder: field.description || `Enter ${field.name}`,
+                value: ''
+            };
+        });
+    }
+    
+    // Add protocol-specific fields based on the protocol
+    if (oldType.protocol === 'mqtt' && oldType.protocolConfig) {
+        newType.fields.mqttProtocol = {
+            brokerUrl: {
+                type: 'text',
+                required: true,
+                placeholder: 'Enter broker URL',
+                value: oldType.protocolConfig.broker || ''
+            },
+            port: {
+                type: 'number',
+                required: true,
+                placeholder: 'Enter port number',
+                value: oldType.protocolConfig.port || 1883
+            },
+            username: {
+                type: 'text',
+                required: false,
+                placeholder: 'Enter username',
+                value: oldType.protocolConfig.username || ''
+            },
+            password: {
+                type: 'password',
+                required: false,
+                placeholder: 'Enter password',
+                value: oldType.protocolConfig.password || ''
+            },
+            publishTopic: {
+                type: 'text',
+                required: true,
+                placeholder: 'Enter publish topic',
+                value: oldType.protocolConfig.publishTopic || ''
+            },
+            subscribeTopic: {
+                type: 'text',
+                required: true,
+                placeholder: 'Enter subscribe topic',
+                value: oldType.protocolConfig.subscribeTopic || ''
+            },
+            qos: {
+                type: 'select',
+                options: ['0', '1', '2'],
+                default: oldType.protocolConfig.qos || '0',
+                required: true
+            },
+            pollInterval: {
+                type: 'number',
+                required: false,
+                placeholder: 'Enter poll interval in ms',
+                value: oldType.protocolConfig.pollInterval || 5000
+            }
+        };
+    } else if (oldType.protocol === 'http' && oldType.protocolConfig) {
+        newType.fields.httpProtocol = {
+            url: {
+                type: 'text',
+                required: true,
+                placeholder: 'Enter API endpoint URL',
+                value: oldType.protocolConfig.url || ''
+            },
+            method: {
+                type: 'select',
+                options: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+                default: oldType.protocolConfig.method || 'GET',
+                required: true
+            },
+            pollInterval: {
+                type: 'number',
+                required: false,
+                placeholder: 'Enter poll interval in ms',
+                value: oldType.protocolConfig.pollInterval || 5000
+            }
+        };
+        
+        // Add authentication fields based on auth type
+        if (oldType.protocolConfig.auth) {
+            if (oldType.protocolConfig.auth.type === 'basic') {
+                newType.fields.httpProtocol.username = {
+                    type: 'text',
+                    required: true,
+                    placeholder: 'Enter username',
+                    value: oldType.protocolConfig.auth.username || ''
+                };
+                newType.fields.httpProtocol.password = {
+                    type: 'password',
+                    required: true,
+                    placeholder: 'Enter password',
+                    value: oldType.protocolConfig.auth.password || ''
+                };
+            } else if (oldType.protocolConfig.auth.type === 'bearer') {
+                newType.fields.httpProtocol.bearerToken = {
+                    type: 'text',
+                    required: true,
+                    placeholder: 'Enter bearer token',
+                    value: oldType.protocolConfig.auth.token || ''
+                };
+            } else if (oldType.protocolConfig.auth.type === 'api-key') {
+                newType.fields.httpProtocol.apiKey = {
+                    type: 'text',
+                    required: true,
+                    placeholder: 'Enter API key',
+                    value: oldType.protocolConfig.auth.key || ''
+                };
+                newType.fields.httpProtocol.apiKeyLocation = {
+                    type: 'select',
+                    options: ['header', 'query'],
+                    default: oldType.protocolConfig.auth.location || 'header',
+                    required: true
+                };
+                newType.fields.httpProtocol.apiKeyName = {
+                    type: 'text',
+                    required: true,
+                    placeholder: 'Enter API key name',
+                    value: oldType.protocolConfig.auth.name || 'X-API-Key'
+                };
+            }
+        }
+    } else if (oldType.protocol === 'modbus' && oldType.protocolConfig) {
+        newType.fields.modbusProtocol = {
+            modbusType: {
+                type: 'select',
+                options: ['tcp', 'rtu', 'ascii'],
+                default: oldType.protocolConfig.type || 'tcp',
+                required: true
+            }
+        };
+        
+        if (oldType.protocolConfig.type === 'tcp') {
+            newType.fields.modbusProtocol.ipAddress = {
+                type: 'text',
+                required: true,
+                placeholder: 'Enter IP address',
+                value: oldType.protocolConfig.ip || ''
+            };
+            newType.fields.modbusProtocol.port = {
+                type: 'number',
+                required: true,
+                placeholder: 'Enter port number',
+                value: oldType.protocolConfig.port || 502
+            };
+            newType.fields.modbusProtocol.slaveId = {
+                type: 'number',
+                required: true,
+                placeholder: 'Enter slave ID',
+                value: oldType.protocolConfig.slaveId || 1
+            };
+        } else {
+            newType.fields.modbusProtocol.serialPort = {
+                type: 'text',
+                required: true,
+                placeholder: 'Enter serial port',
+                value: oldType.protocolConfig.serialPort || ''
+            };
+            newType.fields.modbusProtocol.baudrate = {
+                type: 'select',
+                options: ['9600', '19200', '38400', '57600', '115200'],
+                default: oldType.protocolConfig.baudrate || '9600',
+                required: true
+            };
+            newType.fields.modbusProtocol.slaveId = {
+                type: 'number',
+                required: true,
+                placeholder: 'Enter slave ID',
+                value: oldType.protocolConfig.slaveId || 1
+            };
+        }
+        
+        newType.fields.modbusProtocol.timeout = {
+            type: 'number',
+            required: false,
+            placeholder: 'Enter timeout in ms',
+            value: oldType.protocolConfig.timeout || 5000
+        };
+    } else if (oldType.protocol === 'opcua' && oldType.protocolConfig) {
+        newType.fields.opcuaProtocol = {
+            endpointUrl: {
+                type: 'text',
+                required: true,
+                placeholder: 'Enter endpoint URL',
+                value: oldType.protocolConfig.endpoint || ''
+            },
+            securityMode: {
+                type: 'select',
+                options: ['None', 'Sign', 'SignAndEncrypt'],
+                default: oldType.protocolConfig.securityMode || 'None',
+                required: true
+            },
+            securityPolicy: {
+                type: 'select',
+                options: ['None', 'Basic128Rsa15', 'Basic256', 'Basic256Sha256'],
+                default: oldType.protocolConfig.securityPolicy || 'None',
+                required: true
+            },
+            authenticationMode: {
+                type: 'select',
+                options: ['Anonymous', 'UsernamePassword', 'Certificate'],
+                default: oldType.protocolConfig.auth?.type === 'username_password' ? 'UsernamePassword' : 
+                       (oldType.protocolConfig.auth?.type === 'certificate' ? 'Certificate' : 'Anonymous'),
+                required: true
+            },
+            timeout: {
+                type: 'number',
+                required: false,
+                placeholder: 'Enter timeout in ms',
+                value: oldType.protocolConfig.timeout || 10000
+            },
+            reconnectInterval: {
+                type: 'number',
+                required: false,
+                placeholder: 'Enter reconnect interval in ms',
+                value: oldType.protocolConfig.reconnectInterval || 5000
+            }
+        };
+        
+        // Add authentication fields if needed
+        if (oldType.protocolConfig.auth && oldType.protocolConfig.auth.type === 'username_password') {
+            newType.fields.opcuaProtocol.username = {
+                type: 'text',
+                required: true,
+                placeholder: 'Enter username',
+                value: oldType.protocolConfig.auth.username || ''
+            };
+            newType.fields.opcuaProtocol.password = {
+                type: 'password',
+                required: true,
+                placeholder: 'Enter password',
+                value: oldType.protocolConfig.auth.password || ''
+            };
+        }
+    }
+    
+    // Add dynamic sections if they exist
+    if (oldType.dynamicSections && Array.isArray(oldType.dynamicSections)) {
+        oldType.dynamicSections.forEach(section => {
+            const sectionKey = section.name.replace(/\s+/g, '').toLowerCase();
+            newType.fields[sectionKey] = {};
+            
+            if (section.fields && Array.isArray(section.fields)) {
+                section.fields.forEach(field => {
+                    newType.fields[sectionKey][field.name.replace(/\s+/g, '').toLowerCase()] = {
+                        type: 'text',
+                        required: false,
+                        placeholder: field.description || `Enter ${field.name}`,
+                        value: ''
+                    };
+                });
+            }
+        });
+    }
+    
+    return newType;
+}
+    // Populate gateway type dropdown
+    const gatewayTypeDropdown = document.getElementById('gatewayTypeDropdown');
+    const gatewayTypes = loadGatewayTypes();
+    
+    // Clear existing options except the first one
+    while (gatewayTypeDropdown.options.length > 1) {
+        gatewayTypeDropdown.remove(1);
+    }
+    
+    // Add gateway types to dropdown
+    gatewayTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type.id;
+        option.textContent = type.name;
+        gatewayTypeDropdown.appendChild(option);
+    });
+    
+    // Handle gateway type selection
+    gatewayTypeDropdown.addEventListener('change', function() {
+        const selectedTypeId = this.value;
+        const selectedType = gatewayTypes.find(type => type.id === selectedTypeId);
+        
+        if (selectedType) {
+            document.getElementById('gatewayTypeId').value = selectedTypeId;
+            populateSectionsAndFields(selectedType);
+        } else {
+            clearSectionsAndFields();
+        }
+    });
+    
+    // Populate sections and fields based on selected gateway type
+    function populateSectionsAndFields(gatewayType) {
+        const sectionsContainer = document.getElementById('sections-container');
+        const fieldsContainer = document.getElementById('fields-container');
+        const dynamicFormSections = document.getElementById('dynamic-form-sections');
+        
+        // Clear existing content
+        sectionsContainer.innerHTML = '';
+        fieldsContainer.innerHTML = '';
+        dynamicFormSections.innerHTML = '';
+        
+        // Create sections checkboxes
+        for (const sectionKey in gatewayType.fields) {
+            const sectionName = formatSectionName(sectionKey);
+            
+            const sectionItem = document.createElement('div');
+            sectionItem.className = 'section-item';
+            sectionItem.innerHTML = `
+                <label>
+                    <input type="checkbox" class="section-checkbox" data-section="${sectionKey}">
+                    ${sectionName}
+                </label>
+            `;
+            sectionsContainer.appendChild(sectionItem);
+            
+            // Create form section
+            const formSection = document.createElement('div');
+            formSection.className = sectionKey === 'basicDetails' ? 'basic-section' : 'protocol-section';
+            formSection.id = `${sectionKey}-section`;
+            formSection.style.display = 'none';
+            
+            const sectionHeader = document.createElement('h3');
+            sectionHeader.className = 'section-header';
+            sectionHeader.textContent = sectionName;
+            formSection.appendChild(sectionHeader);
+            
+            const formGrid = document.createElement('div');
+            formGrid.className = 'form-grid';
+            
+            for (const fieldKey in gatewayType.fields[sectionKey]) {
+                const fieldConfig = gatewayType.fields[sectionKey][fieldKey];
+                const fieldName = formatFieldName(fieldKey);
+                
+                // Add to fields panel
+                const fieldItem = document.createElement('div');
+                fieldItem.className = 'field-item';
+                fieldItem.innerHTML = `
+                    <label>
+                        <input type="checkbox" class="field-checkbox" data-section="${sectionKey}" data-field="${fieldKey}">
+                        ${fieldName}
+                    </label>
+                `;
+                fieldsContainer.appendChild(fieldItem);
+                
+                // Add to form section
+                const formGroup = document.createElement('div');
+                formGroup.className = 'form-group';
+                
+                const label = document.createElement('label');
+                label.htmlFor = `${sectionKey}-${fieldKey}`;
+                label.textContent = fieldName;
+                if (fieldConfig.required) {
+                    label.classList.add('required-field');
+                }
+                
+                let inputElement;
+                if (fieldConfig.type === 'select') {
+                    inputElement = document.createElement('select');
+                    inputElement.id = `${sectionKey}-${fieldKey}`;
+                    inputElement.name = `${sectionKey}-${fieldKey}`;
+                    
+                    if (fieldConfig.options) {
+                        fieldConfig.options.forEach(option => {
+                            const optionElement = document.createElement('option');
+                            optionElement.value = option;
+                            optionElement.textContent = option;
+                            if (fieldConfig.default === option) {
+                                optionElement.selected = true;
+                            }
+                            inputElement.appendChild(optionElement);
+                        });
+                    }
+                } else {
+                    inputElement = document.createElement('input');
+                    inputElement.type = fieldConfig.type;
+                    inputElement.id = `${sectionKey}-${fieldKey}`;
+                    inputElement.name = `${sectionKey}-${fieldKey}`;
+                    inputElement.placeholder = fieldConfig.placeholder || '';
+                    
+                    if (fieldConfig.default !== undefined) {
+                        inputElement.value = fieldConfig.default;
+                    }
+                }
+                
+                if (fieldConfig.required) {
+                    inputElement.required = true;
+                }
+                
+                formGroup.appendChild(label);
+                formGroup.appendChild(inputElement);
+                formGrid.appendChild(formGroup);
+            }
+            
+            formSection.appendChild(formGrid);
+            dynamicFormSections.appendChild(formSection);
+        }
+        
+        // Add event listeners for section and field checkboxes
+        document.querySelectorAll('.section-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const section = this.dataset.section;
+                const sectionElement = document.getElementById(`${section}-section`);
+                
+                if (this.checked) {
+                    sectionElement.style.display = 'block';
+                } else {
+                    sectionElement.style.display = 'none';
+                }
+                
+                // Check/uncheck all fields in this section
+                document.querySelectorAll(`.field-checkbox[data-section="${section}"]`).forEach(fieldCheckbox => {
+                    fieldCheckbox.checked = this.checked;
+                });
+                
+                updateSelectAllCheckboxes();
+            });
+        });
+        
+        document.querySelectorAll('.field-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const section = this.dataset.section;
+                const sectionCheckbox = document.querySelector(`.section-checkbox[data-section="${section}"]`);
+                
+                // Check if all fields in this section are checked
+                const allFieldsChecked = Array.from(document.querySelectorAll(`.field-checkbox[data-section="${section}"]`))
+                    .every(cb => cb.checked);
+                
+                sectionCheckbox.checked = allFieldsChecked;
+                
+                // Show/hide section based on whether any fields are checked
+                const sectionElement = document.getElementById(`${section}-section`);
+                const anyFieldsChecked = Array.from(document.querySelectorAll(`.field-checkbox[data-section="${section}"]`))
+                    .some(cb => cb.checked);
+                
+                sectionElement.style.display = anyFieldsChecked ? 'block' : 'none';
+                
+                updateSelectAllCheckboxes();
+            });
+        });
+        
+        // Select all sections functionality
+        document.getElementById('select-all-sections').addEventListener('change', function() {
+            document.querySelectorAll('.section-checkbox').forEach(checkbox => {
+                checkbox.checked = this.checked;
+                checkbox.dispatchEvent(new Event('change'));
+            });
+        });
+        
+        // Select all fields functionality
+        document.getElementById('select-all-fields').addEventListener('change', function() {
+            document.querySelectorAll('.field-checkbox').forEach(checkbox => {
+                checkbox.checked = this.checked;
+                checkbox.dispatchEvent(new Event('change'));
+            });
+        });
+    }
+    
+    function clearSectionsAndFields() {
+        document.getElementById('sections-container').innerHTML = '';
+        document.getElementById('fields-container').innerHTML = '';
+        document.getElementById('dynamic-form-sections').innerHTML = '';
+    }
+    
+    function updateSelectAllCheckboxes() {
+        // Update select all sections checkbox
+        const allSectionsChecked = Array.from(document.querySelectorAll('.section-checkbox'))
+            .every(cb => cb.checked);
+        const someSectionsChecked = Array.from(document.querySelectorAll('.section-checkbox'))
+            .some(cb => cb.checked);
+        
+        document.getElementById('select-all-sections').checked = allSectionsChecked;
+        document.getElementById('select-all-sections').indeterminate = someSectionsChecked && !allSectionsChecked;
+        
+        // Update select all fields checkbox
+        const allFieldsChecked = Array.from(document.querySelectorAll('.field-checkbox'))
+            .every(cb => cb.checked);
+        const someFieldsChecked = Array.from(document.querySelectorAll('.field-checkbox'))
+            .some(cb => cb.checked);
+        
+        document.getElementById('select-all-fields').checked = allFieldsChecked;
+        document.getElementById('select-all-fields').indeterminate = someFieldsChecked && !allFieldsChecked;
+    }
+    
+    function formatSectionName(sectionKey) {
+        // Convert camelCase to Title Case with spaces
+        return sectionKey
+            .replace(/([A-Z])/g, ' $1')
+            .replace(/^./, str => str.toUpperCase());
+    }
+    
+    function formatFieldName(fieldKey) {
+        // Convert camelCase to Title Case with spaces
+        return fieldKey
+            .replace(/([A-Z])/g, ' $1')
+            .replace(/^./, str => str.toUpperCase());
+    }
+    
+    // Form submission
+    document.getElementById('gatewayForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validate form
+        if (validateForm()) {
+            // Collect form data
+            const formData = new FormData(this);
+            const gatewayData = {};
+            
+            for (const [key, value] of formData.entries()) {
+                gatewayData[key] = value;
+            }
+            
+            // Add selected sections and fields
+            gatewayData.selectedSections = [];
+            gatewayData.selectedFields = {};
+            
+            document.querySelectorAll('.section-checkbox:checked').forEach(checkbox => {
+                const section = checkbox.dataset.section;
+                gatewayData.selectedSections.push(section);
+                
+                gatewayData.selectedFields[section] = [];
+                document.querySelectorAll(`.field-checkbox[data-section="${section}"]:checked`).forEach(fieldCheckbox => {
+                    gatewayData.selectedFields[section].push(fieldCheckbox.dataset.field);
+                });
+            });
+            
+            // Save to localStorage (in a real app, this would be sent to a server)
+            const gateways = JSON.parse(localStorage.getItem('gateways') || '[]');
+            gateways.push({
+                id: 'GW' + Date.now(),
+                type: document.getElementById('gatewayTypeId').value,
+                data: gatewayData,
+                createdAt: new Date().toISOString()
+            });
+            
+            localStorage.setItem('gateways', JSON.stringify(gateways));
+            
+            // Show success notification
+            showNotification('Gateway configuration saved successfully!', 'success');
+            
+            // Redirect to gateways list page after a short delay
+            setTimeout(() => {
+                window.location.href = 'gateways.html';
+            }, 1500);
+        }
+    });
+    
+    function validateForm() {
+        let isValid = true;
+        
+        // Check if a gateway type is selected
+        if (!document.getElementById('gatewayTypeDropdown').value) {
+            showNotification('Please select a gateway type', 'error');
+            return false;
+        }
+        
+        // Validate required fields
+        document.querySelectorAll('input[required], select[required]').forEach(input => {
+            if (!input.value.trim()) {
+                isValid = false;
+                input.classList.add('input-error');
+                
+                // Create or show error message
+                let errorMessage = input.nextElementSibling;
+                if (!errorMessage || !errorMessage.classList.contains('error-message')) {
+                    errorMessage = document.createElement('div');
+                    errorMessage.className = 'error-message';
+                    errorMessage.textContent = 'This field is required';
+                    input.parentNode.appendChild(errorMessage);
+                }
+                errorMessage.style.display = 'block';
+            } else {
+                input.classList.remove('input-error');
+                
+                // Hide error message if exists
+                const errorMessage = input.nextElementSibling;
+                if (errorMessage && errorMessage.classList.contains('error-message')) {
+                    errorMessage.style.display = 'none';
+                }
+            }
+        });
+        
+        if (!isValid) {
+            showNotification('Please fill in all required fields', 'error');
+        }
+        
+        return isValid;
+    }
+    
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            ${message}
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Show notification
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
+        
+        // Hide and remove after delay
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+    
+    // Cancel button
+    document.getElementById('cancelBtn').addEventListener('click', function() {
+        if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
+            window.location.href = 'gateways.html';
+        }
+    });
+    
+    // Derivative field modal functionality
+    const derivativeModal = document.getElementById('derivativeModal');
+    const closeDerivativeModal = document.getElementById('closeDerivativeModal');
+    const cancelDerivative = document.getElementById('cancelDerivative');
+    const saveDerivative = document.getElementById('saveDerivative');
+    const derivativeExpression = document.getElementById('derivativeExpression');
+    
+    function openDerivativeModal() {
+        derivativeModal.classList.add('active');
+    }
+    
+    function closeDerivativeModalFunc() {
+        derivativeModal.classList.remove('active');
+    }
+    
+    closeDerivativeModal.addEventListener('click', closeDerivativeModalFunc);
+    cancelDerivative.addEventListener('click', closeDerivativeModalFunc);
+    
+    saveDerivative.addEventListener('click', function() {
+        // Save the expression to the derivative field
+        const expression = derivativeExpression.value;
+        if (expression) {
+            // In a real application, you would save this to your data model
+            console.log('Derivative expression saved:', expression);
+            closeDerivativeModalFunc();
+        }
+    });
+    
+    // Add expression controls functionality
+    document.querySelectorAll('.expression-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const value = this.dataset.value;
+            derivativeExpression.value += value;
+        });
+    });
+    
+    // Add available fields functionality
+    // This would be populated with actual data points in a real application
+    const availableFieldsList = document.getElementById('availableFieldsList');
+    const sampleFields = ['Voltage', 'Current', 'Power', 'Frequency', 'Temperature'];
+    
+    sampleFields.forEach(field => {
+        const fieldPill = document.createElement('span');
+        fieldPill.className = 'field-pill';
+        fieldPill.textContent = field;
+        fieldPill.addEventListener('click', function() {
+            derivativeExpression.value += ` ${field} `;
+        });
+        availableFieldsList.appendChild(fieldPill);
+    });
+});
+</script>
+</body>
+</html>

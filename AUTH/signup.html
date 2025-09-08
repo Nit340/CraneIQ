@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CraneIQ Pro - Sign Up</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Same styles as login page */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --error-color: #e74c3c;
+            --success-color: #2ecc71;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .logo {
+            margin-bottom: 30px;
+        }
+        
+        .logo h2 {
+            color: var(--dark-color);
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .logo p {
+            color: var(--dark-color);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+        
+        .form .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .form label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .input-field {
+            position: relative;
+        }
+        
+        .input-field input, .input-field select {
+            width: 100%;
+            padding: 12px 15px 12px 40px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .input-field input:focus, .input-field select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .input-field i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--dark-color);
+            opacity: 0.6;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 4px;
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: var(--dark-color);
+            opacity: 0.7;
+        }
+        
+        .login-link {
+            margin-top: 15px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .error {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--error-color);
+            display: block;
+        }
+        
+        .success {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--success-color);
+            display: block;
+        }
+        
+        .radio-group {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            margin-right: 20px;
+        }
+        
+        .radio-option input {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h2>CraneIQ Pro</h2>
+            <p>Create your account</p>
+        </div>
+        
+        <div class="message" id="message"></div>
+        
+        <form class="form" id="signupForm">
+            <div class="input-group">
+                <label>Sign up with:</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="emailOption" name="signupMethod" value="email" checked>
+                        <label for="emailOption">Email</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="mobileOption" name="signupMethod" value="mobile">
+                        <label for="mobileOption">Mobile</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-group" id="emailGroup">
+                <label for="email">Email Address</label>
+                <div class="input-field">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                </div>
+            </div>
+            
+            <div class="input-group" id="mobileGroup" style="display: none;">
+                <label for="mobile">Mobile Number</label>
+                <div class="input-field">
+                    <i class="fas fa-mobile-alt"></i>
+                    <input type="tel" id="mobile" name="mobile" placeholder="Enter your mobile number" disabled>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn">Sign Up</button>
+        </form>
+        
+        <div class="login-link">
+            <p>Already have an account? <a href="../index.html">Login</a></p>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 CraneIQ Pro. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script>
+        // Toggle between email and mobile input
+        const emailOption = document.getElementById('emailOption');
+        const mobileOption = document.getElementById('mobileOption');
+        const emailGroup = document.getElementById('emailGroup');
+        const mobileGroup = document.getElementById('mobileGroup');
+        const emailInput = document.getElementById('email');
+        const mobileInput = document.getElementById('mobile');
+        
+        emailOption.addEventListener('change', function() {
+            if (this.checked) {
+                emailGroup.style.display = 'block';
+                mobileGroup.style.display = 'none';
+                emailInput.required = true;
+                mobileInput.required = false;
+                mobileInput.disabled = true;
+            }
+        });
+        
+        mobileOption.addEventListener('change', function() {
+            if (this.checked) {
+                emailGroup.style.display = 'none';
+                mobileGroup.style.display = 'block';
+                emailInput.required = false;
+                mobileInput.required = true;
+                mobileInput.disabled = false;
+            }
+        });
+        
+        document.getElementById('signupForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const signupMethod = document.querySelector('input[name="signupMethod"]:checked').value;
+            const identifier = signupMethod === 'email' ? emailInput.value : mobileInput.value;
+            
+            // Store the identifier for OTP verification
+            sessionStorage.setItem('signupIdentifier', identifier);
+            sessionStorage.setItem('signupMethod', signupMethod);
+            
+            // Show success message (in real app, this would send OTP)
+            document.getElementById('message').textContent = `OTP sent to your ${signupMethod}!`;
+            document.getElementById('message').className = 'message success';
+            
+            // Redirect to OTP verification page after 1 second
+            setTimeout(() => {
+                window.location.href = 'otp-verification.html?flow=signup';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

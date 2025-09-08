@@ -1,0 +1,2073 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Machine Type</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --gray-color: #95a5a6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            min-height: 100vh;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        .container.sidebar-expanded {
+            grid-template-columns: 250px 1fr;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 20px 0;
+            position: relative;
+            z-index: 10;
+            width: 60px;
+            transition: width 0.3s ease, background-color 0.2s ease;
+            overflow: hidden;
+        }
+
+        .sidebar:hover {
+            width: 250px;
+        }
+
+        .sidebar:hover .nav-link span {
+            display: inline;
+            opacity: 1;
+        }
+
+        .sidebar.expanded {
+            width: 250px;
+        }
+
+        .sidebar.expanded .nav-link span {
+            display: inline;
+            opacity: 1;
+        }
+
+        .logo {
+            text-align: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+
+        .nav-link {
+            color: inherit;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px 15px;
+        }
+
+        .nav-item.active .nav-link {
+            color: white;
+        }
+
+        .nav-item:hover .nav-link {
+            color: white;
+        }
+
+        .nav-menu {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 100px);
+            justify-content: space-between;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+        }
+
+        .nav-item i {
+            width: 30px;
+            text-align: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .nav-link span {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            margin-left: 10px;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .page-title {
+            margin-bottom: 20px;
+        }
+
+        .page-title h1 {
+            font-size: 1.8rem;
+            color: var(--dark-color);
+        }
+
+        .page-title p {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary {
+            background-color: var(--gray-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        /* Form Container */
+        .table-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 15px;
+            overflow-x: auto;
+        }
+
+        /* Section Styles */
+        .section {
+            margin-bottom: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 15px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            color: var(--dark-color);
+            font-weight: 600;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        /* Machine Type Header */
+        .machine-type-header {
+            background-color: var(--light-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-color);
+            position: relative;
+        }
+
+        .machine-type-header h2 {
+            color: var(--dark-color);
+            margin-bottom: 10px;
+        }
+
+        .machine-type-header .form-group {
+            max-width: 500px;
+        }
+
+        .required-field::after {
+            content: " *";
+            color: var(--danger-color);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 600px;
+            max-width: 90%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray-color);
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Dropdown menu styles */
+        .dropdown-menu {
+            display: none;
+            padding-left: 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+            max-height: 200px;
+        }
+
+        .dropdown-item {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .dropdown-item i {
+            margin-right: 10px;
+        }
+
+        .dropdown-toggle .dropdown-icon {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .dropdown-toggle.show .dropdown-icon,
+        .sidebar:hover .dropdown-toggle.show .dropdown-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Close dropdowns when sidebar is collapsed */
+        .sidebar:not(:hover):not(.expanded) .dropdown-menu {
+            display: none !important;
+            max-height: 0 !important;
+            padding: 0 !important;
+        }
+
+        .sidebar:not(:hover):not(.expanded) .dropdown-toggle.show .dropdown-icon {
+            transform: rotate(0deg) !important;
+        }
+
+        /* Account Dropdown */
+        .user-info-wrapper {
+            --primary-color: #4361ee;
+            --danger-color: #ef233c;
+            --text-color: #2b2d42;
+            --hover-bg: #f8f9fa;
+            --transition-speed: 0.25s;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .account-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .account-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+        }
+
+        .account-trigger:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .account-trigger:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        .account-trigger .fa-user-circle {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .account-trigger span {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .account-trigger .fa-caret-down {
+            font-size: 0.75rem;
+            transition: transform var(--transition-speed);
+        }
+
+        .account-trigger.active .fa-caret-down {
+            transform: rotate(180deg);
+        }
+
+        .account-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.5rem);
+            background-color: white;
+            min-width: 180px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem 0;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-10px);
+            visibility: hidden;
+            transition:
+                opacity var(--transition-speed) ease,
+                transform var(--transition-speed) ease;
+        }
+
+        .account-menu.show {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .account-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 1rem;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition:
+                background-color var(--transition-speed),
+                color var(--transition-speed);
+        }
+
+        .account-menu-item:hover,
+        .account-menu-item:focus {
+            background-color: var(--hover-bg);
+            color: var(--primary-color);
+            outline: none;
+        }
+
+        .account-menu-item i {
+            width: 1.25rem;
+            text-align: center;
+            color: inherit;
+        }
+
+        .account-menu-divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 0.5rem 0;
+        }
+
+        .logout-account-btn {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font: inherit;
+            color: inherit;
+        }
+
+        .logout-account-btn:hover,
+        .logout-account-btn:focus {
+            color: var(--danger-color) !important;
+        }
+
+        .account-menu-item.plan-info {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            font-weight: 600;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .account-menu-item.plan-info i {
+            margin-right: 8px;
+        }
+
+        /* Different colors for different plans */
+        .plan-basic {
+            color: var(--primary-color);
+        }
+
+        .plan-advanced {
+            color: var(--success-color);
+        }
+
+        .plan-pro {
+            color: gold;
+        }
+
+        .customer-logo {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Notification Modal Styles */
+        .notification-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .notification-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+
+        .notification-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .notification-icon.success {
+            color: var(--success-color);
+        }
+
+        .notification-icon.warning {
+            color: var(--warning-color);
+        }
+
+        .notification-icon.error {
+            color: var(--danger-color);
+        }
+
+        .notification-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark-color);
+        }
+
+        .notification-message {
+            margin-bottom: 20px;
+            color: var(--dark-color);
+        }
+
+        .notification-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Confirmation Modal Styles */
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .confirmation-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .confirmation-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--dark-color);
+        }
+
+        .confirmation-message {
+            margin-bottom: 20px;
+            color: var(--dark-color);
+        }
+
+        .confirmation-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Existing Machine Types Table */
+        .existing-types-section {
+            margin-top: 30px;
+            display: none; /* Initially hidden */
+        }
+
+        .existing-types-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .existing-types-table th,
+        .existing-types-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .existing-types-table th {
+            background-color: var(--light-color);
+            font-weight: 600;
+        }
+
+        .existing-types-table tr:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .table-btn {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .table-btn-edit {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .table-btn-delete {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        /* Field item styling */
+        .field-item {
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+        }
+
+        .field-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .field-title {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .field-properties {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        /* Enhanced field modal styling */
+        .field-config-group {
+            margin-bottom: 15px;
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            background-color: #f9f9f9;
+        }
+
+        .field-config-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .field-config-title i {
+            color: var(--primary-color);
+        }
+
+        /* Validation error styling */
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .input-error {
+            border-color: var(--danger-color) !important;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .field-properties {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 95%;
+            }
+        }
+        
+        /* Toggle switch for required field */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            margin-left: 10px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+ 
+        .field-edit-btn {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .field-edit-btn:hover {
+            background-color: var(--secondary-color);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="mainContainer">
+        <!-- Sidebar Navigation -->
+        <div id="sidebar-container"></div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <div class="header-logo">CraneIQ</div>
+                </div>
+             
+                <div class="user-info-wrapper">
+                    <div class="account-dropdown">
+                        <div class="account-trigger" id="accountDropdownTrigger">
+                            <div class="customer-logo">H</div>
+                            <span>Hilton (Pro Plan)</span>
+                            <i class="fas fa-caret-down"></i>
+                        </div>
+                        <div class="account-menu" id="accountDropdownMenu">
+                            <div class="account-menu-item plan-info">
+                                <i class="fas fa-crown" style="color: gold;"></i>
+                                <span>Pro Plan</span>
+                            </div>
+                            <div class="account-menu-divider"></div>
+                            <a href="#" class="account-menu-item">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="#" class="account-menu-item">
+                                <i class="fas fa-sync-alt"></i> Upgrade Plan
+                            </a>
+                            <div class="account-menu-divider"></div>
+                            <button id="accountLogoutBtn" class="account-menu-item logout-account-btn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="page-title">
+                <h1>Create New Machine Type</h1>
+                <p>Define a new machine type and its properties</p>
+            </div>
+
+            <!-- Machine Type Name Section -->
+            <div class="machine-type-header">
+                <h2>Machine Type Identification</h2>
+                <div class="form-group">
+                    <label for="machine-type-name" class="required-field">Machine Type Name</label>
+                    <input type="text" id="machine-type-name" placeholder="e.g., Crane, Excavator, Forklift" required>
+                    <div class="error-message" id="machine-type-name-error">Machine type name is required</div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="add-section-btn" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Section
+                </button>
+            </div>
+
+            <div class="table-container">
+                <!-- Basic Details Section -->
+                <div class="section" id="basic-details">
+                    <div class="section-header">
+                        <h3 class="section-title">Basic Details</h3>
+                        <div class="section-actions">
+                            <button class="btn btn-primary add-field-basic" data-section="basic-details">
+                                <i class="fas fa-plus"></i> Add Field
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="machine-id">Machine ID</label>
+                                <input type="text" id="machine-id" placeholder="Enter machine ID">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="iot-gateway">IoT Gateway</label>
+                                <input type="text" id="iot-gateway" placeholder="Enter IoT gateway">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-fields" id="basic-details-fields"></div>
+                </div>
+
+                <!-- Data Point Details Section -->
+                <div class="section" id="data-point-details">
+                    <div class="section-header">
+                        <h3 class="section-title">Data Point Details</h3>
+                        <div class="section-actions">
+                            <button class="btn btn-primary add-field" data-section="data-point-details">
+                                <i class="fas fa-plus"></i> Add Field
+                            </button>
+                        </div>
+                    </div>
+                    <div class="section-fields" id="data-point-details-fields"></div>
+                </div>
+
+                <!-- Dynamic Sections Container -->
+                <div id="dynamic-sections"></div>
+            </div>
+
+            <!-- Existing Machine Types Table moved to bottom after Save/Cancel -->
+
+            <div class="action-buttons" style="margin-top: 20px;">
+                <button id="save-form-btn" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Machine Type
+                </button>
+                <button id="cancel-btn" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button id="view-existing-btn" class="btn btn-secondary">
+                    <i class="fas fa-list"></i> View Existing Types
+                </button>
+            </div>
+
+            <!-- Machine Type Table -->
+            <div class="section existing-types-section" id="existing-types-section">
+                <div class="section-header">
+                    <h3 class="section-title">Machine Type</h3>
+                </div>
+                <table class="existing-types-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Machine ID</th>
+                            <th>IoT Gateway</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="existing-types-body">
+                        <!-- Will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Section Creation -->
+    <div class="modal" id="section-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Section</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="section-name" class="required-field">Section Name</label>
+                    <input type="text" id="section-name" placeholder="Enter section name" required>
+                    <div class="error-message" id="section-name-error">Section name is required</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-section">Cancel</button>
+                <button class="btn btn-primary" id="confirm-section">Add Section</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple Modal for Basic Details Field Creation -->
+    <div class="modal" id="basic-field-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Field to Basic Details</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="field-config-group">
+                    <div class="field-config-title">
+                        <i class="fas fa-font"></i>
+                        <span>Basic Information</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="basic-field-name" class="required-field">Field Name</label>
+                        <input type="text" id="basic-field-name" placeholder="Enter field name" required>
+                        <div class="error-message" id="basic-field-name-error">Field name is required</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="basic-field-description">Description</label>
+                        <textarea id="basic-field-description" placeholder="Enter field description" rows="2"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Hidden field to store field ID for editing -->
+                <input type="hidden" id="basic-field-id">
+                
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-basic-field">Cancel</button>
+                <button class="btn btn-primary" id="confirm-basic-field">Add Field</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Modal for Field Creation -->
+    <div class="modal" id="field-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="field-modal-title">Add New Field</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="field-config-group">
+                    <div class="field-config-title">
+                        <i class="fas fa-font"></i>
+                        <span>Basic Information</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="field-name" class="required-field">Field Name</label>
+                        <input type="text" id="field-name" placeholder="Enter field name" required>
+                        <div class="error-message" id="field-name-error">Field name is required</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="field-description">Description</label>
+                        <textarea id="field-description" placeholder="Enter field description" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div class="field-config-group">
+                    <div class="field-config-title">
+                        <i class="fas fa-cog"></i>
+                        <span>Data Configuration</span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="field-data-type" class="required-field">Data Type</label>
+                                <select id="field-data-type">
+                                    <option value="text">Text</option>
+                                    <option value="number">Number</option>
+                                    <option value="decimal">Decimal</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="field-length">Length/Precision</label>
+                                <input type="number" id="field-length" placeholder="Enter length" min="1">
+                                <div class="error-message" id="field-length-error">Length must be a positive number</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field-config-group">
+                    <div class="field-config-title">
+                        <i class="fas fa-database"></i>
+                        <span>Data Feed Configuration</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="field-feed-type" class="required-field">Feed Type</label>
+                        <select id="field-feed-type">
+                            <option value="manual">Manual Input</option>
+                            <option value="auto">Auto Feed</option>
+                            <option value="derivative">Derivative</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Hidden field to store field ID for editing -->
+                <input type="hidden" id="field-id">
+                
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-field">Cancel</button>
+                <button class="btn btn-primary" id="confirm-field">Add Field</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div class="notification-modal" id="notification-modal">
+        <div class="notification-content">
+            <div class="notification-icon" id="notification-icon">
+                <i class="fas fa-check-circle success"></i>
+            </div>
+            <h3 class="notification-title" id="notification-title">Success!</h3>
+            <p class="notification-message" id="notification-message">Operation completed successfully.</p>
+            <div class="notification-actions">
+                <button class="btn btn-primary" id="notification-ok-btn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="confirmation-modal" id="confirmation-modal">
+        <div class="confirmation-content">
+            <h3 class="confirmation-title" id="confirmation-title">Confirm Action</h3>
+            <p class="confirmation-message" id="confirmation-message">Are you sure you want to perform this action?</p>
+            <div class="confirmation-actions">
+                <button class="btn btn-secondary" id="confirmation-cancel-btn">Cancel</button>
+                <button class="btn btn-primary" id="confirmation-ok-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize sample data for existing machine types
+            const sampleMachineTypes = [
+                { id: 'MT001', name: 'Crane', machineId: 'CRN-001', iotGateway: 'GW-001' },
+                { id: 'MT002', name: 'Excavator', machineId: 'EXC-002', iotGateway: 'GW-002' },
+                { id: 'MT003', name: 'Forklift', machineId: 'FLT-003', iotGateway: 'GW-003' }
+            ];
+
+            // Load the sidebar
+            fetch('sidebar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('sidebar-container').innerHTML = data;
+                    initializeSidebar();
+                });
+
+            function initializeSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                
+                if (sidebar && sidebarToggle) {
+                    sidebarToggle.addEventListener('click', function() {
+                        sidebar.classList.toggle('expanded');
+                        document.querySelector('.container').classList.toggle('sidebar-expanded');
+                    });
+
+                    // Dropdown functionality
+                    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                        toggle.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const dropdown = this.closest('.dropdown');
+                            const menu = dropdown.querySelector('.dropdown-menu');
+                            
+                            // Close all other dropdowns
+                            document.querySelectorAll('.dropdown-menu').forEach(m => {
+                                if (m !== menu) m.classList.remove('show');
+                            });
+                            
+                            // Toggle current dropdown
+                            menu.classList.toggle('show');
+                        });
+                    });
+
+                    // Close dropdowns when clicking outside
+                    document.addEventListener('click', function(e) {
+                        if (!e.target.closest('.dropdown')) {
+                            document.querySelectorAll('.dropdown-menu').forEach(m => {
+                                m.classList.remove('show');
+                            });
+                        }
+                    });
+                }
+            }
+
+            // Account dropdown functionality
+            const accountDropdownTrigger = document.getElementById('accountDropdownTrigger');
+            const accountDropdownMenu = document.getElementById('accountDropdownMenu');
+            
+            accountDropdownTrigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                accountDropdownMenu.classList.toggle('show');
+            });
+            
+            // Close account dropdown when clicking elsewhere
+            document.addEventListener('click', function() {
+                accountDropdownMenu.classList.remove('show');
+            });
+            
+            // Populate existing machine types table
+            function populateExistingMachineTypes() {
+                const tableBody = document.getElementById('existing-types-body');
+                tableBody.innerHTML = '';
+                
+                let machineTypes = JSON.parse(localStorage.getItem('machineTypes') || '[]');
+                
+                // Add sample data if no machine types exist
+                if (machineTypes.length === 0) {
+                    machineTypes = sampleMachineTypes;
+                    localStorage.setItem('machineTypes', JSON.stringify(machineTypes));
+                }
+                
+                machineTypes.forEach(type => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${type.id}</td>
+                        <td>${type.name}</td>
+                        <td>${type.machineId || '-'}</td>
+                        <td>${type.iotGateway || '-'}</td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="table-btn table-btn-edit" data-id="${type.id}">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="table-btn table-btn-delete" data-id="${type.id}">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+                // Add event listeners to action buttons
+                document.querySelectorAll('.table-btn-edit').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = this.dataset.id;
+                        editMachineType(id);
+                    });
+                });
+                
+                document.querySelectorAll('.table-btn-delete').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = this.dataset.id;
+                        deleteMachineType(id);
+                    });
+                });
+            }
+            
+            // Edit machine type
+            function editMachineType(id) {
+                showNotification('Info', `Edit functionality for ${id} would open here`, 'info');
+            }
+            
+            // Delete machine type
+            function deleteMachineType(id) {
+                showConfirmation('Confirm Deletion', `Are you sure you want to delete machine type ${id}?`, function(confirmed) {
+                    if (confirmed) {
+                        let machineTypes = JSON.parse(localStorage.getItem('machineTypes') || '[]');
+                        machineTypes = machineTypes.filter(type => type.id !== id);
+                        localStorage.setItem('machineTypes', JSON.stringify(machineTypes));
+                        populateExistingMachineTypes();
+                        showNotification('Deleted', `Machine type ${id} has been deleted`, 'success');
+                    }
+                });
+            }
+
+            // Notification system
+            const notificationModal = document.getElementById('notification-modal');
+            const notificationTitle = document.getElementById('notification-title');
+            const notificationMessage = document.getElementById('notification-message');
+            const notificationIcon = document.getElementById('notification-icon');
+            const notificationOkBtn = document.getElementById('notification-ok-btn');
+
+            // Confirmation system
+            const confirmationModal = document.getElementById('confirmation-modal');
+            const confirmationTitle = document.getElementById('confirmation-title');
+            const confirmationMessage = document.getElementById('confirmation-message');
+            const confirmationCancelBtn = document.getElementById('confirmation-cancel-btn');
+            const confirmationOkBtn = document.getElementById('confirmation-ok-btn');
+
+            // Store confirmation callback
+            let confirmationCallback = null;
+
+            // Show notification function
+            function showNotification(title, message, type = 'success') {
+                notificationTitle.textContent = title;
+                notificationMessage.textContent = message;
+
+                // Clear previous icon classes
+                notificationIcon.className = 'notification-icon';
+                notificationIcon.innerHTML = '';
+
+                // Set icon based on type
+                let iconClass;
+                switch (type) {
+                    case 'success':
+                        iconClass = 'fas fa-check-circle success';
+                        break;
+                    case 'warning':
+                        iconClass = 'fas fa-exclamation-triangle warning';
+                        break;
+                    case 'error':
+                        iconClass = 'fas fa-times-circle error';
+                        break;
+                    case 'info':
+                        iconClass = 'fas fa-info-circle info';
+                        break;
+                    default:
+                        iconClass = 'fas fa-info-circle';
+                }
+
+                const iconElement = document.createElement('i');
+                iconElement.className = iconClass;
+                notificationIcon.appendChild(iconElement);
+
+                notificationModal.style.display = 'flex';
+            }
+
+            // Show confirmation dialog
+            function showConfirmation(title, message, callback) {
+                confirmationTitle.textContent = title;
+                confirmationMessage.textContent = message;
+                confirmationCallback = callback;
+                confirmationModal.style.display = 'flex';
+            }
+
+            // Close notification
+            notificationOkBtn.addEventListener('click', function () {
+                notificationModal.style.display = 'none';
+            });
+
+            // Handle confirmation
+            confirmationOkBtn.addEventListener('click', function () {
+                confirmationModal.style.display = 'none';
+                if (confirmationCallback) {
+                    confirmationCallback(true);
+                }
+            });
+
+            confirmationCancelBtn.addEventListener('click', function () {
+                confirmationModal.style.display = 'none';
+                if (confirmationCallback) {
+                    confirmationCallback(false);
+                }
+            });
+
+            // Close modals when clicking outside
+            window.addEventListener('click', function (event) {
+                if (event.target === notificationModal) {
+                    notificationModal.style.display = 'none';
+                }
+                if (event.target === confirmationModal) {
+                    confirmationModal.style.display = 'none';
+                    if (confirmationCallback) {
+                        confirmationCallback(false);
+                    }
+                }
+            });
+
+            // Initialize account dropdown
+            const accountTrigger = document.getElementById('accountDropdownTrigger');
+            const accountMenu = document.getElementById('accountDropdownMenu');
+
+            if (accountTrigger && accountMenu) {
+                accountTrigger.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    accountMenu.classList.toggle('show');
+                    this.classList.toggle('active');
+                });
+
+                // Close when clicking outside
+                document.addEventListener('click', function (e) {
+                    if (!e.target.closest('.account-dropdown')) {
+                        accountMenu.classList.remove('show');
+                        accountTrigger.classList.remove('active');
+                    }
+                });
+            }
+
+            // Initialize logout button
+            document.getElementById('accountLogoutBtn').addEventListener('click', function() {
+                showConfirmation('Confirm Logout', 'Are you sure you want to logout?', function(confirmed) {
+                    if (confirmed) {
+                        window.location.href = 'login.html';
+                    }
+                });
+            });
+
+            // Section Management
+            const sectionCounter = { count: 0 };
+            const dynamicSections = document.getElementById('dynamic-sections');
+            let currentSectionId = null;
+            let currentFieldId = null;
+            let isEditingField = false;
+
+            // Modal elements
+            const sectionModal = document.getElementById('section-modal');
+            const basicFieldModal = document.getElementById('basic-field-modal');
+            const fieldModal = document.getElementById('field-modal');
+            const closeModalButtons = document.querySelectorAll('.close-modal, .btn-secondary');
+
+            // Simplified field configuration logic (only text, number, decimal)
+            document.getElementById('field-data-type').addEventListener('change', function() {
+                const lengthField = document.getElementById('field-length');
+
+                // Always show length field for text, number, decimal
+                if (['text', 'number', 'decimal'].includes(this.value)) {
+                    lengthField.closest('.form-group').style.display = 'block';
+                } else {
+                    lengthField.closest('.form-group').style.display = 'none';
+                }
+            });
+
+            // Validation functions
+            function validateRequiredField(inputId, errorId) {
+                const input = document.getElementById(inputId);
+                const error = document.getElementById(errorId);
+                
+                if (!input.value.trim()) {
+                    input.classList.add('input-error');
+                    error.style.display = 'block';
+                    return false;
+                } else {
+                    input.classList.remove('input-error');
+                    error.style.display = 'none';
+                    return true;
+                }
+            }
+            
+            function validateNumberField(inputId, errorId, min = null, max = null) {
+                const input = document.getElementById(inputId);
+                const error = document.getElementById(errorId);
+                const value = parseFloat(input.value);
+                
+                if (input.value && !isNaN(value)) {
+                    if ((min !== null && value < min) || (max !== null && value > max)) {
+                        input.classList.add('input-error');
+                        error.textContent = `Value must be between ${min} and ${max}`;
+                        error.style.display = 'block';
+                        return false;
+                    }
+                }
+                
+                input.classList.remove('input-error');
+                error.style.display = 'none';
+                return true;
+            }
+            
+            function validateFieldModal() {
+                let isValid = true;
+                
+                // Validate field name
+                if (!validateRequiredField('field-name', 'field-name-error')) {
+                    isValid = false;
+                }
+                
+                // Validate length field
+                const length = document.getElementById('field-length').value;
+                if (length && !validateNumberField('field-length', 'field-length-error', 1)) {
+                    isValid = false;
+                }
+                
+                return isValid;
+            }
+            
+            function validateBasicFieldModal() {
+                let isValid = true;
+                
+                // Validate field name
+                if (!validateRequiredField('basic-field-name', 'basic-field-name-error')) {
+                    isValid = false;
+                }
+                
+                return isValid;
+            }
+            
+            function validateMainForm() {
+                let isValid = true;
+                
+                // Validate machine type name
+                if (!validateRequiredField('machine-type-name', 'machine-type-name-error')) {
+                    isValid = false;
+                }
+                
+                return isValid;
+            }
+
+            // Add event listeners to Basic Details section button
+            document.querySelectorAll('.add-field-basic').forEach(button => {
+                button.addEventListener('click', function() {
+                    currentSectionId = this.dataset.section;
+                    isEditingField = false;
+                    currentFieldId = null;
+                    
+                    // Reset basic field modal
+                    document.getElementById('basic-field-name').value = '';
+                    document.getElementById('basic-field-description').value = '';
+                    document.getElementById('basic-field-id').value = '';
+                    document.getElementById('confirm-basic-field').textContent = 'Add Field';
+
+                    // Clear error messages
+                    document.querySelectorAll('.error-message').forEach(el => {
+                        el.style.display = 'none';
+                    });
+                    document.querySelectorAll('.input-error').forEach(el => {
+                        el.classList.remove('input-error');
+                    });
+                    
+                    basicFieldModal.style.display = 'flex';
+                });
+            });
+
+            // Add event listeners to Data Point Details section button
+            document.querySelectorAll('#data-point-details .add-field').forEach(button => {
+                button.addEventListener('click', function() {
+                    currentSectionId = this.dataset.section;
+                    isEditingField = false;
+                    currentFieldId = null;
+                    
+                    // Reset field modal
+                    document.getElementById('field-modal-title').textContent = 'Add New Field';
+                    document.getElementById('field-name').value = '';
+                    document.getElementById('field-description').value = '';
+                    document.getElementById('field-data-type').value = 'text';
+                    document.getElementById('field-length').value = '';
+                    document.getElementById('field-feed-type').value = 'manual';
+                    document.getElementById('field-id').value = '';
+                    document.getElementById('confirm-field').textContent = 'Add Field';
+
+                    // Show length field by default
+                    document.getElementById('field-length').closest('.form-group').style.display = 'block';
+                    
+                    // Clear error messages
+                    document.querySelectorAll('.error-message').forEach(el => {
+                        el.style.display = 'none';
+                    });
+                    document.querySelectorAll('.input-error').forEach(el => {
+                        el.classList.remove('input-error');
+                    });
+                    
+                    fieldModal.style.display = 'flex';
+                });
+            });
+
+            // Function to edit a field
+            function editField(fieldElement, isBasic = false) {
+                const fieldTitle = fieldElement.querySelector('.field-title').textContent.replace(/\s*\*$/, '');
+                const properties = fieldElement.querySelectorAll('.field-properties > div');
+                
+                // Extract all field properties
+                const description = properties[0].textContent.replace('Description: ', '');
+                
+                if (isBasic) {
+                    // Set values in the basic modal
+                    document.getElementById('basic-field-name').value = fieldTitle;
+                    document.getElementById('basic-field-description').value = description === 'N/A' ? '' : description;
+                    document.getElementById('basic-field-id').value = fieldElement.id;
+                    document.getElementById('confirm-basic-field').textContent = 'Update Field';
+                    
+                    // Clear error messages
+                    document.querySelectorAll('.error-message').forEach(el => {
+                        el.style.display = 'none';
+                    });
+                    document.querySelectorAll('.input-error').forEach(el => {
+                        el.classList.remove('input-error');
+                    });
+                    
+                    isEditingField = true;
+                    currentFieldId = fieldElement.id;
+                    basicFieldModal.style.display = 'flex';
+                } else {
+                    const dataType = properties[1].textContent.replace('Data Type: ', '');
+                    const length = properties[2]?.textContent.replace('Length/Precision: ', '') || '';
+                    const feedType = properties[3].textContent.replace('Feed Type: ', '');
+
+                    // Set values in the modal
+                    document.getElementById('field-modal-title').textContent = 'Edit Field';
+                    document.getElementById('field-name').value = fieldTitle;
+                    document.getElementById('field-description').value = description === 'N/A' ? '' : description;
+                    document.getElementById('field-data-type').value = dataType.toLowerCase();
+                    document.getElementById('field-length').value = length === 'N/A' || length === '' ? '' : length;
+                    document.getElementById('field-feed-type').value = feedType.toLowerCase();
+                    document.getElementById('field-id').value = fieldElement.id;
+                    document.getElementById('confirm-field').textContent = 'Update Field';
+                    
+                    // Show/hide length field based on data type
+                    if (['text', 'number', 'decimal'].includes(dataType.toLowerCase())) {
+                        document.getElementById('field-length').closest('.form-group').style.display = 'block';
+                    } else {
+                        document.getElementById('field-length').closest('.form-group').style.display = 'none';
+                    }
+                    
+                    // Clear error messages
+                    document.querySelectorAll('.error-message').forEach(el => {
+                        el.style.display = 'none';
+                    });
+                    document.querySelectorAll('.input-error').forEach(el => {
+                        el.classList.remove('input-error');
+                    });
+                    
+                    isEditingField = true;
+                    currentFieldId = fieldElement.id;
+                    fieldModal.style.display = 'flex';
+                }
+            }
+
+            // Open section modal
+            document.getElementById('add-section-btn').addEventListener('click', function () {
+                document.getElementById('section-name').value = '';
+                document.getElementById('section-name-error').style.display = 'none';
+                document.getElementById('section-name').classList.remove('input-error');
+                sectionModal.style.display = 'flex';
+            });
+
+            // Confirm section creation
+            document.getElementById('confirm-section').addEventListener('click', function () {
+                const sectionName = document.getElementById('section-name').value.trim();
+                
+                if (!validateRequiredField('section-name', 'section-name-error')) {
+                    return;
+                }
+                
+                if (sectionName) {
+                    sectionCounter.count++;
+                    const sectionId = `custom-section-${sectionCounter.count}`;
+
+                    const sectionHtml = `
+                        <div class="section" id="${sectionId}">
+                            <div class="section-header">
+                                <h3 class="section-title">${sectionName}</h3>
+                                <div class="section-actions">
+                                    <button class="btn btn-primary add-field" data-section="${sectionId}">
+                                        <i class="fas fa-plus"></i> Add Field
+                                    </button>
+                                    <button class="btn btn-danger remove-section" data-section="${sectionId}">
+                                        <i class="fas fa-trash"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="section-fields"></div>
+                        </div>
+                    `;
+
+                    dynamicSections.insertAdjacentHTML('beforeend', sectionHtml);
+
+                    // Add event listeners to new buttons
+                    document.querySelector(`#${sectionId} .remove-section`).addEventListener('click', removeSection);
+                    document.querySelector(`#${sectionId} .add-field`).addEventListener('click', function () {
+                        currentSectionId = this.dataset.section;
+                        isEditingField = false;
+                        currentFieldId = null;
+                        
+                        // Reset field modal
+                        document.getElementById('field-modal-title').textContent = 'Add New Field';
+                        document.getElementById('field-name').value = '';
+                        document.getElementById('field-description').value = '';
+                        document.getElementById('field-data-type').value = 'text';
+                        document.getElementById('field-length').value = '';
+                        document.getElementById('field-feed-type').value = 'manual';
+                        document.getElementById('field-id').value = '';
+                        document.getElementById('confirm-field').textContent = 'Add Field';
+
+                        // Show length field by default
+                        document.getElementById('field-length').closest('.form-group').style.display = 'block';
+                        
+                        // Clear error messages
+                        document.querySelectorAll('.error-message').forEach(el => {
+                            el.style.display = 'none';
+                        });
+                        document.querySelectorAll('.input-error').forEach(el => {
+                            el.classList.remove('input-error');
+                        });
+                        
+                        fieldModal.style.display = 'flex';
+                    });
+
+                    sectionModal.style.display = 'none';
+                    showNotification('Section Added', `"${sectionName}" section has been added`, 'success');
+                }
+            });
+
+            // Confirm basic field creation
+            document.getElementById('confirm-basic-field').addEventListener('click', function () {
+                if (!validateBasicFieldModal()) {
+                    return;
+                }
+                
+                const fieldName = document.getElementById('basic-field-name').value.trim();
+                const fieldDescription = document.getElementById('basic-field-description').value.trim();
+                
+                if (fieldName && currentSectionId) {
+                    const section = document.getElementById(currentSectionId);
+                    const fieldsContainer = section.querySelector('.section-fields');
+
+                    const fieldHtml = `
+                        <div class="field-item" id="field-${Date.now()}">
+                            <div class="field-header">
+                                <div class="field-title">${fieldName}</div>
+                                <div class="field-actions">
+                                    <button class="field-edit-btn edit-field-basic">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-danger remove-field">
+                                        <i class="fas fa-trash"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="field-properties">
+                                <div><strong>Description:</strong> ${fieldDescription || 'N/A'}</div>
+                            </div>
+                        </div>
+                    `;
+
+                    if (isEditingField && currentFieldId) {
+                        // Replace existing field
+                        const existingField = document.getElementById(currentFieldId);
+                        existingField.outerHTML = fieldHtml;
+                    } else {
+                        // Add new field
+                        fieldsContainer.insertAdjacentHTML('beforeend', fieldHtml);
+                    }
+
+                    // Add event listeners to new buttons
+                    const newField = document.querySelector(`#${currentSectionId} .field-item:last-child`);
+                    newField.querySelector('.remove-field').addEventListener('click', function () {
+                        showConfirmation('Remove Field', 'Are you sure you want to remove this field?', (confirmed) => {
+                            if (confirmed) {
+                                this.closest('.field-item').remove();
+                                showNotification('Field Removed', 'The field has been removed', 'success');
+                            }
+                        });
+                    });
+                    
+                    newField.querySelector('.edit-field-basic').addEventListener('click', function () {
+                        editField(this.closest('.field-item'), true);
+                    });
+
+                    basicFieldModal.style.display = 'none';
+                    showNotification(
+                        isEditingField ? 'Field Updated' : 'Field Added', 
+                        `"${fieldName}" field has been ${isEditingField ? 'updated' : 'added'}`,
+                        'success'
+                    );
+                }
+            });
+
+            // Confirm field creation
+            document.getElementById('confirm-field').addEventListener('click', function () {
+                if (!validateFieldModal()) {
+                    return;
+                }
+                
+                const fieldName = document.getElementById('field-name').value.trim();
+                const fieldDescription = document.getElementById('field-description').value.trim();
+                const dataType = document.getElementById('field-data-type').value;
+                const length = document.getElementById('field-length').value;
+                const feedType = document.getElementById('field-feed-type').value;
+                
+                if (fieldName && currentSectionId) {
+                    const section = document.getElementById(currentSectionId);
+                    const fieldsContainer = section.querySelector('.section-fields');
+
+                    const fieldHtml = `
+                        <div class="field-item" id="field-${Date.now()}">
+                            <div class="field-header">
+                                <div class="field-title">${fieldName}</div>
+                                <div class="field-actions">
+                                    <button class="field-edit-btn edit-field">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn btn-danger remove-field">
+                                        <i class="fas fa-trash"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="field-properties">
+                                <div><strong>Description:</strong> ${fieldDescription || 'N/A'}</div>
+                                <div><strong>Data Type:</strong> ${dataType}</div>
+                                ${length ? `<div><strong>Length/Precision:</strong> ${length}</div>` : ''}
+                                <div><strong>Feed Type:</strong> ${feedType}</div>
+                            </div>
+                        </div>
+                    `;
+
+                    if (isEditingField && currentFieldId) {
+                        // Replace existing field
+                        const existingField = document.getElementById(currentFieldId);
+                        existingField.outerHTML = fieldHtml;
+                    } else {
+                        // Add new field
+                        fieldsContainer.insertAdjacentHTML('beforeend', fieldHtml);
+                    }
+
+                    // Add event listeners to new buttons
+                    const newField = document.querySelector(`#${currentSectionId} .field-item:last-child`);
+                    newField.querySelector('.remove-field').addEventListener('click', function () {
+                        showConfirmation('Remove Field', 'Are you sure you want to remove this field?', (confirmed) => {
+                            if (confirmed) {
+                                this.closest('.field-item').remove();
+                                showNotification('Field Removed', 'The field has been removed', 'success');
+                            }
+                        });
+                    });
+                    
+                    newField.querySelector('.edit-field').addEventListener('click', function () {
+                        editField(this.closest('.field-item'), false);
+                    });
+
+                    fieldModal.style.display = 'none';
+                    showNotification(
+                        isEditingField ? 'Field Updated' : 'Field Added', 
+                        `"${fieldName}" field has been ${isEditingField ? 'updated' : 'added'}`,
+                        'success'
+                    );
+                }
+            });
+
+            // Close modals
+            closeModalButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    sectionModal.style.display = 'none';
+                    basicFieldModal.style.display = 'none';
+                    fieldModal.style.display = 'none';
+                });
+            });
+
+            // Remove section
+            function removeSection(e) {
+                const sectionId = e.currentTarget.dataset.section;
+                const sectionName = document.querySelector(`#${sectionId} .section-title`).textContent;
+
+                showConfirmation('Remove Section', `Are you sure you want to remove the "${sectionName}" section?`, (confirmed) => {
+                    if (confirmed) {
+                        document.getElementById(sectionId).remove();
+                        showNotification('Section Removed', `"${sectionName}" section has been removed`, 'success');
+                    }
+                });
+            }
+
+// Save form
+document.getElementById('save-form-btn').addEventListener('click', function () {
+    if (!validateMainForm()) {
+        showNotification('Validation Error', 'Please fix the validation errors before saving', 'error');
+        return;
+    }
+    
+    const machineTypeName = document.getElementById('machine-type-name').value;
+    const machineId = document.getElementById('machine-id').value;
+    const iotGateway = document.getElementById('iot-gateway').value;
+
+    // Generate a unique ID for the machine type
+    const machineTypeId = 'MT' + Date.now().toString().slice(-4);
+
+    // Collect all form data
+    const formData = {
+        id: machineTypeId,
+        name: machineTypeName,
+        machineId: machineId,
+        iotGateway: iotGateway,
+        fields: {
+            basicDetails: {
+                machineId: { 
+                    value: machineId
+                },
+                iotGateway: { 
+                    value: iotGateway
+                }
+            },
+            dataPointDetails: {}
+        }
+    };
+
+    // Get custom fields from Basic Details (simple fields without validation rules)
+    document.querySelectorAll('#basic-details-fields .field-item').forEach(field => {
+        const fieldTitle = field.querySelector('.field-title').textContent.replace(/\s*\*$/, '');
+        const properties = field.querySelectorAll('.field-properties > div');
+        
+        // Extract field properties - only description for basic fields
+        const description = properties[0].textContent.replace('Description: ', '');
+
+        formData.fields.basicDetails[fieldTitle] = { 
+            description: description === 'N/A' ? '' : description,
+            value: ""
+        };
+    });
+
+    // Get fields from Data Point Details section (with full validation rules)
+    document.querySelectorAll('#data-point-details-fields .field-item').forEach(field => {
+        const fieldTitle = field.querySelector('.field-title').textContent.replace(/\s*\*$/, '');
+        const properties = field.querySelectorAll('.field-properties > div');
+        
+        // Extract all field properties
+        const description = properties[0].textContent.replace('Description: ', '');
+        const dataType = properties[1].textContent.replace('Data Type: ', '');
+        const length = properties[2]?.textContent.replace('Length/Precision: ', '') || '';
+        const feedType = properties[3].textContent.replace('Feed Type: ', '');
+
+        formData.fields.dataPointDetails[fieldTitle] = { 
+            description: description === 'N/A' ? '' : description,
+            type: dataType,
+            dataType: dataType,
+            length: length === 'N/A' || length === '' ? null : parseInt(length),
+            feedType: feedType,
+            value: ""
+        };
+    });
+
+    // Get custom sections (with full validation rules)
+    document.querySelectorAll('#dynamic-sections .section').forEach(section => {
+        const sectionTitle = section.querySelector('.section-title').textContent;
+        formData.fields[sectionTitle] = {};
+
+        section.querySelectorAll('.field-item').forEach(field => {
+            const fieldTitle = field.querySelector('.field-title').textContent.replace(/\s*\*$/, '');
+            const properties = field.querySelectorAll('.field-properties > div');
+            
+            // Extract all field properties
+            const description = properties[0].textContent.replace('Description: ', '');
+            const dataType = properties[1].textContent.replace('Data Type: ', '');
+            const length = properties[2]?.textContent.replace('Length/Precision: ', '') || '';
+            const feedType = properties[3].textContent.replace('Feed Type: ', '');
+
+            formData.fields[sectionTitle][fieldTitle] = { 
+                description: description === 'N/A' ? '' : description,
+                type: dataType,
+                dataType: dataType,
+                length: length === 'N/A' || length === '' ? null : parseInt(length),
+                feedType: feedType,
+                value: ""
+            };
+        });
+    });
+
+    // Save to localStorage (in a real app, you would send to server)
+    let machineTypes = JSON.parse(localStorage.getItem('machineTypes') || '[]');
+    
+    // Check if ID already exists
+    const existingIndex = machineTypes.findIndex(type => type.id === machineTypeId);
+    if (existingIndex !== -1) {
+        // Update existing
+        machineTypes[existingIndex] = formData;
+        showNotification('Updated', 'Machine type updated successfully!', 'success');
+    } else {
+        // Add new
+        machineTypes.push(formData);
+        showNotification('Success', 'Machine type saved successfully!', 'success');
+    }
+    
+    localStorage.setItem('machineTypes', JSON.stringify(machineTypes));
+    
+    // Refresh the existing types table
+    populateExistingMachineTypes();
+
+    setTimeout(() => {
+        // Clear form for new entry
+        document.getElementById('machine-type-name').value = '';
+        document.getElementById('machine-id').value = '';
+        document.getElementById('iot-gateway').value = '';
+        
+        // Clear dynamic sections and custom fields
+        document.getElementById('dynamic-sections').innerHTML = '';
+        document.getElementById('basic-details-fields').innerHTML = '';
+        document.getElementById('data-point-details-fields').innerHTML = '';
+        
+        // Clear error states
+        document.querySelectorAll('.error-message').forEach(el => {
+            el.style.display = 'none';
+        });
+        document.querySelectorAll('.input-error').forEach(el => {
+            el.classList.remove('input-error');
+        });
+    }, 1500);
+});
+            // Cancel button
+            document.getElementById('cancel-btn').addEventListener('click', function () {
+                showConfirmation('Cancel Changes', 'Are you sure you want to cancel? All unsaved changes will be lost.', (confirmed) => {
+                    if (confirmed) {
+                        window.location.href = 'machine.html';
+                    }
+                });
+            });
+
+            // View existing types button
+            document.getElementById('view-existing-btn').addEventListener('click', function() {
+                const existingSection = document.getElementById('existing-types-section');
+                if (existingSection.style.display === 'none' || existingSection.style.display === '') {
+                    existingSection.style.display = 'block';
+                    this.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Existing Types';
+                } else {
+                    existingSection.style.display = 'none';
+                    this.innerHTML = '<i class="fas fa-list"></i> View Existing Types';
+                }
+            });
+
+            // Initialize the page
+            initializeSidebar();
+            populateExistingMachineTypes();
+        });
+    </script>
+</body>
+
+</html>

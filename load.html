@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crane Monitoring - Load Lift Log</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --gray-color: #95a5a6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            min-height: 100vh;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        .container.sidebar-expanded {
+            grid-template-columns: 250px 1fr;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 20px 0;
+            position: relative;
+            z-index: 10;
+            width: 60px;
+            transition: width 0.3s ease, background-color 0.2s ease;
+            overflow: hidden;
+        }
+
+        .sidebar:hover {
+            width: 250px;
+        }
+
+        .sidebar:hover .nav-link span {
+            display: inline;
+            opacity: 1;
+        }
+
+        .sidebar.expanded {
+            width: 250px;
+        }
+
+        .sidebar.expanded .nav-link span {
+            display: inline;
+            opacity: 1;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .page-title {
+            margin-bottom: 20px;
+        }
+
+        .page-title h1 {
+            font-size: 1.8rem;
+            color: var(--dark-color);
+        }
+
+        .page-title p {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+
+        /* Metrics Container */
+        .metrics-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            padding: 15px;
+            border-left: 4px solid var(--primary-color);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+
+        .metric-card:nth-child(1) { border-left-color: #3498db; }
+        .metric-card:nth-child(2) { border-left-color: #2ecc71; }
+        .metric-card:nth-child(3) { border-left-color: #e74c3c; }
+        .metric-card:nth-child(4) { border-left-color: #f39c12; }
+
+        .metric-title {
+            font-size: 0.85rem;
+            color: var(--gray-color);
+            margin-bottom: 5px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .metric-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 5px;
+        }
+
+        .metric-value span {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--gray-color);
+        }
+
+        .metric-subtext {
+            font-size: 0.75rem;
+            color: var(--gray-color);
+            padding: 4px 8px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        /* Filter Controls */
+        .log-controls {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .filter-group {
+            margin-bottom: 0;
+        }
+
+        .filter-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .filter-select, .filter-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            align-self: flex-end;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--dark-color);
+            border: 1px solid #ddd;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container h3 {
+            margin-bottom: 15px;
+            color: var(--dark-color);
+        }
+
+        .chart-wrapper {
+            height: 400px;
+        }
+
+        /* Table Styles */
+        .log-table-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .log-table th {
+            text-align: left;
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--dark-color);
+            border-bottom: 2px solid #eee;
+            position: sticky;
+            top: 0;
+        }
+
+        .log-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .log-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .log-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Status Indicators */
+        .load-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            display: inline-block;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .status-normal {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Account Dropdown */
+        .account-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .account-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: transparent;
+            border: none;
+            color: var(--dark-color);
+        }
+
+        .account-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 5px);
+            background-color: white;
+            min-width: 180px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding: 5px 0;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-10px);
+            visibility: hidden;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .account-menu.show {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .account-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            color: var(--dark-color);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .account-menu-item:hover {
+            background-color: #f8f9fa;
+            color: var(--primary-color);
+        }
+
+        .customer-logo {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 992px) {
+            .metrics-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .metrics-container,
+            .log-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                grid-column: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <!-- Sidebar Navigation -->
+        <div id="sidebar-container"></div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <div class="header-logo">CraneIQ</div>
+                </div>
+                
+                <div class="account-dropdown">
+                    <div class="account-trigger" id="accountDropdownTrigger">
+                        <img src="image/houzz.png" class="customer-logo">
+                        <span>Hilton (Pro Plan)</span>
+                        <i class="fas fa-caret-down"></i>
+                    </div>
+                    <div class="account-menu" id="accountDropdownMenu">
+                        <div class="account-menu-item plan-info">
+                            <i class="fas fa-crown" style="color: gold;"></i>
+                            <span>Pro Plan</span>
+                        </div>
+                        <div class="account-menu-divider"></div>
+                        <a href="#" class="account-menu-item">
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                        <a href="#" class="account-menu-item">
+                            <i class="fas fa-sync-alt"></i> Upgrade Plan
+                        </a>
+                        <div class="account-menu-divider"></div>
+                        <button id="accountLogoutBtn" class="account-menu-item logout-account-btn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page-title">
+                <h1>Load Lift Log</h1>
+                <p>Records of all load weight measurements</p>
+            </div>
+
+            <!-- Metrics Cards -->
+            <div class="metrics-container">
+                <div class="metric-card">
+                    <div class="metric-title">Current Load</div>
+                    <div class="metric-value">4,250 <span style="font-size: 1rem;">kg</span></div>
+                    <div class="metric-subtext">Across all cranes</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Average Capacity</div>
+                    <div class="metric-value">72 <span style="font-size: 1rem;">%</span></div>
+                    <div class="metric-subtext">Utilization rate</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Max Capacity</div>
+                    <div class="metric-value">6,800 <span style="font-size: 1rem;">kg</span></div>
+                    <div class="metric-subtext">CRN-004 (6T capacity)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Overall Status</div>
+                    <div class="metric-value">N/A</div>
+                    <div class="metric-subtext">No active overloads</div>
+                </div>
+            </div>
+            
+            <!-- Filter Controls -->
+            <div class="log-controls">
+                <div class="filter-group">
+                    <label class="filter-label">Crane</label>
+                    <select class="filter-select" id="crane-filter">
+                        <option value="all">All Cranes</option>
+                        <option value="CRN-001">Gantry Crane #1 (CRN-001)</option>
+                        <option value="CRN-002">Overhead Crane #2 (CRN-002)</option>
+                        <option value="CRN-003">Jib Crane #3 (CRN-003)</option>
+                        <option value="CRN-004">Bridge Crane #4 (CRN-004)</option>
+                        <option value="CRN-005">Gantry Crane #5 (CRN-005)</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Load Status</label>
+                    <select class="filter-select" id="status-filter">
+                        <option value="all">All Statuses</option>
+                        <option value="normal">Normal</option>
+                        <option value="warning">Warning (80-95%)</option>
+                        <option value="overload">Overload (>95%)</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Date Range</label>
+                    <select class="filter-select" id="date-filter">
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="all">All Dates</option>
+                    </select>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-filter"></i>
+                        Apply Filters
+                    </button>
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-redo"></i>
+                        Reset
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Five Crane Chart Container -->
+            <div class="chart-container">
+                <h3>Five Crane Load Comparison</h3>
+                <div class="chart-wrapper">
+                    <canvas id="loadChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Load Log Table -->
+            <div class="log-table-container">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Crane ID</th>
+                            <th>Operation</th>
+                            <th>Load (kg)</th>
+                            <th>Capacity</th>
+                            <th>Percentage</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Table rows here (same as in your original) -->
+                        <tr>
+                            <td>2023-06-15 08:23:45</td>
+                            <td>CRN-001</td>
+                            <td>Hoist Up</td>
+                            <td>3,250</td>
+                            <td>5,000</td>
+                            <td>65%</td>
+                            <td><span class="load-status status-normal">Normal</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-15 08:45:12</td>
+                            <td>CRN-002</td>
+                            <td>CT Right</td>
+                            <td>4,800</td>
+                            <td>10,000</td>
+                            <td>48%</td>
+                            <td><span class="load-status status-normal">Normal</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-15 10:05:27</td>
+                            <td>CRN-004</td>
+                            <td>Hoist Up</td>
+                            <td>5,700</td>
+                            <td>6,000</td>
+                            <td>95%</td>
+                            <td><span class="load-status status-warning">Warning</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-15 11:15:06</td>
+                            <td>CRN-005</td>
+                            <td>LT Forward</td>
+                            <td>7,500</td>
+                            <td>8,000</td>
+                            <td>94%</td>
+                            <td><span class="load-status status-warning">Warning</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-15 13:18:37</td>
+                            <td>CRN-003</td>
+                            <td>Hoist Up</td>
+                            <td>6,200</td>
+                            <td>5,000</td>
+                            <td>124%</td>
+                            <td><span class="load-status status-danger">Overload</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-14 07:15:22</td>
+                            <td>CRN-002</td>
+                            <td>Hoist Down</td>
+                            <td>3,800</td>
+                            <td>10,000</td>
+                            <td>38%</td>
+                            <td><span class="load-status status-normal">Normal</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-14 09:22:18</td>
+                            <td>CRN-001</td>
+                            <td>CT Left</td>
+                            <td>4,200</td>
+                            <td>5,000</td>
+                            <td>84%</td>
+                            <td><span class="load-status status-normal">Normal</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-14 11:30:07</td>
+                            <td>CRN-004</td>
+                            <td>Hoist Down</td>
+                            <td>6,100</td>
+                            <td>6,000</td>
+                            <td>102%</td>
+                            <td><span class="load-status status-danger">Overload</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-14 14:05:19</td>
+                            <td>CRN-005</td>
+                            <td>LT Reverse</td>
+                            <td>1,800</td>
+                            <td>8,000</td>
+                            <td>23%</td>
+                            <td><span class="load-status status-normal">Normal</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-13 08:10:33</td>
+                            <td>CRN-003</td>
+                            <td>Hoist Up</td>
+                            <td>4,500</td>
+                            <td>5,000</td>
+                            <td>90%</td>
+                            <td><span class="load-status status-warning">Warning</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-13 10:45:12</td>
+                            <td>CRN-001</td>
+                            <td>CT Right</td>
+                            <td>3,700</td>
+                            <td>5,000</td>
+                            <td>74%</td>
+                            <td><span class="load-status status-normal">Normal</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-13 12:30:45</td>
+                            <td>CRN-002</td>
+                            <td>Hoist Down</td>
+                            <td>9,200</td>
+                            <td>10,000</td>
+                            <td>92%</td>
+                            <td><span class="load-status status-warning">Warning</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-13 15:15:28</td>
+                            <td>CRN-004</td>
+                            <td>Hoist Up</td>
+                            <td>5,500</td>
+                            <td>6,000</td>
+                            <td>92%</td>
+                            <td><span class="load-status status-warning">Warning</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-12 08:45:56</td>
+                            <td>CRN-005</td>
+                            <td>LT Forward</td>
+                            <td>6,800</td>
+                            <td>8,000</td>
+                            <td>85%</td>
+                            <td><span class="load-status status-normal">Normal</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-12 11:20:34</td>
+                            <td>CRN-003</td>
+                            <td>Hoist Up</td>
+                            <td>5,200</td>
+                            <td>5,000</td>
+                            <td>104%</td>
+                            <td><span class="load-status status-danger">Overload</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-12 13:45:17</td>
+                            <td>CRN-001</td>
+                            <td>Hoist Down</td>
+                            <td>2,500</td>
+                            <td>5,000</td>
+                            <td>50%</td>
+                            <td><span class="load-status status-normal">Normal</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-11 09:10:22</td>
+                            <td>CRN-002</td>
+                            <td>CT Right</td>
+                            <td>8,500</td>
+                            <td>10,000</td>
+                            <td>85%</td>
+                            <td><span class="load-status status-normal">Normal</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-11 10:55:43</td>
+                            <td>CRN-004</td>
+                            <td>Hoist Up</td>
+                            <td>5,900</td>
+                            <td>6,000</td>
+                            <td>98%</td>
+                            <td><span class="load-status status-warning">Warning</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-11 14:30:12</td>
+                            <td>CRN-005</td>
+                            <td>LT Reverse</td>
+                            <td>3,200</td>
+                            <td>8,000</td>
+                            <td>40%</td>
+                            <td><span class="load-status status-normal">Normal</span></td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-10 07:45:39</td>
+                            <td>CRN-003</td>
+                            <td>Hoist Up</td>
+                            <td>4,800</td>
+                            <td>5,000</td>
+                            <td>96%</td>
+                            <td><span class="load-status status-warning">Warning</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load the sidebar
+        fetch('sidebar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('sidebar-container').innerHTML = data;
+                initializeSidebar();
+            });
+
+        function initializeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const mainContainer = document.getElementById('mainContainer');
+            
+            if (sidebar && sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('expanded');
+                    mainContainer.classList.toggle('sidebar-expanded');
+                });
+
+                // Dropdown functionality
+                document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                    toggle.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const dropdown = this.closest('.dropdown');
+                        const menu = dropdown.querySelector('.dropdown-menu');
+                        
+                        // Close all other dropdowns
+                        document.querySelectorAll('.dropdown-menu').forEach(m => {
+                            if (m !== menu) m.classList.remove('show');
+                        });
+                        
+                        // Toggle current dropdown
+                        menu.classList.toggle('show');
+                    });
+                });
+            }
+        }
+
+        // Account dropdown functionality
+        const accountDropdownTrigger = document.getElementById('accountDropdownTrigger');
+        const accountDropdownMenu = document.getElementById('accountDropdownMenu');
+        
+        accountDropdownTrigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            accountDropdownMenu.classList.toggle('show');
+        });
+        
+        document.addEventListener('click', function() {
+            accountDropdownMenu.classList.remove('show');
+        });
+        
+        accountDropdownMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // Chart initialization
+        const ctx = document.getElementById('loadChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['8 AM', '10 AM', '12 PM', '2 PM', '4 PM'],
+                datasets: [
+                    {
+                        label: 'CRN-001 (5T)',
+                        data: [45, 65, 72, 68, 55],
+                        borderColor: '#3498db',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'CRN-002 (10T)',
+                        data: [38, 48, 52, 85, 92],
+                        borderColor: '#2ecc71',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'CRN-003 (5T)',
+                        data: [65, 72, 90, 104, 85],
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'CRN-004 (6T)',
+                        data: [55, 92, 85, 95, 80],
+                        borderColor: '#f39c12',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'CRN-005 (8T)',
+                        data: [40, 85, 75, 94, 70],
+                        borderColor: '#9b59b6',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 120,
+                        title: {
+                            display: true,
+                            text: 'Load Percentage (%)',
+                            font: {
+                                weight: 'bold',
+                                size: 13
+                            }
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            },
+                            stepSize: 20
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time of Day',
+                            font: {
+                                weight: 'bold',
+                                size: 13
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                            padding: 20,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.raw + '%';
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Logout functionality
+        document.getElementById('accountLogoutBtn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('isLoggedIn');
+                window.location.href = 'index.html';
+            }
+        });
+    });
+    </script>
+</body>
+</html>

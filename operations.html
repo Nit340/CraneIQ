@@ -1,0 +1,1184 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crane Monitoring - Operations Log</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --gray-color: #95a5a6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+      .container {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    min-height: 100vh;
+    transition: grid-template-columns 0.3s ease;
+}
+
+.container.sidebar-expanded {
+    grid-template-columns: 250px 1fr;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    background-color: var(--dark-color);
+    color: white;
+    padding: 20px 0;
+    position: relative;
+    z-index: 10;
+    width: 60px;
+    transition: width 0.3s ease, background-color 0.2s ease;
+    overflow: hidden;
+}
+
+.sidebar:hover {
+    width: 250px;
+}
+
+.sidebar:hover .nav-link span {
+    display: inline;
+    opacity: 1;
+}
+
+.sidebar.expanded {
+    width: 250px;
+}
+
+.sidebar.expanded .nav-link span {
+    display: inline;
+    opacity: 1;
+}
+
+.logo {
+    text-align: center;
+    padding: 0 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: none;
+}
+
+.nav-link {
+    color: inherit;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 12px 15px;
+}
+
+.nav-item.active .nav-link {
+    color: white;
+}
+
+.nav-item:hover .nav-link {
+    color: white;
+}
+
+.nav-menu {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 100px);
+    justify-content: space-between;
+}
+
+.nav-item {
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.nav-item:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.nav-item.active {
+    background-color: var(--primary-color);
+}
+
+.nav-item i {
+    width: 30px;
+    text-align: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.nav-link span {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    margin-left: 10px;
+}
+
+
+/* Main Content */
+.main-content {
+    padding: 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.page-title {
+    margin-bottom: 20px;
+}
+
+.page-title h1 {
+    font-size: 1.8rem;
+    color: var(--dark-color);
+}
+
+.page-title p {
+    font-size: 0.9rem;
+    color: var(--gray-color);
+}
+
+     
+        /* Compact Metrics Dashboard */
+        .metrics-dashboard {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background-color: #fefefe;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 12px;
+        }
+        
+        .metric-card {
+            flex: 1;
+            min-width: 120px;
+            padding: 8px 10px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        /* Color borders for each metric */
+        .metric-card:nth-child(1) { border-left-color: #28a745; } /* Hoist */
+        .metric-card:nth-child(2) { border-left-color: #007bff; } /* CT */
+        .metric-card:nth-child(3) { border-left-color: #ffc107; } /* LT */
+        .metric-card:nth-child(4) { border-left-color: #6c757d; } /* Switch */
+        .metric-card:nth-child(5) { border-left-color: #17a2b8; } /* Duration */
+        .metric-card:nth-child(6) { border-left-color: #6610f2; } /* Load */
+        
+        .metric-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        
+        .metric-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--gray-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metric-icon {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.6rem;
+            margin-right: 5px;
+        }
+        
+        .metric-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin-bottom: 2px;
+        }
+        
+        .metric-details {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+            font-size: 0.65rem;
+        }
+        
+        .metric-detail {
+            text-align: center;
+            flex: 1;
+            padding: 0 2px;
+        }
+        
+        .detail-value {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .detail-label {
+            color: var(--gray-color);
+            font-size: 0.6rem;
+        }
+        
+        /* Icon colors */
+        .icon-hoist {
+            background-color: #28a745;
+        }
+        
+        .icon-lower {
+            background-color: #007bff;
+        }
+        
+        .icon-travel {
+            background-color: #ffc107;
+        }
+        
+        .icon-switch {
+            background-color: #6c757d;
+        }
+        
+        .icon-total {
+            background-color: var(--primary-color);
+        }
+        
+        .icon-duration {
+            background-color: #17a2b8;
+        }
+        
+        .icon-load {
+            background-color: #6610f2;
+        }
+        
+        /* Filter Controls */
+        .log-controls {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .filter-group {
+            margin-bottom: 0;
+        }
+        
+        .filter-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .filter-select, .filter-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            align-self: flex-end;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: white;
+            color: var(--dark-color);
+            border: 1px solid #ddd;
+        }
+        
+        /* Operations Log Table */
+        .log-table-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            overflow-x: auto;
+        }
+        
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        
+        .log-table th {
+            text-align: left;
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--dark-color);
+            border-bottom: 2px solid #eee;
+            position: sticky;
+            top: 0;
+        }
+        
+        .log-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .log-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .log-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .operation-type {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .type-hoist-up {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .type-hoist-down {
+            background-color: #c3e6cb;
+            color: #0c4128;
+        }
+        
+        .type-lt-forward {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .type-lt-reverse {
+            background-color: #ffeeba;
+            color: #6c5400;
+        }
+        
+        .type-ct-left {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        
+        .type-ct-right {
+            background-color: #b8daff;
+            color: #002752;
+        }
+        
+        .type-switch {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .metrics-dashboard {
+                flex-direction: column;
+            }
+            
+            .metric-card {
+                border-right: none;
+                border-bottom: 1px solid #eee;
+                padding: 10px 0;
+            }
+            
+            .metric-card:last-child {
+                border-bottom: none;
+            }
+            
+            .log-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                grid-column: 1;
+            }
+        }
+        
+        .logout-button {
+            margin-left: 15px;
+            padding: 6px 12px;
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.2s;
+        }
+        
+        .logout-button:hover {
+            background-color: #c0392b;
+        }
+        
+
+/* Dropdown menu styles */
+.dropdown-menu {
+    display: none;
+    padding-left: 20px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.dropdown-menu.show {
+    display: block;
+    max-height: 200px;
+}
+
+.dropdown-item {
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown-item i {
+    margin-right: 10px;
+}
+
+.dropdown-toggle .dropdown-icon {
+    margin-left: auto;
+    transition: transform 0.3s ease;
+}
+
+.dropdown-toggle.show .dropdown-icon,
+.sidebar:hover .dropdown-toggle.show .dropdown-icon {
+    transform: rotate(180deg);
+}
+
+/* Close dropdowns when sidebar is collapsed */
+.sidebar:not(:hover):not(.expanded) .dropdown-menu {
+    display: none !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+}
+
+.sidebar:not(:hover):not(.expanded) .dropdown-toggle.show .dropdown-icon {
+    transform: rotate(0deg) !important;
+}
+
+/* Account Dropdown */
+.user-info-wrapper {
+    --primary-color: #4361ee;
+    --danger-color: #ef233c;
+    --text-color: #2b2d42;
+    --hover-bg: #f8f9fa;
+    --transition-speed: 0.25s;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.account-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.account-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+}
+
+.account-trigger:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.account-trigger:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.account-trigger .fa-user-circle {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.account-trigger span {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.account-trigger .fa-caret-down {
+    font-size: 0.75rem;
+    transition: transform var(--transition-speed);
+}
+
+.account-trigger.active .fa-caret-down {
+    transform: rotate(180deg);
+}
+
+.account-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    background-color: white;
+    min-width: 180px;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 0;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-10px);
+    visibility: hidden;
+    transition: 
+        opacity var(--transition-speed) ease,
+        transform var(--transition-speed) ease;
+}
+
+.account-menu.show {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+.account-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: 
+        background-color var(--transition-speed),
+        color var(--transition-speed);
+}
+
+.account-menu-item:hover,
+.account-menu-item:focus {
+    background-color: var(--hover-bg);
+    color: var(--primary-color);
+}
+
+.account-menu-item i {
+    width: 1.25rem;
+    text-align: center;
+    color: inherit;
+}
+
+.account-menu-divider {
+    height: 1px;
+    background-color: #e9ecef;
+    margin: 0.5rem 0;
+}
+
+.logout-account-btn {
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+
+.logout-account-btn:hover,
+.logout-account-btn:focus {
+    color: var(--danger-color) !important;
+}
+.account-menu-item.plan-info {
+    background-color: #f8f9fa;
+    color: var(--dark-color);
+    font-weight: 600;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.account-menu-item.plan-info i {
+    margin-right: 8px;
+}
+
+/* Different colors for different plans */
+.plan-basic { color: var(--primary-color); }
+.plan-advanced { color: var(--success-color); }
+.plan-pro { color: gold; }
+.customer-logo{
+    width:30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 5px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification-success {
+    background-color: var(--success-color);
+}
+
+.notification-error {
+    background-color: var(--danger-color);
+}
+
+/* Settings dropdown without arrow */
+.settings-dropdown .dropdown-icon {
+    display: none;
+}
+
+    </style>
+</head>
+<body>
+ 
+ <div class="container" id="mainContainer">
+        <!-- Sidebar Navigation -->
+     <div id="sidebar-container"></div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <div class="header-logo">CraneIQ</div>
+                </div>
+               
+               <div class="user-info-wrapper">
+    <div class="account-dropdown">
+        <div class="account-trigger" id="accountDropdownTrigger">
+           <img src="image/houzz.png" class="customer-logo">
+            <span>Hilton (Pro Plan)</span>
+            <i class="fas fa-caret-down"></i>
+        </div>
+        <div class="account-menu" id="accountDropdownMenu">
+            <div class="account-menu-item plan-info">
+                <i class="fas fa-crown" style="color: gold;"></i>
+                <span>Pro Plan</span>
+            </div>
+            <div class="account-menu-divider"></div>
+            <a href="#" class="account-menu-item">
+                <i class="fas fa-user"></i> Profile
+            </a>
+            <a href="#" class="account-menu-item">
+                <i class="fas fa-sync-alt"></i> Upgrade Plan
+            </a>
+            <div class="account-menu-divider"></div>
+            <button id="accountLogoutBtn" class="account-menu-item logout-account-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+</div>
+            </div>
+             <div class="page-title">
+                      <h1>Operations Log</h1>
+                    <p>Complete record of all crane operations</p>
+                </div>
+            
+  <!-- Compact Metrics Dashboard -->
+        <div class="metrics-dashboard">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon icon-hoist">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div class="metric-title">HOIST</div>
+                </div>
+                <div class="metric-value">142</div>
+                <div class="metric-details">
+                    <div class="metric-detail">
+                        <div class="detail-value">87</div>
+                        <div class="detail-label">UP</div>
+                    </div>
+                    <div class="metric-detail">
+                        <div class="detail-value">55</div>
+                        <div class="detail-label">DOWN</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon icon-travel">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div class="metric-title">CT</div>
+                </div>
+                <div class="metric-value">76</div>
+                <div class="metric-details">
+                    <div class="metric-detail">
+                        <div class="detail-value">45</div>
+                        <div class="detail-label">LEFT</div>
+                    </div>
+                    <div class="metric-detail">
+                        <div class="detail-value">31</div>
+                        <div class="detail-label">RIGHT</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon icon-travel">
+                        <i class="fas fa-arrows-alt-h"></i>
+                    </div>
+                    <div class="metric-title">LT</div>
+                </div>
+                <div class="metric-value">98</div>
+                <div class="metric-details">
+                    <div class="metric-detail">
+                        <div class="detail-value">62</div>
+                        <div class="detail-label">FWD</div>
+                    </div>
+                    <div class="metric-detail">
+                        <div class="detail-value">36</div>
+                        <div class="detail-label">REV</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon icon-switch">
+                        <i class="fas fa-random"></i>
+                    </div>
+                    <div class="metric-title">SWITCH</div>
+                </div>
+                <div class="metric-value">53</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon icon-duration">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="metric-title">DURATION</div>
+                </div>
+                <div class="metric-value">8:42:15</div>
+            </div>
+            
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon icon-load">
+                        <i class="fas fa-weight-hanging"></i>
+                    </div>
+                    <div class="metric-title">LOAD</div>
+                </div>
+                <div class="metric-value">287.5T</div>
+            </div>
+        </div>
+            
+            <!-- Filter Controls -->
+            <div class="log-controls">
+                <div class="filter-group">
+                    <label class="filter-label">Crane</label>
+                    <select class="filter-select" id="crane-filter">
+                        <option value="all">All Cranes</option>
+                        <option value="CRN-001">Gantry Crane #1 (CRN-001)</option>
+                        <option value="CRN-002">Overhead Crane #2 (CRN-002)</option>
+                        <option value="CRN-003">Jib Crane #3 (CRN-003)</option>
+                        <option value="CRN-004">Bridge Crane #4 (CRN-004)</option>
+                        <option value="CRN-005">Gantry Crane #5 (CRN-005)</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Operation Type</label>
+                    <select class="filter-select" id="type-filter">
+                        <option value="all">All Types</option>
+                        <option value="hoist-up">Hoist Up</option>
+                        <option value="hoist-down">Hoist Down</option>
+                        <option value="ct-left">CT Left</option>
+                        <option value="ct-right">CT Right</option>
+                        <option value="lt-forward">LT Forward</option>
+                        <option value="lt-reverse">LT Reverse</option>
+                        <option value="switch">Switching</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Date Range</label>
+                    <select class="filter-select" id="date-filter">
+                        <option value="all">All Dates</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-filter"></i>
+                        Apply Filters
+                    </button>
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-redo"></i>
+                        Reset
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Operations Log Table -->
+            <div class="log-table-container">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Crane ID</th>
+                            <th>Operation</th>
+                            <th>Duration</th>
+                            <th>Load (kg)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2023-06-15 08:23:45</td>
+                            <td>CRN-001</td>
+                            <td><span class="operation-type type-hoist-up">Hoist Up</span></td>
+                            <td>2:15</td>
+                            <td>3,250</td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-15 08:45:12</td>
+                            <td>CRN-002</td>
+                            <td><span class="operation-type type-lt-forward">LT Forward</span></td>
+                            <td>1:42</td>
+                            <td>4,800</td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-15 09:12:33</td>
+                            <td>CRN-001</td>
+                            <td><span class="operation-type type-hoist-down">Hoist Down</span></td>
+                            <td>1:56</td>
+                            <td>3,250</td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-15 09:30:18</td>
+                            <td>CRN-003</td>
+                            <td><span class="operation-type type-switch">Switch</span></td>
+                            <td>0:45</td>
+                            <td>1,200</td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-15 10:05:27</td>
+                            <td>CRN-004</td>
+                            <td><span class="operation-type type-hoist-up">Hoist Up</span></td>
+                            <td>3:22</td>
+                            <td>5,700</td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-15 10:45:52</td>
+                            <td>CRN-002</td>
+                            <td><span class="operation-type type-hoist-down">Hoist Down</span></td>
+                            <td>2:18</td>
+                            <td>4,800</td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-15 11:15:06</td>
+                            <td>CRN-005</td>
+                            <td><span class="operation-type type-lt-forward">LT Forward</span></td>
+                            <td>4:33</td>
+                            <td>7,500</td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-15 11:52:41</td>
+                            <td>CRN-001</td>
+                            <td><span class="operation-type type-hoist-up">Hoist Up</span></td>
+                            <td>1:47</td>
+                            <td>2,800</td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-15 12:30:15</td>
+                            <td>CRN-003</td>
+                            <td><span class="operation-type type-ct-left">CT Left</span></td>
+                            <td>3:05</td>
+                            <td>3,200</td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-15 13:18:37</td>
+                            <td>CRN-004</td>
+                            <td><span class="operation-type type-ct-right">CT Right</span></td>
+                            <td>2:42</td>
+                            <td>5,700</td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-15 14:05:19</td>
+                            <td>CRN-002</td>
+                            <td><span class="operation-type type-lt-reverse">LT Reverse</span></td>
+                            <td>1:15</td>
+                            <td>3,800</td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-15 15:22:54</td>
+                            <td>CRN-001</td>
+                            <td><span class="operation-type type-hoist-up">Hoist Up</span></td>
+                            <td>2:15</td>
+                            <td>3,500</td>
+                        </tr>
+                        <tr>
+                            <td>2023-06-15 16:10:27</td>
+                            <td>CRN-003</td>
+                            <td><span class="operation-type type-hoist-down">Hoist Down</span></td>
+                            <td>1:52</td>
+                            <td>2,800</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load the sidebar
+        fetch('sidebar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('sidebar-container').innerHTML = data;
+                initializeSidebar(); // Call this after loading
+            });
+
+        function initializeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            
+            if (sidebar && sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('expanded');
+                    document.querySelector('.container').classList.toggle('sidebar-expanded');
+                });
+
+                // Dropdown functionality
+                document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                    toggle.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const dropdown = this.closest('.dropdown');
+                        const menu = dropdown.querySelector('.dropdown-menu');
+                        
+                        // Close all other dropdowns
+                        closeAllDropdownsExcept(menu, this);
+                        
+                        // Toggle current dropdown
+                        menu.classList.toggle('show');
+                        this.classList.toggle('show');
+                    });
+                });
+
+                // Function to close all dropdowns
+                function closeAllDropdowns() {
+                    document.querySelectorAll('.dropdown-menu').forEach(m => {
+                        m.classList.remove('show');
+                    });
+                    document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                        t.classList.remove('show');
+                    });
+                }
+
+                // Function to close all dropdowns except a specific one
+                function closeAllDropdownsExcept(exceptMenu = null, exceptToggle = null) {
+                    document.querySelectorAll('.dropdown-menu').forEach(m => {
+                        if (m !== exceptMenu) m.classList.remove('show');
+                    });
+                    document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                        if (t !== exceptToggle) t.classList.remove('show');
+                    });
+                }
+
+                // Close dropdowns when sidebar is collapsed
+                sidebarToggle.addEventListener('click', function() {
+                    if (!sidebar.classList.contains('expanded')) {
+                        closeAllDropdowns();
+                    }
+                });
+
+                // Also close dropdowns when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!e.target.closest('.dropdown')) {
+                        closeAllDropdowns();
+                    }
+                });
+            }
+        }
+    });
+</script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const dropdownTrigger = document.getElementById('accountDropdownTrigger');
+    const dropdownMenu = document.getElementById('accountDropdownMenu');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const mainContainer = document.getElementById('mainContainer');
+    const logoutBtn = document.getElementById('accountLogoutBtn');
+  
+    // Toggle sidebar on button click
+    sidebarToggle.addEventListener('click', function() {
+        sidebar.classList.toggle('expanded');
+        mainContainer.classList.toggle('sidebar-expanded');
+    });
+
+    // Toggle dropdown when clicking the trigger
+    dropdownTrigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('show');
+    });
+
+    // Close dropdown when clicking anywhere else
+    document.addEventListener('click', function() {
+        dropdownMenu.classList.remove('show');
+    });
+    
+    // Prevent dropdown from closing when clicking inside it
+    dropdownMenu.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    const userPlan = 'pro'; // This would come from your auth system
+
+    function displayUserPlan() {
+        // Option 1: For user dropdown
+        const planName = userPlan.charAt(0).toUpperCase() + userPlan.slice(1);
+        document.querySelector('.account-trigger span').textContent = `Hilton (${planName} Plan)`;
+        
+        // Update plan info in dropdown
+        const planItem = document.querySelector('.account-menu-item.plan-info');
+        planItem.innerHTML = `<i class="fas ${userPlan === 'pro' ? 'fa-crown' : userPlan === 'advanced' ? 'fa-star' : 'fa-user'}"></i>
+                            <span>${planName} Plan</span>`;
+        planItem.classList.add(`plan-${userPlan}`);
+    }
+    displayUserPlan();
+    
+    // Set active nav item
+    document.querySelectorAll('.nav-link').forEach(link => {
+        if (link.getAttribute('href') === 'operations.html') {
+            link.parentElement.classList.add('active');
+        }
+    });
+    
+    // Basic filter functionality
+    document.querySelector('.btn-primary')?.addEventListener('click', function() {
+        const craneFilter = document.getElementById('crane-filter').value;
+        const typeFilter = document.getElementById('type-filter').value;
+        const dateFilter = document.getElementById('date-filter').value;
+        
+        alert('Filters applied:\nCrane: ' + craneFilter + 
+              '\nType: ' + typeFilter + 
+              '\nDate Range: ' + dateFilter);
+    });
+    
+    document.querySelector('.btn-secondary')?.addEventListener('click', function() {
+        document.getElementById('crane-filter').value = 'all';
+        document.getElementById('type-filter').value = 'all';
+        document.getElementById('date-filter').value = 'all';
+        alert('Filters reset');
+    });
+    
+
+
+    // Logout functionality
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        });
+    }
+    
+    // Optional: Check if user is logged in when page loads 
+    if (!localStorage.getItem('isLoggedIn')) {
+        window.location.href = 'index.html';
+    }
+});
+    </script>
+</body>
+</html>

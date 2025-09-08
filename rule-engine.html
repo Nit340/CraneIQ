@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Rule Engine</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --gray-color: #95a5a6;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --gray: #94a3b8;
+            --border: #e2e8f0;
+            --rule-engine-color: #9b59b6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            min-height: 100vh;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        .container.sidebar-expanded {
+            grid-template-columns: 250px 1fr;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 20px 0;
+            position: relative;
+            z-index: 10;
+            width: 60px;
+            transition: width 0.3s ease;
+            overflow: hidden;
+        }
+
+        .sidebar.expanded {
+            width: 250px;
+        }
+
+        .sidebar.expanded .nav-link span {
+            display: inline;
+            opacity: 1;
+        }
+
+        .logo {
+            text-align: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: none;
+        }
+
+        .nav-link {
+            color: inherit;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px 15px;
+        }
+
+        .nav-item.active .nav-link {
+            color: white;
+        }
+
+        .nav-item:hover .nav-link {
+            color: white;
+        }
+
+        .nav-menu {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 100px);
+            justify-content: space-between;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+        }
+
+        .nav-item i {
+            width: 30px;
+            text-align: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .nav-link span {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            margin-left: 10px;
+        }
+
+        /* Dropdown menu styles */
+        .dropdown-menu {
+            display: none;
+            padding-left: 20px;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .dropdown-item i {
+            margin-right: 10px;
+        }
+
+        .dropdown-toggle .dropdown-icon {
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+
+        .dropdown-toggle.show .dropdown-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .page-title {
+            margin-bottom: 20px;
+        }
+
+        .page-title h1 {
+            font-size: 1.8rem;
+            color: var(--dark-color);
+        }
+
+        .page-title p {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .card-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 15px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .card-body {
+            padding: 15px;
+        }
+
+        .rule-form {
+            display: grid;
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        label {
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        input, select, textarea {
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .condition-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            font-size: 13px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--dark);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .rule-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 16px;
+            border-left: 4px solid var(--primary);
+            transition: transform 0.2s;
+        }
+
+        .rule-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .rule-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .rule-card-title {
+            font-weight: 600;
+            font-size: 16px;
+            color: var(--dark-color);
+            margin-bottom: 8px;
+        }
+
+        .rule-card-details {
+            font-size: 13px;
+            color: var(--secondary);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .rule-card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--secondary);
+        }
+
+        .rule-card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background-color: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-inactive {
+            background-color: #fee2e2;
+            color: #dc2626;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 15px;
+        }
+
+        .tab {
+            padding: 8px 15px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-size: 13px;
+        }
+
+        .tab.active {
+            border-bottom: 3px solid var(--primary);
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .filter-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: var(--secondary);
+            font-size: 14px;
+        }
+
+        /* Account Dropdown */
+        .user-info-wrapper {
+            --primary-color: #4361ee;
+            --danger-color: #ef233c;
+            --text-color: #2b2d42;
+            --hover-bg: #f8f9fa;
+            --transition-speed: 0.25s;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .account-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .account-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+        }
+
+        .account-trigger:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .account-trigger:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        .account-trigger .fa-user-circle {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .account-trigger span {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .account-trigger .fa-caret-down {
+            font-size: 0.75rem;
+            transition: transform var(--transition-speed);
+        }
+
+        .account-trigger.active .fa-caret-down {
+            transform: rotate(180deg);
+        }
+
+        .account-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.5rem);
+            background-color: white;
+            min-width: 180px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem 0;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-10px);
+            visibility: hidden;
+            transition: 
+                opacity var(--transition-speed) ease,
+                transform var(--transition-speed) ease;
+        }
+
+        .account-menu.show {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .account-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 1rem;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: 
+                background-color var(--transition-speed),
+                color var(--transition-speed);
+        }
+
+        .account-menu-item:hover,
+        .account-menu-item:focus {
+            background-color: var(--hover-bg);
+            color: var(--primary-color);
+        }
+
+        .account-menu-item i {
+            width: 1.25rem;
+            text-align: center;
+            color: inherit;
+        }
+
+        .account-menu-divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 0.5rem 0;
+        }
+
+        .logout-account-btn {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font: inherit;
+            color: inherit;
+        }
+
+        .logout-account-btn:hover,
+        .logout-account-btn:focus {
+            color: var(--danger-color) !important;
+        }
+        
+        .account-menu-item.plan-info {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            font-weight: 600;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .account-menu-item.plan-info i {
+            margin-right: 8px;
+        }
+
+        /* Different colors for different plans */
+        .plan-basic { color: var(--primary-color); }
+        .plan-advanced { color: var(--success-color); }
+        .plan-pro { color: gold; }
+        
+        .customer-logo{
+            width:30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-success {
+            background-color: var(--success-color);
+        }
+
+        .notification-error {
+            background-color: var(--danger-color);
+        }
+
+        /* New styles for condition sections */
+        .condition-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .condition-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .condition-title {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .add-condition-btn {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .remove-condition-btn {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .condition-operator {
+            margin: 10px 0;
+            padding: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .condition-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .card-header {
+                font-size: 13px;
+                padding: 10px;
+            }
+            
+            .card-body {
+                padding: 12px;
+            }
+            
+            .rules-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <!-- Sidebar Navigation - Will be loaded from sidebar.html -->
+        <div id="sidebar-container"></div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <div class="header-logo">CraneIQ Rules Engine</div>
+                </div>
+               
+               <div class="user-info-wrapper">
+                    <div class="account-dropdown">
+                        <div class="account-trigger" id="accountDropdownTrigger">
+                           <div class="customer-logo">H</div>
+                            <span>Hilton (Pro Plan)</span>
+                            <i class="fas fa-caret-down"></i>
+                        </div>
+                        <div class="account-menu" id="accountDropdownMenu">
+                            <div class="account-menu-item plan-info">
+                                <i class="fas fa-crown" style="color: gold;"></i>
+                                <span>Pro Plan</span>
+                            </div>
+                            <div class="account-menu-divider"></div>
+                            <a href="#" class="account-menu-item">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="#" class="account-menu-item">
+                                <i class="fas fa-sync-alt"></i> Upgrade Plan
+                            </a>
+                            <div class="account-menu-divider"></div>
+                            <button id="accountLogoutBtn" class="account-menu-item logout-account-btn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page-title">
+                <h1>Machine Rule Engine</h1>
+                <p>Create and manage automation rules for your cranes</p>
+            </div>
+
+            <!-- Create New Rule Card at the top -->
+            <div class="card">
+                <div class="card-header">
+                    <span>Create New Rule</span>
+                </div>
+                <div class="card-body">
+                    <div class="tabs">
+                        <div class="tab active" data-tab="conditional">Conditional Rule</div>
+                        <div class="tab" data-tab="scheduled">Scheduled Rule</div>
+                    </div>
+
+                    <div class="tab-content active" id="conditional-tab">
+                        <form class="rule-form" id="conditional-form">
+                            <div class="form-group">
+                                <label for="rule-name">Rule Name</label>
+                                <input type="text" id="rule-name" placeholder="Enter rule name" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="machine">Machine</label>
+                                <select id="machine" required>
+                                    <option value="">Select machine</option>
+                                    <option value="crane-001">Crane #001</option>
+                                    <option value="crane-002">Crane #002</option>
+                                    <option value="cnc-101">CNC Machine #101</option>
+                                    <option value="press-201">Hydraulic Press #201</option>
+                                    <option value="conveyor-301">Conveyor Belt #301</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="datapoint">Data Point</label>
+                                <select id="datapoint" required>
+                                    <option value="">Select data point</option>
+                                    <option value="temperature">Temperature</option>
+                                    <option value="pressure">Pressure</option>
+                                    <option value="speed">Speed</option>
+                                    <option value="load">Load</option>
+                                    <option value="voltage">Voltage</option>
+                                </select>
+                            </div>
+
+                            <div class="condition-group">
+                                <div class="form-group">
+                                    <label for="operator">Operator</label>
+                                    <select id="operator" required>
+                                        <option value=">">Greater Than</option>
+                                        <option value="<">Less Than</option>
+                                        <option value="==">Equals</option>
+                                        <option value=">=">Greater or Equal</option>
+                                        <option value="<=">Less or Equal</option>
+                                        <option value="!=">Not Equals</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="value">Value</label>
+                                    <input type="number" id="value" placeholder="Value" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="unit">Unit</label>
+                                    <select id="unit">
+                                        <option value="">N/A</option>
+                                        <option value="°C">°C</option>
+                                        <option value="psi">psi</option>
+                                        <option value="rpm">rpm</option>
+                                        <option value="kg">kg</option>
+                                        <option value="V">V</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="action">Action</label>
+                                <select id="action" required>
+                                    <option value="">Select action</option>
+                                    <option value="stop">Stop Machine</option>
+                                    <option value="start">Start Machine</option>
+                                    <option value="alert">Send Alert</option>
+                                    <option value="adjust">Adjust Parameters</option>
+                                    <option value="maintenance">Schedule Maintenance</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="description">Description</label>
+                                <textarea id="description" rows="2" placeholder="Rule description"></textarea>
+                            </div>
+
+                            <div class="actions">
+                                <button type="submit" class="btn-primary">Create Rule</button>
+                                <button type="reset" class="btn-secondary">Clear</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="tab-content" id="scheduled-tab">
+                        <form class="rule-form" id="scheduled-form">
+                            <div class="form-group">
+                                <label for="scheduled-rule-name">Rule Name</label>
+                                <input type="text" id="scheduled-rule-name" placeholder="Enter rule name" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="scheduled-machine">Machine</label>
+                                <select id="scheduled-machine" required>
+                                    <option value="">Select machine</option>
+                                    <option value="crane-001">Crane #001</option>
+                                    <option value="crane-002">Crane #002</option>
+                                    <option value="cnc-101">CNC Machine #101</option>
+                                    <option value="press-201">Hydraulic Press #201</option>
+                                    <option value="conveyor-301">Conveyor Belt #301</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="schedule-type">Schedule Type</label>
+                                <select id="schedule-type" required>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="specific">Specific Date</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="time">Time</label>
+                                <input type="time" id="time" required>
+                            </div>
+
+                            <div class="form-group" id="day-selector">
+                                <label for="day">Day of Week</label>
+                                <select id="day">
+                                    <option value="monday">Monday</option>
+                                    <option value="tuesday">Tuesday</option>
+                                    <option value="wednesday">Wednesday</option>
+                                    <option value="thursday">Thursday</option>
+                                    <option value="friday">Friday</option>
+                                    <option value="saturday">Saturday</option>
+                                    <option value="sunday">Sunday</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" id="date-selector" style="display: none;">
+                                <label for="specific-date">Specific Date</label>
+                                <input type="date" id="specific-date">
+                            </div>
+
+                            <!-- Condition Section for Scheduled Rules -->
+                            <div class="condition-section">
+                                <div class="condition-header">
+                                    <div class="condition-title">Additional Conditions (Optional)</div>
+                                    <button type="button" class="add-condition-btn" id="add-scheduled-condition">
+                                        <i class="fas fa-plus"></i> Add Condition
+                                    </button>
+                                </div>
+                                <div id="scheduled-conditions-container">
+                                    <!-- Conditions will be added here dynamically -->
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="scheduled-action">Action</label>
+                                <select id="scheduled-action" required>
+                                    <option value="">Select action</option>
+                                    <option value="start">Start Machine</option>
+                                    <option value="stop">Stop Machine</option>
+                                    <option value="maintenance">Run Maintenance</option>
+                                    <option value="backup">Create Backup</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="scheduled-description">Description</label>
+                                <textarea id="scheduled-description" rows="2" placeholder="Rule description"></textarea>
+                            </div>
+
+                            <div class="actions">
+                                <button type="submit" class="btn-primary">Create Rule</button>
+                                <button type="reset" class="btn-secondary">Clear</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Rules Card at the bottom -->
+            <div class="card">
+                <div class="card-header">
+                    <span>Active Rules</span>
+                </div>
+                <div class="card-body">
+                    <div class="filter-container">
+                        <label for="machine-type">Filter by Machine Type:</label>
+                        <select id="machine-type">
+                            <option value="all">All Machines</option>
+                            <option value="crane">Crane</option>
+                            <option value="cnc">CNC Machine</option>
+                            <option value="press">Hydraulic Press</option>
+                            <option value="conveyor">Conveyor Belt</option>
+                        </select>
+                    </div>
+                    <div class="rules-grid" id="rules-container">
+                        <!-- Rules will be added here dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <footer>
+                <p>Machine Rule Engine &copy; 2023 | Designed for Industrial Automation</p>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load the sidebar
+            fetch('sidebar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('sidebar-container').innerHTML = data;
+                    initializeSidebar(); // Call this after loading
+                });
+
+            function initializeSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                
+                if (sidebar && sidebarToggle) {
+                    sidebarToggle.addEventListener('click', function() {
+                        sidebar.classList.toggle('expanded');
+                        document.querySelector('.container').classList.toggle('sidebar-expanded');
+                    });
+
+                    // Dropdown functionality
+                    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                        toggle.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            const dropdown = this.closest('.dropdown');
+                            const menu = dropdown.querySelector('.dropdown-menu');
+                            
+                            // Close all other dropdowns
+                            closeAllDropdownsExcept(menu, this);
+                            
+                            // Toggle current dropdown
+                            menu.classList.toggle('show');
+                            this.classList.toggle('show');
+                        });
+                    });
+
+                    // Function to close all dropdowns
+                    function closeAllDropdowns() {
+                        document.querySelectorAll('.dropdown-menu').forEach(m => {
+                            m.classList.remove('show');
+                        });
+                        document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                            t.classList.remove('show');
+                        });
+                    }
+
+                    // Function to close all dropdowns except a specific one
+                    function closeAllDropdownsExcept(exceptMenu = null, exceptToggle = null) {
+                        document.querySelectorAll('.dropdown-menu').forEach(m => {
+                            if (m !== exceptMenu) m.classList.remove('show');
+                        });
+                        document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                            if (t !== exceptToggle) t.classList.remove('show');
+                        });
+                    }
+
+                    // Close dropdowns when sidebar is collapsed
+                    sidebarToggle.addEventListener('click', function() {
+                        if (!sidebar.classList.contains('expanded')) {
+                            closeAllDropdowns();
+                        }
+                    });
+
+                    // Also close dropdowns when clicking outside
+                    document.addEventListener('click', function(e) {
+                        if (!e.target.closest('.dropdown')) {
+                            closeAllDropdowns();
+                        }
+                    });
+                    
+                    // Set active nav item
+                    document.querySelectorAll('.nav-link').forEach(link => {
+                        if (link.getAttribute('href') === 'rules.html') {
+                            link.parentElement.classList.add('active');
+                        }
+                    });
+                }
+            }
+
+            // Tab functionality
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.getAttribute('data-tab');
+                    
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Show active content
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+
+            // Show/hide day selector based on schedule type
+            const scheduleType = document.getElementById('schedule-type');
+            const daySelector = document.getElementById('day-selector');
+            const dateSelector = document.getElementById('date-selector');
+            
+            scheduleType.addEventListener('change', function() {
+                if (this.value === 'weekly') {
+                    daySelector.style.display = 'flex';
+                    dateSelector.style.display = 'none';
+                } else if (this.value === 'specific') {
+                    daySelector.style.display = 'none';
+                    dateSelector.style.display = 'flex';
+                } else {
+                    daySelector.style.display = 'none';
+                    dateSelector.style.display = 'none';
+                }
+            });
+
+            // Sample rules data based on the image
+            const sampleRules = [
+                {
+                    id: 1,
+                    name: "Extended Operation Alert",
+                    machine: "All Cranes",
+                    type: "conditional",
+                    condition: "Operation time > 2 hours",
+                    action: "Send Alert",
+                    status: "active",
+                    description: "Triggers when a crane operates continuously for more than 2 hours without a break",
+                    activeSince: "2023-05-10"
+                },
+                {
+                    id: 2,
+                    name: "Weekend Operation Alert",
+                    machine: "All Cranes",
+                    type: "conditional",
+                    condition: "Operation on weekend",
+                    action: "Send Notification",
+                    status: "active",
+                    description: "Notifies when any crane operates on weekends",
+                    activeSince: "2023-04-15"
+                },
+                {
+                    id: 3,
+                    name: "High Ambient Temperature Alert",
+                    machine: "CRN-001, CRN-002",
+                    type: "conditional",
+                    condition: "Temperature > 35°C",
+                    action: "Send Alert",
+                    status: "active",
+                    description: "Triggers when ambient temperature exceeds 35°C and crane is operating",
+                    activeSince: "2023-06-01"
+                },
+                {
+                    id: 4,
+                    name: "Maintenance Due Alert",
+                    machine: "CRN-003, CRN-004",
+                    type: "conditional",
+                    condition: "Maintenance due in 7 days",
+                    action: "Schedule Maintenance",
+                    status: "active",
+                    description: "Triggers when maintenance is due within 7 days based on operation hours",
+                    activeSince: "2023-05-22"
+                },
+                {
+                    id: 5,
+                    name: "Weekly Maintenance Check",
+                    machine: "All Cranes",
+                    type: "scheduled",
+                    condition: "Every Monday at 08:00 AM (if Status = Idle)",
+                    action: "Run Diagnostics",
+                    status: "active",
+                    description: "Runs diagnostic checks every Monday morning if cranes are idle",
+                    activeSince: "2023-06-15"
+                }
+            ];
+
+            const rulesContainer = document.getElementById('rules-container');
+            
+            // Function to render rules
+            function renderRules() {
+                rulesContainer.innerHTML = '';
+                
+                // Get selected machine type filter
+                const machineTypeFilter = document.getElementById('machine-type').value;
+                
+                // Filter rules if needed
+                const filteredRules = machineTypeFilter === 'all' 
+                    ? sampleRules 
+                    : sampleRules.filter(rule => rule.machine.toLowerCase().includes(machineTypeFilter));
+                
+                filteredRules.forEach(rule => {
+                    const ruleElement = document.createElement('div');
+                    ruleElement.className = 'rule-card';
+                    ruleElement.innerHTML = `
+                        <div class="rule-card-header">
+                            <div>
+                                <div class="rule-card-title">${rule.name}</div>
+                                <div class="rule-card-details">${rule.description}</div>
+                            </div>
+                            <span class="status-badge status-${rule.status}">${rule.status}</span>
+                        </div>
+                        <div class="rule-card-details">
+                            <strong>Machines:</strong> ${rule.machine}
+                        </div>
+                        <div class="rule-card-details">
+                            <strong>Condition:</strong> ${rule.condition}
+                        </div>
+                        <div class="rule-card-meta">
+                            <span>Active since ${rule.activeSince}</span>
+                        </div>
+                        <div class="rule-card-actions">
+                            <button class="btn-primary btn-small">Edit</button>
+                            <button class="btn-danger btn-small">Delete</button>
+                        </div>
+                    `;
+                    rulesContainer.appendChild(ruleElement);
+                });
+            }
+            
+            // Initial render
+            renderRules();
+            
+            // Form submission handlers
+            document.getElementById('conditional-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const ruleName = document.getElementById('rule-name').value;
+                const machine = document.getElementById('machine').value;
+                const datapoint = document.getElementById('datapoint').value;
+                const operator = document.getElementById('operator').value;
+                const value = document.getElementById('value').value;
+                const unit = document.getElementById('unit').value;
+                const action = document.getElementById('action').value;
+                const description = document.getElementById('description').value;
+                
+                // Create new rule object
+                const newRule = {
+                    id: sampleRules.length + 1,
+                    name: ruleName,
+                    machine: document.getElementById('machine').options[document.getElementById('machine').selectedIndex].text,
+                    type: "conditional",
+                    condition: `${datapoint.charAt(0).toUpperCase() + datapoint.slice(1)} ${operator} ${value}${unit}`,
+                    action: document.getElementById('action').options[document.getElementById('action').selectedIndex].text,
+                    status: "active",
+                    description: description,
+                    activeSince: new Date().toISOString().split('T')[0]
+                };
+                
+                // Add to the beginning of the array so it appears at the top
+                sampleRules.unshift(newRule);
+                
+                // Re-render rules
+                renderRules();
+                
+                // Show success message
+                alert(`Conditional rule "${ruleName}" created successfully!`);
+                this.reset();
+            });
+            
+            // Scheduled rule conditions functionality
+            let scheduledConditionCount = 0;
+            const scheduledConditionsContainer = document.getElementById('scheduled-conditions-container');
+            
+            document.getElementById('add-scheduled-condition').addEventListener('click', function() {
+                scheduledConditionCount++;
+                const conditionId = `scheduled-condition-${scheduledConditionCount}`;
+                
+                const conditionElement = document.createElement('div');
+                conditionElement.className = 'condition-section';
+                conditionElement.id = conditionId;
+                conditionElement.innerHTML = `
+                    <div class="condition-header">
+                        <div class="condition-title">Condition ${scheduledConditionCount}</div>
+                        <button type="button" class="remove-condition-btn" onclick="document.getElementById('${conditionId}').remove()">
+                            <i class="fas fa-times"></i> Remove
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label for="condition-datapoint-${scheduledConditionCount}">Data Point</label>
+                        <select id="condition-datapoint-${scheduledConditionCount}" required>
+                            <option value="">Select data point</option>
+                            <option value="temperature">Temperature</option>
+                            <option value="pressure">Pressure</option>
+                            <option value="speed">Speed</option>
+                            <option value="load">Load</option>
+                            <option value="voltage">Voltage</option>
+                            <option value="status">Status</option>
+                        </select>
+                    </div>
+                    <div class="condition-group">
+                        <div class="form-group">
+                            <label for="condition-operator-${scheduledConditionCount}">Operator</label>
+                            <select id="condition-operator-${scheduledConditionCount}" required>
+                                <option value=">">Greater Than</option>
+                                <option value="<">Less Than</option>
+                                <option value="==">Equals</option>
+                                <option value=">=">Greater or Equal</option>
+                                <option value="<=">Less or Equal</option>
+                                <option value="!=">Not Equals</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="condition-value-${scheduledConditionCount}">Value</label>
+                            <input type="text" id="condition-value-${scheduledConditionCount}" placeholder="Value" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="condition-unit-${scheduledConditionCount}">Unit</label>
+                            <select id="condition-unit-${scheduledConditionCount}">
+                                <option value="">N/A</option>
+                                <option value="°C">°C</option>
+                                <option value="psi">psi</option>
+                                <option value="rpm">rpm</option>
+                                <option value="kg">kg</option>
+                                <option value="V">V</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+                
+                scheduledConditionsContainer.appendChild(conditionElement);
+            });
+            
+            document.getElementById('scheduled-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const ruleName = document.getElementById('scheduled-rule-name').value;
+                const machine = document.getElementById('scheduled-machine').value;
+                const scheduleType = document.getElementById('schedule-type').value;
+                const time = document.getElementById('time').value;
+                const day = document.getElementById('day').value;
+                const specificDate = document.getElementById('specific-date').value;
+                const action = document.getElementById('scheduled-action').value;
+                const description = document.getElementById('scheduled-description').value;
+                
+                // Format condition text based on schedule type
+                let conditionText = "";
+                if (scheduleType === 'daily') {
+                    conditionText = `Daily at ${time}`;
+                } else if (scheduleType === 'weekly') {
+                    conditionText = `Every ${day.charAt(0).toUpperCase() + day.slice(1)} at ${time}`;
+                } else if (scheduleType === 'monthly') {
+                    conditionText = `Monthly at ${time}`;
+                } else {
+                    conditionText = `On ${specificDate} at ${time}`;
+                }
+                
+                // Add conditions if any
+                const conditions = [];
+                for (let i = 1; i <= scheduledConditionCount; i++) {
+                    const datapoint = document.getElementById(`condition-datapoint-${i}`);
+                    const operator = document.getElementById(`condition-operator-${i}`);
+                    const value = document.getElementById(`condition-value-${i}`);
+                    const unit = document.getElementById(`condition-unit-${i}`);
+                    
+                    if (datapoint && operator && value) {
+                        conditions.push({
+                            datapoint: datapoint.value,
+                            operator: operator.value,
+                            value: value.value,
+                            unit: unit ? unit.value : ''
+                        });
+                    }
+                }
+                
+                // Add conditions to the condition text
+                if (conditions.length > 0) {
+                    conditionText += " (if ";
+                    conditions.forEach((cond, index) => {
+                        if (index > 0) conditionText += " AND ";
+                        conditionText += `${cond.datapoint} ${cond.operator} ${cond.value}${cond.unit}`;
+                    });
+                    conditionText += ")";
+                }
+                
+                // Create new rule object
+                const newRule = {
+                    id: sampleRules.length + 1,
+                    name: ruleName,
+                    machine: document.getElementById('scheduled-machine').options[document.getElementById('scheduled-machine').selectedIndex].text,
+                    type: "scheduled",
+                    condition: conditionText,
+                    action: document.getElementById('scheduled-action').options[document.getElementById('scheduled-action').selectedIndex].text,
+                    status: "active",
+                    description: description,
+                    activeSince: new Date().toISOString().split('T')[0]
+                };
+                
+                // Add to the beginning of the array so it appears at the top
+                sampleRules.unshift(newRule);
+                
+                // Re-render rules
+                renderRules();
+                
+                // Show success message
+                alert(`Scheduled rule "${ruleName}" created successfully!`);
+                this.reset();
+                
+                // Clear conditions
+                scheduledConditionsContainer.innerHTML = '';
+                scheduledConditionCount = 0;
+            });
+            
+            // Filter rules when machine type changes
+            document.getElementById('machine-type').addEventListener('change', function() {
+                renderRules();
+            });
+            
+            // Account dropdown functionality
+            const dropdownTrigger = document.getElementById('accountDropdownTrigger');
+            const dropdownMenu = document.getElementById('accountDropdownMenu');
+            const logoutBtn = document.getElementById('accountLogoutBtn');
+            
+            // Toggle dropdown when clicking the trigger
+            dropdownTrigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdownMenu.classList.toggle('show');
+            });
+
+            // Close dropdown when clicking anywhere else
+            document.addEventListener('click', function() {
+                dropdownMenu.classList.remove('show');
+            });
+            
+            // Prevent dropdown from closing when clicking inside it
+            dropdownMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+
+            // Logout functionality
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    localStorage.removeItem('isLoggedIn');
+                    window.location.href = 'index.html';
+                });
+            }
+            
+            // Optional: Check if user is logged in when page loads 
+            if (!localStorage.getItem('isLoggedIn')) {
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>

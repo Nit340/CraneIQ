@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CraneIQ Pro - OTP Verification</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Same base styles as login page */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --error-color: #e74c3c;
+            --success-color: #2ecc71;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .logo {
+            margin-bottom: 30px;
+        }
+        
+        .logo h2 {
+            color: var(--dark-color);
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .logo p {
+            color: var(--dark-color);
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+        
+        .otp-info {
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .otp-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .otp-input {
+            width: 45px;
+            height: 45px;
+            text-align: center;
+            font-size: 1.2rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .otp-input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 4px;
+            border: none;
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .timer {
+            margin: 15px 0;
+            color: var(--dark-color);
+            opacity: 0.7;
+        }
+        
+        .resend-link {
+            margin: 15px 0;
+        }
+        
+        .resend-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        .resend-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: var(--dark-color);
+            opacity: 0.7;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .error {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--error-color);
+            display: block;
+        }
+        
+        .success {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--success-color);
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h2>CraneIQ Pro</h2>
+            <p>OTP Verification</p>
+        </div>
+        
+        <div class="message" id="message"></div>
+        
+        <div class="otp-info">
+            <p>Enter the 6-digit OTP sent to <span id="identifierDisplay"></span></p>
+        </div>
+        
+        <form id="otpForm">
+            <div class="otp-container">
+                <input type="text" class="otp-input" maxlength="1" pattern="\d" required>
+                <input type="text" class="otp-input" maxlength="1" pattern="\d" required>
+                <input type="text" class="otp-input" maxlength="1" pattern="\d" required>
+                <input type="text" class="otp-input" maxlength="1" pattern="\d" required>
+                <input type="text" class="otp-input" maxlength="1" pattern="\d" required>
+                <input type="text" class="otp-input" maxlength="1" pattern="\d" required>
+            </div>
+            
+            <div class="timer" id="timer">
+                Resend OTP in 02:00
+            </div>
+            
+            <div class="resend-link">
+                <a href="#" id="resendLink">Resend OTP</a>
+            </div>
+            
+            <button type="submit" class="btn">Verify</button>
+        </form>
+        
+        <div class="footer">
+            <p>© 2025 CraneIQ Pro. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script>
+        // Get the flow type (signup or forgot-password) from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const flow = urlParams.get('flow') || 'signup';
+        
+        // Display the identifier (email/mobile)
+        const identifier = sessionStorage.getItem('signupIdentifier') || sessionStorage.getItem('forgotPasswordIdentifier');
+        const method = sessionStorage.getItem('signupMethod') || sessionStorage.getItem('forgotPasswordMethod');
+        
+        document.getElementById('identifierDisplay').textContent = method === 'mobile' ? 
+            `+XXX-XXX-${identifier.slice(-4)}` : identifier;
+        
+        // OTP input handling
+        const otpInputs = document.querySelectorAll('.otp-input');
+        
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', () => {
+                if (input.value.length === 1) {
+                    if (index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
+                }
+            });
+            
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && input.value.length === 0) {
+                    if (index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                }
+            });
+        });
+        
+        // Timer functionality
+        let timeLeft = 120; // 2 minutes in seconds
+        const timerElement = document.getElementById('timer');
+        const resendLink = document.getElementById('resendLink');
+        
+        resendLink.style.display = 'none';
+        
+        const timer = setInterval(() => {
+            timeLeft--;
+            
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            
+            timerElement.textContent = `Resend OTP in ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                timerElement.style.display = 'none';
+                resendLink.style.display = 'block';
+            }
+        }, 1000);
+        
+        resendLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            // In a real app, this would resend the OTP
+            document.getElementById('message').textContent = 'OTP resent successfully!';
+            document.getElementById('message').className = 'message success';
+            
+            // Reset timer
+            timeLeft = 120;
+            timerElement.style.display = 'block';
+            resendLink.style.display = 'none';
+            
+            const timer = setInterval(() => {
+                timeLeft--;
+                
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                
+                timerElement.textContent = `Resend OTP in ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    timerElement.style.display = 'none';
+                    resendLink.style.display = 'block';
+                }
+            }, 1000);
+        });
+        
+        // Form submission
+        document.getElementById('otpForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            let otp = '';
+            otpInputs.forEach(input => {
+                otp += input.value;
+            });
+            
+            // Simple validation (in real app, verify OTP with server)
+            if (otp === '123456') {
+                document.getElementById('message').textContent = 'OTP verified successfully!';
+                document.getElementById('message').className = 'message success';
+                
+                // Redirect based on flow
+                setTimeout(() => {
+                    if (flow === 'signup') {
+                        window.location.href = 'new-registration.html';
+                    } else {
+                        window.location.href = 'password-reset.html';
+                    }
+                }, 1000);
+            } else {
+                document.getElementById('message').textContent = 'Invalid OTP. Please try again.';
+                document.getElementById('message').className = 'message error';
+            }
+        });
+    </script>
+</body>
+</html>

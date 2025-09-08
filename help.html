@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CraneIQ - Help Center</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #2980b9;
+    --success-color: #2ecc71;
+    --warning-color: #f39c12;
+    --danger-color: #e74c3c;
+    --light-color: #ecf0f1;
+    --dark-color: #2c3e50;
+    --gray-color: #95a5a6;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f5f7fa;
+    color: #333;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    min-height: 100vh;
+    transition: grid-template-columns 0.3s ease;
+}
+
+.container.sidebar-expanded {
+    grid-template-columns: 250px 1fr;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    background-color: var(--dark-color);
+    color: white;
+    padding: 20px 0;
+    position: relative;
+    z-index: 10;
+    width: 60px;
+    transition: width 0.3s ease, background-color 0.2s ease;
+    overflow: hidden;
+}
+
+.sidebar:hover {
+    width: 250px;
+}
+
+.sidebar:hover .nav-link span {
+    display: inline;
+    opacity: 1;
+}
+
+.sidebar.expanded {
+    width: 250px;
+}
+
+.sidebar.expanded .nav-link span {
+    display: inline;
+    opacity: 1;
+}
+
+.nav-menu {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 100px);
+    justify-content: space-between;
+}
+
+.nav-item {
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.nav-item:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.nav-item.active {
+    background-color: var(--primary-color);
+}
+
+.nav-link {
+    color: inherit;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 12px 15px;
+}
+
+.nav-item i {
+    width: 30px;
+    text-align: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.nav-link span {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    margin-left: 10px;
+}
+
+/* Main Content */
+.main-content {
+    padding: 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background-color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header-logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.page-title {
+    margin-bottom: 20px;
+}
+
+.page-title h1 {
+    font-size: 1.8rem;
+    color: var(--dark-color);
+}
+
+.page-title p {
+    font-size: 0.9rem;
+    color: var(--gray-color);
+}
+
+/* Help Center Content */
+.help-container {
+    background-color: white;
+    border-radius: 8px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 1.4rem;
+    color: var(--dark-color);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title i {
+    color: var(--primary-color);
+}
+
+.help-card {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    border-left: 4px solid var(--primary-color);
+}
+
+.help-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.card-title i {
+    color: var(--secondary-color);
+}
+
+.card-content {
+    color: var(--dark-color);
+    line-height: 1.6;
+}
+
+.card-content ul {
+    margin-left: 20px;
+    margin-top: 10px;
+}
+
+.card-content li {
+    margin-bottom: 8px;
+}
+
+.status-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 5px;
+}
+
+.status-normal {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-critical {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* FAQ Section */
+.faq-item {
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+.faq-question {
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-question:hover {
+    color: var(--primary-color);
+}
+
+.faq-answer {
+    color: var(--dark-color);
+    line-height: 1.6;
+    padding-left: 10px;
+    display: none;
+}
+
+.faq-answer.show {
+    display: block;
+}
+
+/* Contact Section */
+.contact-methods {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.contact-card {
+    background-color: var(--light-color);
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.contact-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.contact-icon {
+    font-size: 2rem;
+    color: var(--primary-color);
+    margin-bottom: 15px;
+}
+
+.contact-title {
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.contact-detail {
+    color: var(--dark-color);
+    margin-bottom: 5px;
+}
+
+/* Account Dropdown */
+.user-info-wrapper {
+    --primary-color: #4361ee;
+    --danger-color: #ef233c;
+    --text-color: #2b2d42;
+    --hover-bg: #f8f9fa;
+    --transition-speed: 0.25s;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.account-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.account-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    background: transparent;
+    border: none;
+    color: var(--text-color);
+}
+
+.account-trigger:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.account-trigger:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.account-trigger .fa-user-circle {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.account-trigger span {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.account-trigger .fa-caret-down {
+    font-size: 0.75rem;
+    transition: transform var(--transition-speed);
+}
+
+.account-trigger.active .fa-caret-down {
+    transform: rotate(180deg);
+}
+
+.account-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 0.5rem);
+    background-color: white;
+    min-width: 180px;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 0;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-10px);
+    visibility: hidden;
+    transition: 
+        opacity var(--transition-speed) ease,
+        transform var(--transition-speed) ease;
+}
+
+.account-menu.show {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+}
+
+.account-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: 
+        background-color var(--transition-speed),
+        color var(--transition-speed);
+}
+
+.account-menu-item:hover,
+.account-menu-item:focus {
+    background-color: var(--hover-bg);
+    color: var(--primary-color);
+}
+
+.account-menu-item i {
+    width: 1.25rem;
+    text-align: center;
+    color: inherit;
+}
+
+.account-menu-divider {
+    height: 1px;
+    background-color: #e9ecef;
+    margin: 0.5rem 0;
+}
+
+.logout-account-btn {
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+
+.logout-account-btn:hover,
+.logout-account-btn:focus {
+    color: var(--danger-color) !important;
+}
+.account-menu-item.plan-info {
+    background-color: #f8f9fa;
+    color: var(--dark-color);
+    font-weight: 600;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.account-menu-item.plan-info i {
+    margin-right: 8px;
+}
+.customer-logo {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Help Section Styles */
+.help-section {
+    margin-bottom: 40px;
+}
+
+.help-subsection {
+    margin-bottom: 30px;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.feature-card {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.feature-icon {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.feature-card h4 {
+    margin-bottom: 10px;
+    color: var(--dark-color);
+}
+
+.help-steps {
+    list-style-type: none;
+    counter-reset: step-counter;
+}
+
+.help-steps li {
+    position: relative;
+    padding-left: 50px;
+    margin-bottom: 25px;
+    counter-increment: step-counter;
+}
+
+.help-steps li::before {
+    content: counter(step-counter);
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: var(--primary-color);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.feature-list {
+    display: grid;
+    gap: 15px;
+}
+
+.feature-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+}
+
+.feature-item h4 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    color: var(--dark-color);
+}
+
+.feature-item code {
+    display: inline-block;
+    background: #e9ecef;
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-size: 0.85rem;
+    margin-top: 8px;
+}
+
+.troubleshooting-item {
+    background: #fff8f8;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    border-left: 3px solid var(--danger-color);
+}
+
+.troubleshooting-item h4 {
+    color: var(--danger-color);
+    margin-bottom: 10px;
+}
+
+.troubleshooting-item ul {
+    padding-left: 20px;
+}
+
+.troubleshooting-item li {
+    margin-bottom: 5px;
+}
+
+/* Operations Log Help Styles */
+.interface-guide {
+    display: grid;
+    gap: 20px;
+}
+
+.guide-item {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.help-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 0.9rem;
+}
+
+.help-table th, 
+.help-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+.help-table th {
+    background-color: #f1f1f1;
+}
+
+.color-legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px;
+}
+
+/* Operation type badges for documentation */
+.type-hoist-up {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.type-hoist-down {
+    background-color: #c3e6cb;
+    color: #0c4128;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.type-ct-left {
+    background-color: #cce5ff;
+    color: #004085;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.type-ct-right {
+    background-color: #b8daff;
+    color: #002752;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.type-lt-forward {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.type-lt-reverse {
+    background-color: #ffeeba;
+    color: #6c5400;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.type-switch {
+    background-color: #e2e3e5;
+    color: #383d41;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr;
+    }
+    
+    .sidebar {
+        display: none;
+    }
+    
+    .sidebar.expanded {
+        display: block;
+        width: 250px;
+        position: fixed;
+        z-index: 100;
+        height: 100vh;
+    }
+    
+    .help-container {
+        padding: 20px;
+    }
+    
+    .contact-methods {
+        grid-template-columns: 1fr;
+    }
+    
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .color-legend {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .header-left {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+                <!-- Sidebar Navigation -->
+
+      <div id="sidebar-container"></div>
+        
+          <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <div class="header-logo">CraneIQ</div>
+                </div>
+                
+               <div class="user-info-wrapper">
+    <div class="account-dropdown">
+        <div class="account-trigger" id="accountDropdownTrigger">
+           <img src="image/houzz.png" class="customer-logo">
+            <span>Hilton (Pro Plan)</span>
+            <i class="fas fa-caret-down"></i>
+        </div>
+        <div class="account-menu" id="accountDropdownMenu">
+            <div class="account-menu-item plan-info">
+                <i class="fas fa-crown" style="color: gold;"></i>
+                <span>Pro Plan</span>
+            </div>
+            <div class="account-menu-divider"></div>
+            <a href="#" class="account-menu-item">
+                <i class="fas fa-user"></i> Profile
+            </a>
+            <a href="#" class="account-menu-item">
+                <i class="fas fa-sync-alt"></i> Upgrade Plan
+            </a>
+            <div class="account-menu-divider"></div>
+            <button id="accountLogoutBtn" class="account-menu-item logout-account-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+</div>
+            </div>
+
+            <div class="page-title">
+                <h1>Help Center</h1>
+                <p>Find answers and resources for the CraneIQ Monitoring System</p>
+            </div>
+            
+            <!-- Help Content -->
+            <div class="help-container">
+                <h2 class="section-title"><i class="fas fa-book-open"></i> Getting Started</h2>
+                
+                <div class="help-card">
+                    <h3 class="card-title"><i class="fas fa-play-circle"></i> System Overview</h3>
+                    <div class="card-content">
+                        <p>CraneIQ is an advanced monitoring system designed to provide real-time insights into your crane operations. The system tracks multiple parameters to ensure optimal performance and safety.</p>
+                        <p>Key features include:</p>
+                        <ul>
+                            <li>Real-time monitoring of load, vibration, temperature, and energy</li>
+                            <li>Historical data analysis with customizable reports</li>
+                            <li>Automated alerts for abnormal conditions</li>
+                            <li>Predictive maintenance recommendations</li>
+                            <li>Multi-user access with role-based permissions</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="help-card">
+                    <h3 class="card-title"><i class="fas fa-tachometer-alt"></i> Dashboard Guide</h3>
+                    <div class="card-content">
+                        <p>The dashboard provides a comprehensive overview of your crane's status:</p>
+                        <ul>
+                            <li><strong>Status Cards:</strong> Quick view of each crane's current state</li>
+                            <li><strong>OEE Metrics:</strong> Overall Equipment Effectiveness scores</li>
+                            <li><strong>Quick Stats:</strong> Power consumption, current draw, and utilization</li>
+                            <li><strong>Filter Bar:</strong> Quickly sort cranes by status (Working, Idle, Off, etc.)</li>
+                        </ul>
+                        <p>Click on any crane card to view detailed metrics and historical data.</p>
+                    </div>
+                </div>
+                
+                <!-- Operations Log Documentation Section -->
+                <div class="help-section">
+                    <h2 class="section-title"><i class="fas fa-history"></i> Operations Log Documentation</h2>
+                    
+                    <div class="help-card">
+                        <h3 class="card-title"><i class="fas fa-info-circle"></i> Overview</h3>
+                        <div class="card-content">
+                            <p>The Operations Log provides a complete record of all crane operations, including hoisting, traveling, and switching activities. This feature helps you track equipment usage, analyze operational patterns, and maintain compliance with safety regulations.</p>
+                        </div>
+                    </div>
+
+                    <div class="help-card">
+                        <h3 class="card-title"><i class="fas fa-star"></i> Key Features</h3>
+                        <div class="card-content">
+                            <div class="feature-grid">
+                                <div class="feature-card">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-tachometer-alt"></i>
+                                    </div>
+                                    <h4>Real-time Tracking</h4>
+                                    <p>Monitor all crane operations as they happen with timestamped records.</p>
+                                </div>
+                                
+                                <div class="feature-card">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-filter"></i>
+                                    </div>
+                                    <h4>Advanced Filtering</h4>
+                                    <p>Filter by crane, operation type, and date range for focused analysis.</p>
+                                </div>
+                                
+                                <div class="feature-card">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </div>
+                                    <h4>Metrics Dashboard</h4>
+                                    <p>Quick-view summary of operation counts and durations.</p>
+                                </div>
+                                
+                                <div class="feature-card">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-weight-hanging"></i>
+                                    </div>
+                                    <h4>Load Tracking</h4>
+                                    <p>Record and analyze load weights for each operation.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help-card">
+                        <h3 class="card-title"><i class="fas fa-desktop"></i> Understanding the Interface</h3>
+                        <div class="card-content">
+                            <div class="interface-guide">
+                                <div class="guide-item">
+                                    <h4><i class="fas fa-chart-pie"></i> Metrics Dashboard</h4>
+                                    <p>The compact dashboard at the top provides an overview of recent activity:</p>
+                                    <ul>
+                                        <li><strong>Hoist Operations:</strong> Total lifts (up/down breakdown)</li>
+                                        <li><strong>CT (Cross Travel):</strong> Left/right movements</li>
+                                        <li><strong>LT (Long Travel):</strong> Forward/reverse movements</li>
+                                        <li><strong>Switching:</strong> Mode changes</li>
+                                        <li><strong>Duration:</strong> Total operating time</li>
+                                        <li><strong>Load:</strong> Total weight handled</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="guide-item">
+                                    <h4><i class="fas fa-table"></i> Operations Table</h4>
+                                    <p>The main table displays detailed records of each operation:</p>
+                                    <table class="help-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Column</th>
+                                                <th>Description</th>
+                                                <th>Example</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Timestamp</td>
+                                                <td>Exact date and time of operation</td>
+                                                <td>2023-06-15 08:23:45</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Crane ID</td>
+                                                <td>Identifier for the specific crane</td>
+                                                <td>CRN-001</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Operation</td>
+                                                <td>Type of movement with color coding</td>
+                                                <td><span class="operation-type type-hoist-up">Hoist Up</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>Duration</td>
+                                                <td>How long the operation took</td>
+                                                <td>2:15 (minutes:seconds)</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Load</td>
+                                                <td>Weight being handled</td>
+                                                <td>3,250 kg</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                
+                                <div class="guide-item">
+                                    <h4><i class="fas fa-tags"></i> Operation Type Colors</h4>
+                                    <div class="color-legend">
+                                        <div class="legend-item">
+                                            <span class="operation-type type-hoist-up">Hoist Up</span>
+                                            <span>Lifting operations</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="operation-type type-hoist-down">Hoist Down</span>
+                                            <span>Lowering operations</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="operation-type type-ct-left">CT Left</span>
+                                            <span>Cross travel to left</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="operation-type type-ct-right">CT Right</span>
+                                            <span>Cross travel to right</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="operation-type type-lt-forward">LT Forward</span>
+                                            <span>Long travel forward</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="operation-type type-lt-reverse">LT Reverse</span>
+                                            <span>Long travel reverse</span>
+                                        </div>
+                                        <div class="legend-item">
+                                            <span class="operation-type type-switch">Switch</span>
+                                            <span>Mode changes</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help-card">
+                        <h3 class="card-title"><i class="fas fa-filter"></i> Filtering Operations</h3>
+                        <div class="card-content">
+                            <p>Use the filter controls to focus on specific data:</p>
+                            <ol class="help-steps">
+                                <li>
+                                    <strong>Select a Crane</strong>
+                                    <p>Choose a specific crane or view all cranes</p>
+                                    <code>Filter → Crane → Select from dropdown</code>
+                                </li>
+                                <li>
+                                    <strong>Choose Operation Type</strong>
+                                    <p>Filter by hoist, travel, or switching operations</p>
+                                    <code>Filter → Operation Type → Select type</code>
+                                </li>
+                                <li>
+                                    <strong>Set Date Range</strong>
+                                    <p>View today's operations or historical data</p>
+                                    <code>Filter → Date Range → Choose period</code>
+                                </li>
+                                <li>
+                                    <strong>Apply Filters</strong>
+                                    <p>Click "Apply Filters" to update the view</p>
+                                    <code>Click "Apply Filters" button</code>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="help-card">
+                        <h3 class="card-title"><i class="fas fa-cogs"></i> Advanced Features</h3>
+                        <div class="card-content">
+                            <div class="feature-list">
+                                <div class="feature-item">
+                                    <h4><i class="fas fa-file-export"></i> Data Export</h4>
+                                    <p>Export operation logs to CSV, Excel, or PDF for reporting</p>
+                                    <code>Reports → Export Operations Log</code>
+                                </div>
+                                
+                                <div class="feature-item">
+                                    <h4><i class="fas fa-bell"></i> Custom Alerts</h4>
+                                    <p>Set notifications for unusual operation patterns</p>
+                                    <code>Alerts → New Alert → Operation Parameters</code>
+                                </div>
+                                
+                                <div class="feature-item">
+                                    <h4><i class="fas fa-chart-line"></i> Trend Analysis</h4>
+                                    <p>View operational trends over time</p>
+                                    <code>Reports → Operation Trends</code>
+                                </div>
+                                
+                                <div class="feature-item">
+                                    <h4><i class="fas fa-calculator"></i> Utilization Reports</h4>
+                                    <p>Calculate equipment utilization rates</p>
+                                    <code>Reports → Utilization Analysis</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="help-card troubleshooting">
+                        <h3 class="card-title"><i class="fas fa-wrench"></i> Troubleshooting</h3>
+                        <div class="card-content">
+                            <div class="troubleshooting-item">
+                                <h4>Missing operation records</h4>
+                                <ul>
+                                    <li>Verify the crane's sensors are properly connected</li>
+                                    <li>Check your date range filters aren't too restrictive</li>
+                                    <li>Confirm the crane was operational during the selected period</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="troubleshooting-item">
+                                <h4>Incorrect operation types</h4>
+                                <ul>
+                                    <li>Check sensor calibration on the crane</li>
+                                    <li>Verify the crane configuration in Settings</li>
+                                    <li>Contact support if issues persist</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <h2 class="section-title"><i class="fas fa-question-circle"></i> Frequently Asked Questions</h2>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How do I set up custom alerts for vibration monitoring?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Navigate to the Alerts page from the sidebar. Click "Create Alert" and select "Vibration" as the parameter type. You can set thresholds for:</p>
+                        <ul>
+                            <li>Overall vibration levels (mm/s)</li>
+                            <li>Specific frequency ranges (Hz)</li>
+                            <li>Individual axes (X, Y, Z)</li>
+                        </ul>
+                        <p>Choose notification methods (email, SMS, or in-app) and save your alert.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        What do the different vibration status colors mean?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>The system uses color coding to indicate vibration severity:</p>
+                        <ul>
+                            <li><strong>Green (Normal):</strong> Vibration levels are within safe operating limits</li>
+                            <li><strong>Yellow (Warning):</strong> Vibration approaching dangerous levels - monitor closely</li>
+                            <li><strong>Red (Critical):</strong> Immediate attention required - potential equipment damage</li>
+                            <li><strong>Gray (Offline):</strong> Sensor is not reporting data</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How often is vibration data updated?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Vibration data is collected and transmitted in real-time:</p>
+                        <ul>
+                            <li><strong>Live monitoring:</strong> Updates every 2 seconds</li>
+                            <li><strong>Trend charts:</strong> 1-minute averages</li>
+                            <li><strong>Historical data:</strong> Stored at 5-minute intervals</li>
+                            <li><strong>Spectrum analysis:</strong> Updated every 30 seconds</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Can I export vibration data for analysis?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes! You can export vibration data in multiple formats:</p>
+                        <ul>
+                            <li><strong>CSV:</strong> Raw time-series data for all axes</li>
+                            <li><strong>Excel:</strong> Formatted reports with charts</li>
+                            <li><strong>PDF:</strong> Professional reports for documentation</li>
+                            <li><strong>API:</strong> Direct integration with other systems (Pro plan)</li>
+                        </ul>
+                        <p>Go to the Reports page to generate and download your data.</p>
+                    </div>
+                </div>
+
+                <!-- Operations Log FAQs -->
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How far back does the operations log store data?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Data retention depends on your plan:</p>
+                        <ul>
+                            <li><strong>Basic:</strong> 30 days of operational data</li>
+                            <li><strong>Advanced:</strong> 6 months of operational data</li>
+                            <li><strong>Pro:</strong> Unlimited data retention</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Can I track multiple cranes simultaneously?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes! The system supports monitoring of multiple cranes:</p>
+                        <ul>
+                            <li>Each crane is identified by its unique ID</li>
+                            <li>Filters allow you to view individual cranes or all at once</li>
+                            <li>Reports can be generated for specific cranes or groups</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How accurate are the operation duration measurements?
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Duration measurements are highly accurate:</p>
+                        <ul>
+                            <li>Recorded to the nearest second</li>
+                            <li>Based on sensor activation timestamps</li>
+                            <li>Automatically adjusted for any system latency</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h2 class="section-title"><i class="fas fa-headset"></i> Contact Support</h2>
+                
+                <div class="contact-methods">
+                    <div class="contact-card">
+                        <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+                        <h3 class="contact-title">Email Support</h3>
+                        <p class="contact-detail">support@craneiq.com</p>
+                        <p>Typically responds within 2 business hours</p>
+                    </div>
+                    
+                    <div class="contact-card">
+                        <div class="contact-icon"><i class="fas fa-phone"></i></div>
+                        <h3 class="contact-title">Phone Support</h3>
+                        <p class="contact-detail">+1 (800) 555-0199</p>
+                        <p>24/7 for critical issues</p>
+                    </div>
+                    
+                    <div class="contact-card">
+                        <div class="contact-icon"><i class="fas fa-comments"></i></div>
+                        <h3 class="contact-title">Live Chat</h3>
+                        <p class="contact-detail">Available in-app</p>
+                        <p>Mon-Fri, 9am-5pm EST</p>
+                    </div>
+                    
+                    <div class="contact-card">
+                        <div class="contact-icon"><i class="fas fa-file-alt"></i></div>
+                        <h3 class="contact-title">Knowledge Base</h3>
+                        <p class="contact-detail">docs.craneiq.com</p>
+                        <p>Detailed guides and tutorials</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load the sidebar
+        fetch('sidebar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('sidebar-container').innerHTML = data;
+                initializeSidebar(); // Call this after loading
+            });
+
+        function initializeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            
+            if (sidebar && sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('expanded');
+                    document.querySelector('.container').classList.toggle('sidebar-expanded');
+                });
+
+                // Dropdown functionality
+                document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                    toggle.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const dropdown = this.closest('.dropdown');
+                        const menu = dropdown.querySelector('.dropdown-menu');
+                        
+                        // Close all other dropdowns
+                        closeAllDropdownsExcept(menu, this);
+                        
+                        // Toggle current dropdown
+                        menu.classList.toggle('show');
+                        this.classList.toggle('show');
+                    });
+                });
+
+                // Function to close all dropdowns
+                function closeAllDropdowns() {
+                    document.querySelectorAll('.dropdown-menu').forEach(m => {
+                        m.classList.remove('show');
+                    });
+                    document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                        t.classList.remove('show');
+                    });
+                }
+
+                // Function to close all dropdowns except a specific one
+                function closeAllDropdownsExcept(exceptMenu = null, exceptToggle = null) {
+                    document.querySelectorAll('.dropdown-menu').forEach(m => {
+                        if (m !== exceptMenu) m.classList.remove('show');
+                    });
+                    document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                        if (t !== exceptToggle) t.classList.remove('show');
+                    });
+                }
+
+                // Close dropdowns when sidebar is collapsed
+                sidebarToggle.addEventListener('click', function() {
+                    if (!sidebar.classList.contains('expanded')) {
+                        closeAllDropdowns();
+                    }
+                });
+
+                // Also close dropdowns when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!e.target.closest('.dropdown')) {
+                        closeAllDropdowns();
+                    }
+                });
+            }
+        }
+    });
+</script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        const mainContainer = document.getElementById('mainContainer');
+        const accountTrigger = document.getElementById('accountTrigger');
+        const accountMenu = document.getElementById('accountMenu');
+        const faqQuestions = document.querySelectorAll('.faq-question');
+        
+  
+         const dropdownTrigger = document.getElementById('accountDropdownTrigger');
+    const dropdownMenu = document.getElementById('accountDropdownMenu');
+
+
+  
+
+    // Toggle dropdown when clicking the trigger
+    dropdownTrigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('show');
+    });
+
+    // Close dropdown when clicking anywhere else
+    document.addEventListener('click', function() {
+        dropdownMenu.classList.remove('show');
+    });
+    
+    // Prevent dropdown from closing when clicking inside it
+    dropdownMenu.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+        displayUserPlan();
+        const userPlan = 'pro'; // This would come from your auth system
+
+function displayUserPlan() {
+       // Option 1: For user dropdown
+    const planName = userPlan.charAt(0).toUpperCase() + userPlan.slice(1);
+    document.querySelector('.account-trigger span').textContent = `Hilton (${planName} Plan)`;
+    
+    // Update plan info in dropdown
+    const planItem = document.querySelector('.account-menu-item.plan-info');
+    planItem.innerHTML = `<i class="fas ${userPlan === 'pro' ? 'fa-crown' : userPlan === 'advanced' ? 'fa-star' : 'fa-user'}"></i>
+                         <span>${planName} Plan</span>`;
+    planItem.classList.add(`plan-${userPlan}`);
+}
+
+ 
+        // Set active nav item
+        document.querySelectorAll('.nav-item').forEach(item => {
+            if (item.querySelector('a').getAttribute('href') === 'help.html') {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    });
+    </script>
+</body>
+</html>

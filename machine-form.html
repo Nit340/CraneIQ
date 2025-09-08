@@ -1,0 +1,1921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Configuration | CraneIQ Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --gray-color: #95a5a6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            min-height: 100vh;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        .container.sidebar-expanded {
+            grid-template-columns: 250px 1fr;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 20px 0;
+            position: relative;
+            z-index: 10;
+            width: 60px;
+            transition: width 0.3s ease, background-color 0.2s ease;
+            overflow: hidden;
+        }
+
+        .sidebar:hover {
+            width: 250px;
+        }
+
+        .sidebar:hover .nav-link span {
+            display: inline;
+            opacity: 1;
+        }
+
+        .sidebar.expanded {
+            width: 250px;
+        }
+
+        .sidebar.expanded .nav-link span {
+            display: inline;
+            opacity: 1;
+        }
+
+        .logo {
+            text-align: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: none;
+        }
+
+        .nav-link {
+            color: inherit;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px 15px;
+        }
+
+        .nav-item.active .nav-link {
+            color: white;
+        }
+
+        .nav-item:hover .nav-link {
+            color: white;
+        }
+
+        .nav-menu {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 100px);
+            justify-content: space-between;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+        }
+
+        .nav-item i {
+            width: 30px;
+            text-align: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .nav-link span {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            margin-left: 10px;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .page-title {
+            margin-bottom: 20px;
+        }
+
+        .page-title h1 {
+            font-size: 1.8rem;
+            color: var(--dark-color);
+        }
+
+        .page-title p {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }  
+        
+        /* Form Container - Updated Design */
+        .form-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 30px;
+            margin-top: 20px;
+            border: 1px solid #eaeaea;
+        }
+        
+        /* Machine Type Selector */
+        .machine-type-selector {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .machine-type-selector label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--dark-color);
+            font-size: 0.9rem;
+        }
+        
+        .machine-type-selector select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            background-color: white;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+        
+        .machine-type-selector select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+        }
+        
+/* Selection Grid */
+.selection-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 25px;
+    margin-bottom: 25px;
+}
+
+.sections-panel, .fields-panel {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #eaeaea;
+}
+
+.panel-header {
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e0e0e0;
+    color: var(--dark-color);
+    font-size: 1rem;
+}
+
+.section-item {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    margin-bottom: 10px;
+    background-color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 4px solid transparent;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.section-item:hover {
+    background-color: #e8f4ff;
+    transform: translateY(-2px);
+}
+
+.section-item.active {
+    background-color: #e8f4ff;
+    border-left-color: var(--primary-color);
+}
+
+.section-item label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 0;
+    font-weight: 600;
+}
+
+.section-item input {
+    margin-right: 12px;
+}
+
+.field-item {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    margin-bottom: 10px;
+    background-color: white;
+    border-radius: 6px;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.field-item:hover {
+    background-color: #e8f4ff;
+    transform: translateY(-2px);
+}
+
+.field-item label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 0;
+    font-weight: 600;
+}
+
+.field-item input {
+    margin-right: 12px;
+}
+
+.select-all-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    background-color: #e8f4ff;
+    border-radius: 6px;
+}
+
+.select-all-container label {
+    margin-bottom: 0;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.select-all-container input {
+    margin-right: 10px;
+}
+        
+    /* Basic Details Section - Use the same grid layout as custom sections */
+.basic-section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid var(--secondary-color);
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.basic-section .section-header {
+    grid-column: span 2;
+    margin: 0 0 15px 0;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    color: var(--dark-color);
+    font-size: 1.3rem;
+}
+
+/* Custom Sections */
+.custom-section {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid var(--secondary-color);
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.custom-section .section-header {
+    grid-column: span 2;
+    margin: 0 0 15px 0;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f0f0f0;
+    color: var(--dark-color);
+    font-size: 1.3rem;
+}
+
+/* Form Grid Layout - Applied to ALL sections */
+.basic-section .form-grid,
+.custom-section .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+/* Field items - Same for ALL sections */
+.basic-section .field-item,
+.custom-section .field-item {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+/* Form groups - Same for ALL sections */
+.basic-section .form-group,
+.custom-section .form-group {
+    margin-bottom: 20px;
+}
+
+/* Labels - Same for ALL sections */
+.basic-section label,
+.custom-section label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: var(--dark-color);
+    font-size: 0.9rem;
+}
+
+/* Inputs - Same for ALL sections */
+.basic-section input[type="text"],
+.basic-section input[type="number"],
+.basic-section input[type="date"],
+.basic-section input[type="time"],
+.basic-section input[type="datetime-local"],
+.basic-section select,
+.basic-section textarea,
+.custom-section input[type="text"],
+.custom-section input[type="number"],
+.custom-section input[type="date"],
+.custom-section input[type="time"],
+.custom-section input[type="datetime-local"],
+.custom-section select,
+.custom-section textarea {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+}
+
+/* Focus states - Same for ALL sections */
+.basic-section input[type="text"]:focus,
+.basic-section input[type="number"]:focus,
+.basic-section input[type="date"]:focus,
+.basic-section input[type="time"]:focus,
+.basic-section input[type="datetime-local"]:focus,
+.basic-section select:focus,
+.basic-section textarea:focus,
+.custom-section input[type="text"]:focus,
+.custom-section input[type="number"]:focus,
+.custom-section input[type="date"]:focus,
+.custom-section input[type="time"]:focus,
+.custom-section input[type="datetime-local"]:focus,
+.custom-section select:focus,
+.custom-section textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+}
+
+/* Full width items - Same for ALL sections */
+.basic-section .full-width,
+.custom-section .full-width {
+    grid-column: span 2;
+}
+
+/* Remove any special basic field styling */
+.basic-field {
+    /* No special styling - should match custom fields */
+}
+        
+
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background-color: var(--gray-color);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+            transform: translateY(-2px);
+        }
+        
+        /* Section Headers */
+        .section-header {
+            grid-column: span 2;
+            margin: 25px 0 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            color: var(--dark-color);
+            font-size: 1.3rem;
+        }
+        
+        .field-input {
+            margin-left: 0;
+        }
+        
+        /* Derivative Field Button */
+        .derivative-btn {
+            margin-top: 8px;
+            padding: 6px 12px;
+            background-color: #f8f9fa;
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+        
+        .derivative-btn:hover {
+            background-color: #e9ecef;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background-color: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: translateY(-50px);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #eaeaea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.2s;
+        }
+        
+        .modal-close:hover {
+            color: var(--danger-color);
+        }
+        
+        .modal-body {
+            padding: 25px;
+        }
+        
+        .modal-footer {
+            padding: 20px 25px;
+            border-top: 1px solid #eaeaea;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        
+        /* Derivative Expression Builder */
+        .expression-builder {
+            margin-bottom: 20px;
+        }
+        
+        .expression-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .available-fields {
+            margin-top: 20px;
+        }
+        
+        .fields-list {
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #eaeaea;
+            border-radius: 6px;
+            padding: 10px;
+        }
+        
+        .field-pill {
+            display: inline-block;
+            background-color: #e8f4ff;
+            color: var(--primary-color);
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        
+        .field-pill:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        /* Expression Controls */
+        .expression-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .expression-btn {
+            padding: 8px 12px;
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        
+        .expression-btn:hover {
+            background-color: #e9ecef;
+            border-color: var(--primary-color);
+        }
+        
+        .expression-btn.operator {
+            background-color: #e8f4ff;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .selection-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .full-width, .section-header {
+                grid-column: span 1;
+            }
+            
+            .modal {
+                width: 95%;
+                margin: 20px;
+            }
+        }
+        
+        /* Account Dropdown */
+        .user-info-wrapper {
+            --primary-color: #4361ee;
+            --danger-color: #ef233c;
+            --text-color: #2b2d42;
+            --hover-bg: #f8f9fa;
+            --transition-speed: 0.25s;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .account-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .account-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+        }
+
+        .account-trigger:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .customer-logo {
+            width:30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+            background-color: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .account-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.5rem);
+            background-color: white;
+            min-width: 180px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem 0;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-10px);
+            visibility: hidden;
+            transition: 
+                opacity var(--transition-speed) ease,
+                transform var(--transition-speed) ease;
+        }
+
+        .account-menu.show {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .account-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 1rem;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: 
+                background-color var(--transition-speed),
+                color var(--transition-speed);
+        }
+
+        .account-menu-item:hover,
+        .account-menu-item:focus {
+            background-color: var(--hover-bg);
+            color: var(--primary-color);
+        }
+
+        .account-menu-item i {
+            width: 1.25rem;
+            text-align: center;
+            color: inherit;
+        }
+
+        .account-menu-divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 0.5rem 0;
+        }
+
+        .logout-account-btn {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font: inherit;
+            color: inherit;
+        }
+
+        .logout-account-btn:hover,
+        .logout-account-btn:focus {
+            color: var(--danger-color) !important;
+        }
+        .account-menu-item.plan-info {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            font-weight: 600;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .account-menu-item.plan-info i {
+            margin-right: 8px;
+        }
+
+        /* Different colors for different plans */
+        .plan-basic { color: var(--primary-color); }
+        .plan-advanced { color: var(--success-color); }
+        .plan-pro { color: gold; }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification-success {
+            background-color: var(--success-color);
+        }
+
+        .notification-error {
+            background-color: var(--danger-color);
+        }
+        
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .input-error {
+            border-color: var(--danger-color) !important;
+        }
+        
+        .required-field::after {
+            content: " *";
+            color: var(--danger-color);
+        }
+        
+        .select-all-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #e8f4ff;
+            border-radius: 6px;
+        }
+        
+        .no-validation {
+            border: 1px solid #ddd !important;
+        }
+        
+        .no-validation:focus {
+            border-color: var(--primary-color) !important;
+        }
+        /* Add to the existing CSS */
+.expression-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #eaeaea;
+    border-radius: 6px;
+}
+
+.expression-btn.operator {
+    background-color: #e8f5e9;
+    border-color: #4caf50;
+}
+
+.expression-btn.operator:hover {
+    background-color: #c8e6c9;
+    border-color: #2e7d32;
+}
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <!-- Sidebar Navigation -->
+        <div id="sidebar-container"></div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <div class="header-logo">CraneIQ</div>
+                </div>
+             
+                <div class="user-info-wrapper">
+                    <div class="account-dropdown">
+                        <div class="account-trigger" id="accountDropdownTrigger">
+                            <div class="customer-logo">H</div>
+                            <span>Hilton (Pro Plan)</span>
+                            <i class="fas fa-caret-down"></i>
+                        </div>
+                        <div class="account-menu" id="accountDropdownMenu">
+                            <div class="account-menu-item plan-info">
+                                <i class="fas fa-crown" style="color: gold;"></i>
+                                <span>Pro Plan</span>
+                            </div>
+                            <div class="account-menu-divider"></div>
+                            <a href="#" class="account-menu-item">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="#" class="account-menu-item">
+                                <i class="fas fa-sync-alt"></i> Upgrade Plan
+                            </a>
+                            <div class="account-menu-divider"></div>
+                            <button id="accountLogoutBtn" class="account-menu-item logout-account-btn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page-title">
+                <h1>Machine Configuration</h1>
+                <p>Configure machine settings</p>
+            </div>
+            
+            <div class="form-container">
+                <form id="machineForm">
+                    <div class="machine-type-selector">
+                        <label for="machineTypeDropdown" class="required-field">Machine Type:</label>
+                        <select id="machineTypeDropdown" class="form-control" required>
+                            <option value="">Select Machine Type</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                        <input type="hidden" id="machineTypeId" name="machineTypeId">
+                    </div>
+                    
+                    <!-- Selection Grid -->
+                    <div class="selection-grid">
+                        <div class="sections-panel">
+                            <div class="panel-header">Sections</div>
+                            <div class="select-all-container">
+                                <input type="checkbox" id="select-all-sections">
+                                <label for="select-all-sections">Select All Sections</label>
+                            </div>
+                            <div id="sections-container">
+                                <!-- Sections will be populated here -->
+                            </div>
+                        </div>
+                        
+                        <div class="fields-panel">
+                            <div class="panel-header">Fields</div>
+                            <div class="select-all-container">
+                                <input type="checkbox" id="select-all-fields">
+                                <label for="select-all-fields">Select All Fields</label>
+                            </div>
+                            <div id="fields-container">
+                                <!-- Fields will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dynamic form sections will be inserted here -->
+                    <div id="dynamic-form-sections"></div>
+                    
+                    <div class="form-actions">
+                        <button type="button" id="cancelBtn" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Configuration
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+   <!-- Derivative Field Modal -->
+<div class="modal-overlay" id="derivativeModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Define Derivative Field</h3>
+            <button class="modal-close" id="closeDerivativeModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="expression-builder">
+                <label for="derivativeExpression">Expression:</label>
+                <textarea id="derivativeExpression" class="expression-input" placeholder="Enter expression (e.g., current * voltage)"></textarea>
+                
+                <div class="expression-controls">
+                    <!-- Arithmetic Operators -->
+                    <button class="expression-btn" data-value="+">+</button>
+                    <button class="expression-btn" data-value="-">-</button>
+                    <button class="expression-btn" data-value="*">*</button>
+                    <button class="expression-btn" data-value="/">/</button>
+                    <button class="expression-btn" data-value="(">(</button>
+                    <button class="expression-btn" data-value=")">)</button>
+                    
+                    <!-- Logical Operators -->
+                    <button class="expression-btn operator" data-value="&&">AND (&&)</button>
+                    <button class="expression-btn operator" data-value="||">OR (||)</button>
+                    <button class="expression-btn operator" data-value="!">NOT (!)</button>
+                    <button class="expression-btn operator" data-value="==">Equal (==)</button>
+                    <button class="expression-btn operator" data-value="!=">Not Equal (!=)</button>
+                    <button class="expression-btn operator" data-value=">">Greater Than (>)</button>
+                    <button class="expression-btn operator" data-value="<">Less Than (<)</button>
+                    <button class="expression-btn operator" data-value=">=">Greater/Equal (>=)</button>
+                    <button class="expression-btn operator" data-value="<=">Less/Equal (<=)</button>
+                    
+                    <!-- Ternary Operator -->
+                    <button class="expression-btn operator" data-value="? :">Ternary (? :)</button>
+                    
+                    <!-- Numbers -->
+                    <button class="expression-btn" data-value="0">0</button>
+                    <button class="expression-btn" data-value="1">1</button>
+                    <button class="expression-btn" data-value="2">2</button>
+                    <button class="expression-btn" data-value="3">3</button>
+                    <button class="expression-btn" data-value="4">4</button>
+                    <button class="expression-btn" data-value="5">5</button>
+                    <button class="expression-btn" data-value="6">6</button>
+                    <button class="expression-btn" data-value="7">7</button>
+                    <button class="expression-btn" data-value="8">8</button>
+                    <button class="expression-btn" data-value="9">9</button>
+                    <button class="expression-btn" data-value=".">.</button>
+                    
+                    <!-- Boolean Values -->
+                    <button class="expression-btn" data-value="true">true</button>
+                    <button class="expression-btn" data-value="false">false</button>
+                </div>
+                
+                <div class="available-fields">
+                    <label>Available Data Points:</label>
+                    <div class="fields-list" id="availableFieldsList">
+                        <!-- Available fields will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancelDerivative">Cancel</button>
+            <button type="button" class="btn btn-primary" id="saveDerivative">Save Expression</button>
+        </div>
+    </div>
+</div>
+    </div>
+    
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Load the sidebar
+    fetch('sidebar.html')
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('sidebar-container').innerHTML = data;
+            initializeSidebar();
+        });
+
+    function initializeSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        
+        if (sidebar && sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('expanded');
+                document.querySelector('.container').classList.toggle('sidebar-expanded');
+            });
+
+            // Dropdown functionality
+            document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const dropdown = this.closest('.dropdown');
+                    const menu = dropdown.querySelector('.dropdown-menu');
+                    
+                    // Close all other dropdowns
+                    document.querySelectorAll('.dropdown-menu').forEach(m => {
+                        if (m !== menu) m.classList.remove('show');
+                    });
+                    
+                    // Toggle current dropdown
+                    menu.classList.toggle('show');
+                });
+            });
+
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.dropdown')) {
+                    document.querySelectorAll('.dropdown-menu').forEach(m => {
+                        m.classList.remove('show');
+                    });
+                }
+            });
+        }
+    }
+
+    // Account dropdown functionality
+    const accountDropdownTrigger = document.getElementById('accountDropdownTrigger');
+    const accountDropdownMenu = document.getElementById('accountDropdownMenu');
+    
+    accountDropdownTrigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        accountDropdownMenu.classList.toggle('show');
+    });
+    
+    // Close account dropdown when clicking elsewhere
+    document.addEventListener('click', function() {
+        accountDropdownMenu.classList.remove('show');
+    });
+
+    // Load machine types from localStorage
+    const machineTypes = JSON.parse(localStorage.getItem('machineTypes') || '[]');
+    const machineTypeDropdown = document.getElementById('machineTypeDropdown');
+    
+    // Clear existing options except the first one
+    while (machineTypeDropdown.options.length > 1) {
+        machineTypeDropdown.remove(1);
+    }
+    
+    // Add machine types from storage
+    machineTypes.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type.id;
+        option.textContent = type.name;
+        machineTypeDropdown.appendChild(option);
+    });
+
+    // Handle machine type selection change
+    machineTypeDropdown.addEventListener('change', function() {
+        const typeId = this.value;
+        document.getElementById('machineTypeId').value = typeId;
+        
+        // Find the selected machine type
+        const selectedType = machineTypes.find(t => t.id == typeId);
+        if (!selectedType) return;
+        
+        // Update form title
+        document.querySelector('.page-title h1').textContent = `${selectedType.name} Configuration`;
+        
+        // Populate the selection grid
+        populateSelectionGrid(selectedType);
+    });
+
+    // Function to populate the selection grid
+    function populateSelectionGrid(machineType) {
+        const sectionsContainer = document.getElementById('sections-container');
+        sectionsContainer.innerHTML = '';
+        
+        if (!machineType.fields) return;
+        
+        // Create section checkboxes for ALL sections including basicDetails
+        for (const [sectionName, fields] of Object.entries(machineType.fields)) {
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'section-item';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `section_${sectionName}`;
+            checkbox.dataset.section = sectionName;
+            
+            // Check basicDetails by default
+            if (sectionName === 'basicDetails') {
+                checkbox.checked = true;
+                checkbox.disabled = true; // Make basicDetails always selected
+            }
+            
+            const label = document.createElement('label');
+            label.htmlFor = `section_${sectionName}`;
+            
+            // Convert section name to first letter capital
+            const formattedSectionName = sectionName === 'basicDetails' 
+                ? 'Basic Details' 
+                : sectionName
+                    .replace(/([A-Z])/g, ' $1')
+                    .replace(/^./, str => str.toUpperCase())
+                    .trim();
+            label.textContent = formattedSectionName;
+            
+            sectionDiv.appendChild(checkbox);
+            sectionDiv.appendChild(label);
+            sectionsContainer.appendChild(sectionDiv);
+            
+            // Add click event to section item
+            sectionDiv.addEventListener('click', function(e) {
+                if (e.target !== checkbox && !checkbox.disabled) {
+                    checkbox.checked = !checkbox.checked;
+                }
+                
+                // Update active state
+                document.querySelectorAll('.section-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                if (checkbox.checked) {
+                    sectionDiv.classList.add('active');
+                    populateFieldsPanel(machineType, sectionName);
+                }
+                
+                // Update form based on selections
+                updateForm(machineType);
+            });
+            
+            // Add change event to checkbox
+            checkbox.addEventListener('change', function() {
+                // Update active state
+                document.querySelectorAll('.section-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                
+                if (this.checked) {
+                    sectionDiv.classList.add('active');
+                    populateFieldsPanel(machineType, sectionName);
+                }
+                
+                // Update form based on selections
+                updateForm(machineType);
+            });
+        }
+        
+        // Select all sections functionality
+        document.getElementById('select-all-sections').addEventListener('change', function() {
+            const sectionCheckboxes = sectionsContainer.querySelectorAll('input[type="checkbox"]:not(:disabled)');
+            sectionCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+                
+                // Trigger change event to update form
+                const event = new Event('change');
+                checkbox.dispatchEvent(event);
+            });
+        });
+        
+        // Initially select the basicDetails section
+        const basicSection = sectionsContainer.querySelector('[data-section="basicDetails"]');
+        if (basicSection) {
+            basicSection.classList.add('active');
+            populateFieldsPanel(machineType, 'basicDetails');
+        }
+        
+        // Generate the form with all fields initially shown for basicDetails
+        generateFormFromTypeDefinition(machineType, false);
+    }
+    
+    // Function to populate the fields panel
+    function populateFieldsPanel(machineType, sectionName) {
+        const fieldsContainer = document.getElementById('fields-container');
+        fieldsContainer.innerHTML = '';
+        
+        if (!machineType.fields || !machineType.fields[sectionName]) return;
+        
+        // Create field checkboxes
+        for (const [fieldName, fieldConfig] of Object.entries(machineType.fields[sectionName])) {
+            const fieldDiv = document.createElement('div');
+            fieldDiv.className = 'field-item';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `field_${sectionName}_${fieldName}`;
+            checkbox.dataset.section = sectionName;
+            checkbox.dataset.field = fieldName;
+            checkbox.checked = true; // Default to checked
+            
+            // Disable model and manufacturer fields in basicDetails
+            if (sectionName === 'basicDetails' && (fieldName === 'model' || fieldName === 'manufacturer')) {
+                checkbox.checked = true;
+                checkbox.disabled = true;
+            }
+            
+            const label = document.createElement('label');
+            label.htmlFor = `field_${sectionName}_${fieldName}`;
+            
+            // Convert field name to first letter capital
+            const formattedFieldName = fieldName
+                .replace(/([A-Z])/g, ' $1')
+                .replace(/^./, str => str.toUpperCase())
+                .trim();
+            label.textContent = formattedFieldName;
+            
+            fieldDiv.appendChild(checkbox);
+            fieldDiv.appendChild(label);
+            fieldsContainer.appendChild(fieldDiv);
+            
+            // Add change event to field checkbox
+            checkbox.addEventListener('change', function() {
+                // Update form based on selections
+                updateForm(machineType);
+            });
+        }
+        
+        // Select all fields functionality
+        document.getElementById('select-all-fields').addEventListener('change', function() {
+            const fieldCheckboxes = fieldsContainer.querySelectorAll('input[type="checkbox"]:not(:disabled)');
+            fieldCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+                
+                // Trigger change event to update form
+                const event = new Event('change');
+                checkbox.dispatchEvent(event);
+            });
+        });
+    }
+    
+    // Function to update the form based on selections
+    function updateForm(machineType) {
+        // Hide all custom sections initially
+        document.querySelectorAll('.custom-section').forEach(section => {
+            section.style.display = 'none';
+        });
+        
+        // Hide all custom fields initially
+        document.querySelectorAll('.custom-section .field-item').forEach(field => {
+            field.style.display = 'none';
+        });
+        
+        // Get all selected sections
+        const selectedSections = document.querySelectorAll('.section-item input[type="checkbox"]:checked');
+        
+        // Show selected sections and their selected fields
+        selectedSections.forEach(sectionCheckbox => {
+            const sectionName = sectionCheckbox.dataset.section;
+            const sectionElement = document.querySelector(`.form-section[data-section="${sectionName}"]`);
+            
+            if (sectionElement) {
+                sectionElement.style.display = 'block';
+                
+                // Get all selected fields for this section
+                const selectedFields = document.querySelectorAll(`#fields-container input[data-section="${sectionName}"]:checked`);
+                
+                // Show selected fields
+                selectedFields.forEach(fieldCheckbox => {
+                    const fieldName = fieldCheckbox.dataset.field;
+                    const fieldElement = sectionElement.querySelector(`.field-item [name$="_${fieldName}"]`);
+                    
+                    if (fieldElement) {
+                        fieldElement.closest('.field-item').style.display = 'block';
+                    }
+                });
+            }
+        });
+    }
+
+    function generateFormFromTypeDefinition(machineType, hideCustomSections = false) {
+        const formSections = document.getElementById('dynamic-form-sections');
+        formSections.innerHTML = '';
+        
+        if (!machineType.fields) return;
+        
+        // Create sections based on the machine type definition
+        for (const [sectionName, fields] of Object.entries(machineType.fields)) {
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'form-section';
+            
+            const sectionHeader = document.createElement('div');
+            sectionHeader.className = 'section-header';
+            
+            // Check if this is the basicDetails section
+            const isBasicSection = sectionName === 'basicDetails';
+            
+            if (isBasicSection) {
+                sectionDiv.classList.add('basic-section');
+                sectionHeader.textContent = 'Basic Details';
+            } else {
+                sectionDiv.classList.add('custom-section');
+                sectionDiv.dataset.section = sectionName;
+                
+                // Convert section name to first letter capital for display
+                const formattedSectionName = sectionName
+                    .replace(/([A-Z])/g, ' $1')
+                    .replace(/^./, str => str.toUpperCase())
+                    .trim();
+                sectionHeader.textContent = formattedSectionName;
+                
+                // Hide custom sections if requested
+                if (hideCustomSections) {
+                    sectionDiv.style.display = 'none';
+                }
+            }
+            
+            sectionDiv.appendChild(sectionHeader);
+            
+            const sectionGrid = document.createElement('div');
+            sectionGrid.className = 'form-grid';
+            
+            // Create fields for the section
+            for (const [fieldName, config] of Object.entries(fields)) {
+                const formGroup = document.createElement('div');
+                formGroup.className = 'form-group field-item';
+                
+                if (isBasicSection) {
+                    formGroup.classList.add('basic-field');
+                } else {
+                    // Hide custom fields initially
+                    formGroup.style.display = 'none';
+                }
+                
+                // Field label
+                const fieldLabel = document.createElement('label');
+                fieldLabel.htmlFor = `${sectionName}_${fieldName}`;
+                
+                // Convert field name to first letter capital
+                const formattedFieldName = fieldName
+                    .replace(/([A-Z])/g, ' $1')
+                    .replace(/^./, str => str.toUpperCase())
+                    .trim();
+                fieldLabel.textContent = formattedFieldName;
+                
+                // Add required indicator if needed (but not for basic details)
+                if (config.required && !isBasicSection) {
+                    fieldLabel.classList.add('required-field');
+                }
+                
+                formGroup.appendChild(fieldLabel);
+                
+                // Field input container
+                const fieldInputContainer = document.createElement('div');
+                fieldInputContainer.className = 'field-input';
+                
+                // Check if this is a derivative field based on feedType
+                const isDerivative = config.feedType === 'derivative';
+                
+                // Create the actual input element based on data type
+                let input;
+                const dataType = config.dataType || config.type || 'text';
+                
+                if (isDerivative) {
+                    // Create a read-only input for derivative fields
+                    input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = `${sectionName}_${fieldName}`;
+                    input.name = `${sectionName}_${fieldName}`;
+                    input.readOnly = true;
+                    input.placeholder = "Click to define derivative expression";
+                    input.classList.add('derivative-field'); // Add class for identification
+                    
+                    // Add click event to open modal when field is clicked
+                    input.addEventListener('click', function() {
+                        openDerivativeModal(sectionName, fieldName, machineType);
+                    });
+                    
+                    // Add derivative button
+                    const derivativeBtn = document.createElement('button');
+                    derivativeBtn.type = 'button';
+                    derivativeBtn.className = 'derivative-btn';
+                    derivativeBtn.innerHTML = '<i class="fas fa-calculator"></i> Define Expression';
+                    derivativeBtn.dataset.section = sectionName;
+                    derivativeBtn.dataset.field = fieldName;
+                    
+                    derivativeBtn.addEventListener('click', function() {
+                        openDerivativeModal(sectionName, fieldName, machineType);
+                    });
+                    
+                    fieldInputContainer.appendChild(input);
+                    fieldInputContainer.appendChild(derivativeBtn);
+                } else if (dataType === 'options' && config.options && config.options.length > 0) {
+                    // Create select for options
+                    input = document.createElement('select');
+                    input.id = `${sectionName}_${fieldName}`;
+                    input.name = `${sectionName}_${fieldName}`;
+                    
+                    // Add empty option
+                    const emptyOption = document.createElement('option');
+                    emptyOption.value = '';
+                    emptyOption.textContent = 'Select an option';
+                    input.appendChild(emptyOption);
+                    
+                    // Add options
+                    config.options.forEach(option => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option;
+                        optionElement.textContent = option;
+                        input.appendChild(optionElement);
+                    });
+                    
+                    fieldInputContainer.appendChild(input);
+                } else {
+                    // Create input based on data type
+                    switch(dataType) {
+                        case 'text':
+                            input = document.createElement('input');
+                            input.type = 'text';
+                            break;
+                        case 'number':
+                        case 'decimal':
+                            input = document.createElement('input');
+                            input.type = 'number';
+                            input.step = dataType === 'decimal' ? '0.01' : '1';
+                            break;
+                        case 'date':
+                            input = document.createElement('input');
+                            input.type = 'date';
+                            break;
+                        case 'datetime':
+                            input = document.createElement('input');
+                            input.type = 'datetime-local';
+                            break;
+                        case 'boolean':
+                            input = document.createElement('select');
+                            input.innerHTML = `
+                                <option value="">Select</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            `;
+                            break;
+                        case 'file':
+                            input = document.createElement('input');
+                            input.type = 'file';
+                            break;
+                        default:
+                            input = document.createElement('input');
+                            input.type = 'text';
+                    }
+                    
+                    input.id = `${sectionName}_${fieldName}`;
+                    input.name = `${sectionName}_${fieldName}`;
+                    fieldInputContainer.appendChild(input);
+                }
+                
+                // Set required attribute (but not for basic details or derivative fields)
+                if (config.required && !isBasicSection && !isDerivative) {
+                    input.required = true;
+                }
+                
+                // Remove validation for basic details and derivative fields
+                if (isBasicSection || isDerivative) {
+                    input.classList.add('no-validation');
+                    input.required = false;
+                }
+                
+                // Set placeholder if available
+                if (config.placeholder) {
+                    input.placeholder = config.placeholder;
+                } else if (config.description) {
+                    input.placeholder = config.description;
+                }
+                
+                // Add max length for text fields
+                if (dataType === 'text' && config.length) {
+                    input.maxLength = config.length;
+                }
+                
+                // Add validation attributes for numbers
+                if ((dataType === 'number' || dataType === 'decimal') && config.length) {
+                    input.max = config.length;
+                }
+                
+                // Add error message container (but not for basic details or derivative fields)
+                if (!isBasicSection && !isDerivative) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.id = `${sectionName}_${fieldName}_error`;
+                    fieldInputContainer.appendChild(errorDiv);
+                }
+                
+                formGroup.appendChild(fieldInputContainer);
+                sectionGrid.appendChild(formGroup);
+                
+                // Add input validation (but not for basic details or derivative fields)
+                if (!isBasicSection && !isDerivative) {
+                    input.addEventListener('blur', function() {
+                        validateField(this);
+                    });
+                }
+            }
+            
+            sectionDiv.appendChild(sectionGrid);
+            formSections.appendChild(sectionDiv);
+        }
+    }
+
+    // Derivative field modal functionality
+    let currentDerivativeField = null;
+    
+    function openDerivativeModal(sectionName, fieldName, machineType) {
+        currentDerivativeField = { sectionName, fieldName };
+        
+        // Populate available fields
+        const availableFieldsList = document.getElementById('availableFieldsList');
+        availableFieldsList.innerHTML = '';
+        
+        // Add all available fields from the machine type
+        for (const [secName, fields] of Object.entries(machineType.fields)) {
+            for (const [fName, config] of Object.entries(fields)) {
+                // Skip derivative fields to avoid circular references
+                if (config.feedType === 'derivative') continue;
+                
+                const fieldPill = document.createElement('span');
+                fieldPill.className = 'field-pill';
+                fieldPill.textContent = `${secName}.${fName}`;
+                fieldPill.dataset.field = `${secName}_${fName}`;
+                
+                fieldPill.addEventListener('click', function() {
+                    const expressionInput = document.getElementById('derivativeExpression');
+                    const currentValue = expressionInput.value;
+                    const fieldRef = `{${this.dataset.field}}`;
+                    
+                    // Insert the field reference at the cursor position
+                    const cursorPos = expressionInput.selectionStart;
+                    expressionInput.value = currentValue.substring(0, cursorPos) + 
+                                          fieldRef + 
+                                          currentValue.substring(cursorPos);
+                                          
+                    // Set focus back to the input and position cursor after the inserted text
+                    expressionInput.focus();
+                    expressionInput.selectionEnd = cursorPos + fieldRef.length;
+                });
+                
+                availableFieldsList.appendChild(fieldPill);
+            }
+        }
+        
+        // Load existing expression if any
+        const expressionInput = document.getElementById('derivativeExpression');
+        const fieldInput = document.querySelector(`#${sectionName}_${fieldName}`);
+        expressionInput.value = fieldInput.dataset.expression || '';
+        
+        // Set up expression button handlers
+        document.querySelectorAll('.expression-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const value = this.dataset.value;
+                const cursorPos = expressionInput.selectionStart;
+                const currentValue = expressionInput.value;
+                
+                expressionInput.value = currentValue.substring(0, cursorPos) + 
+                                      value + 
+                                      currentValue.substring(cursorPos);
+                
+                // Set focus back to the input and position cursor after the inserted text
+                expressionInput.focus();
+                expressionInput.selectionEnd = cursorPos + value.length;
+            });
+        });
+        
+        // Show the modal
+        document.getElementById('derivativeModal').classList.add('active');
+    }
+    
+    // Close derivative modal
+    function closeDerivativeModal() {
+        document.getElementById('derivativeModal').classList.remove('active');
+        currentDerivativeField = null;
+    }
+    
+    // Set up modal event listeners
+    document.getElementById('closeDerivativeModal').addEventListener('click', closeDerivativeModal);
+    document.getElementById('cancelDerivative').addEventListener('click', closeDerivativeModal);
+    
+    // Save derivative expression
+    document.getElementById('saveDerivative').addEventListener('click', function() {
+        if (!currentDerivativeField) return;
+        
+        const expression = document.getElementById('derivativeExpression').value;
+        const { sectionName, fieldName } = currentDerivativeField;
+        
+        // Validate the expression
+        if (!validateExpression(expression)) {
+            showNotification('Please enter a valid expression using only numbers, operators, and available data points.', 'error');
+            return;
+        }
+        
+        // Update the field input
+        const fieldInput = document.querySelector(`#${sectionName}_${fieldName}`);
+        fieldInput.value = expression ? `Derivative: ${expression}` : '';
+        fieldInput.dataset.expression = expression;
+        
+        closeDerivativeModal();
+    });
+    
+// Update the validateExpression function
+function validateExpression(expression) {
+    if (!expression) return false;
+    
+    // Remove all field references to check the rest of the expression
+    let testExpression = expression.replace(/\{[^}]+\}/g, 'FIELD');
+    
+    // Remove all valid characters (including logical operators) and check if anything remains
+    testExpression = testExpression.replace(/[0-9\+\-\*\/\(\)\.FIELD\s&|!=><?:truefalse]/g, '');
+    
+    return testExpression.length === 0;
+}
+    
+    // Close modal when clicking outside
+    document.getElementById('derivativeModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDerivativeModal();
+        }
+    });
+
+    // Field validation function
+    function validateField(field) {
+        // Skip validation for fields with no-validation class
+        if (field.classList.contains('no-validation')) {
+            return true;
+        }
+        
+        const errorElement = document.getElementById(`${field.id}_error`);
+        
+        // Clear previous error
+        field.classList.remove('input-error');
+        if (errorElement) errorElement.style.display = 'none';
+        
+        // Required field validation
+        if (field.required && !field.value.trim()) {
+            field.classList.add('input-error');
+            if (errorElement) {
+                errorElement.textContent = 'This field is required';
+                errorElement.style.display = 'block';
+            }
+            return false;
+        }
+        
+        // Number validation
+        if (field.type === 'number' && field.value) {
+            const value = parseFloat(field.value);
+            if (isNaN(value)) {
+                field.classList.add('input-error');
+                if (errorElement) {
+                    errorElement.textContent = 'Please enter a valid number';
+                    errorElement.style.display = 'block';
+                }
+                return false;
+            }
+            
+            if (field.max && value > parseFloat(field.max)) {
+                field.classList.add('input-error');
+                if (errorElement) {
+                    errorElement.textContent = `Value cannot exceed ${field.max}`;
+                    errorElement.style.display = 'block';
+                }
+                return false;
+            }
+        }
+        
+        // Text length validation
+        if (field.type === 'text' && field.maxLength && field.value.length > field.maxLength) {
+            field.classList.add('input-error');
+            if (errorElement) {
+                errorElement.textContent = `Text cannot exceed ${field.maxLength} characters`;
+                errorElement.style.display = 'block';
+            }
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Form validation function - Skip validation for Basic Details
+    function validateForm() {
+        let isValid = true;
+        // Only validate fields that are not in Basic Details
+        const inputs = document.querySelectorAll('input:not(.basic-section input, .no-validation), select:not(.basic-section select, .no-validation), textarea:not(.basic-section textarea, .no-validation)');
+        
+        inputs.forEach(input => {
+            if (!validateField(input)) {
+                isValid = false;
+            }
+        });
+        
+        return isValid;
+    }
+
+    // Form submission
+    document.getElementById('machineForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!validateForm()) {
+            showNotification('Please fix validation errors before submitting.', 'error');
+            return;
+        }
+        
+        const machineTypeId = document.getElementById('machineTypeId').value;
+        const machineType = machineTypes.find(t => t.id == machineTypeId);
+        if (!machineType) return;
+        
+        // Collect all form data
+        const formData = {
+            machineTypeId: machineTypeId,
+            machineTypeName: machineType.name,
+            configuration: {}
+        };
+        
+        // Collect data from each section
+        const formSections = document.querySelectorAll('#dynamic-form-sections .form-section');
+        formSections.forEach(section => {
+            const sectionHeader = section.querySelector('.section-header');
+            const isBasicSection = section.classList.contains('basic-section');
+            let sectionName;
+            
+            if (isBasicSection) {
+                sectionName = 'Basic Details';
+            } else {
+                sectionName = sectionHeader.textContent;
+                // Skip sections that are hidden
+                if (section.style.display === 'none') {
+                    return;
+                }
+            }
+            
+            formData.configuration[sectionName] = {};
+            
+            // Collect all fields in this section
+            const inputs = section.querySelectorAll('.field-input input, .field-input select, .field-input textarea');
+            inputs.forEach(input => {
+                // Skip fields that are hidden
+                if (input.closest('.field-item').style.display === 'none') {
+                    return;
+                }
+                
+                const fieldName = input.name.split('_').pop();
+                
+                // For derivative fields, store the expression
+                if (input.dataset.expression) {
+                    formData.configuration[sectionName][fieldName] = {
+                        expression: input.dataset.expression,
+                        value: input.value
+                    };
+                } else {
+                    formData.configuration[sectionName][fieldName] = input.value;
+                }
+            });
+        });
+        
+        console.log('Form data to save:', formData);
+        
+        // In a real app, you would send this to your API
+        // For now, we'll just show a success message
+        showNotification('Machine configuration saved successfully!', 'success');
+        
+        setTimeout(() => {
+            window.location.href = 'machine.html';
+        }, 1500);
+    });
+
+    // Cancel button
+    document.getElementById('cancelBtn').addEventListener('click', () => {
+        if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
+            window.location.href = 'machine.html';
+        }
+    });
+
+    // Account logout button
+    document.getElementById('accountLogoutBtn').addEventListener('click', () => {
+        if (confirm('Are you sure you want to logout?')) {
+            showNotification('Logged out successfully!', 'success');
+            setTimeout(() => {
+                // In a real app, you would redirect to logout
+                window.location.href = 'login.html';
+            }, 1500);
+        }
+    });
+
+    // Notification function
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            <span>${message}</span>
+        `;
+        document.body.appendChild(notification);
+        
+        notification.classList.add('show');
+        
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 3000);
+    }
+});
+</script>
+</body>
+</html> 

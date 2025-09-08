@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Device Type</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --gray-color: #95a5a6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            min-height: 100vh;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        .container.sidebar-expanded {
+            grid-template-columns: 250px 1fr;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 20px 0;
+            position: relative;
+            z-index: 10;
+            width: 60px;
+            transition: width 0.3s ease, background-color 0.2s ease;
+            overflow: hidden;
+        }
+
+        .sidebar:hover {
+            width: 250px;
+        }
+
+        .sidebar:hover .nav-link span {
+            display: inline;
+            opacity: 1;
+        }
+
+        .sidebar.expanded {
+            width: 250px;
+        }
+
+        .sidebar.expanded .nav-link span {
+            display: inline;
+            opacity: 1;
+        }
+
+        .logo {
+            text-align: center;
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+
+        .nav-link {
+            color: inherit;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px 15px;
+        }
+
+        .nav-item.active .nav-link {
+            color: white;
+        }
+
+        .nav-item:hover .nav-link {
+            color: white;
+        }
+
+        .nav-menu {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 100px);
+            justify-content: space-between;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+        }
+
+        .nav-item i {
+            width: 30px;
+            text-align: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .nav-link span {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            margin-left: 10px;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .page-title {
+            margin-bottom: 20px;
+        }
+
+        .page-title h1 {
+            font-size: 1.8rem;
+            color: var(--dark-color);
+        }
+
+        .page-title p {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary {
+            background-color: var(--gray-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        /* Form Container */
+        .table-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 15px;
+            overflow-x: auto;
+        }
+
+        /* Section Styles */
+        .section {
+            margin-bottom: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 15px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            color: var(--dark-color);
+            font-weight: 600;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        /* Device Type Header */
+        .device-type-header {
+            background-color: var(--light-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-color);
+            position: relative;
+        }
+
+        .device-type-header h2 {
+            color: var(--dark-color);
+            margin-bottom: 10px;
+        }
+
+        .device-type-header .form-group {
+            max-width: 500px;
+        }
+
+        .required-field::after {
+            content: " *";
+            color: var(--danger-color);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 600px;
+            max-width: 90%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray-color);
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Dropdown menu styles */
+        .dropdown-menu {
+            display: none;
+            padding-left: 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+            max-height: 200px;
+        }
+
+        .dropdown-item {
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .dropdown-item i {
+            margin-right: 10px;
+        }
+
+        .dropdown-toggle .dropdown-icon {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .dropdown-toggle.show .dropdown-icon,
+        .sidebar:hover .dropdown-toggle.show .dropdown-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Close dropdowns when sidebar is collapsed */
+        .sidebar:not(:hover):not(.expanded) .dropdown-menu {
+            display: none !important;
+            max-height: 0 !important;
+            padding: 0 !important;
+        }
+
+        .sidebar:not(:hover):not(.expanded) .dropdown-toggle.show .dropdown-icon {
+            transform: rotate(0deg) !important;
+        }
+
+        /* Account Dropdown */
+        .user-info-wrapper {
+            --primary-color: #4361ee;
+            --danger-color: #ef233c;
+            --text-color: #2b2d42;
+            --hover-bg: #f8f9fa;
+            --transition-speed: 0.25s;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .account-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .account-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all var(--transition-speed) ease;
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+        }
+
+        .account-trigger:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .account-trigger:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        .account-trigger .fa-user-circle {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .account-trigger span {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .account-trigger .fa-caret-down {
+            font-size: 0.75rem;
+            transition: transform var(--transition-speed);
+        }
+
+        .account-trigger.active .fa-caret-down {
+            transform: rotate(180deg);
+        }
+
+        .account-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 0.5rem);
+            background-color: white;
+            min-width: 180px;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem 0;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-10px);
+            visibility: hidden;
+            transition:
+                opacity var(--transition-speed) ease,
+                transform var(--transition-speed) ease;
+        }
+
+        .account-menu.show {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .account-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 1rem;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition:
+                background-color var(--transition-speed),
+                color var(--transition-speed);
+        }
+
+        .account-menu-item:hover,
+        .account-menu-item:focus {
+            background-color: var(--hover-bg);
+            color: var(--primary-color);
+            outline: none;
+        }
+
+        .account-menu-item i {
+            width: 1.25rem;
+            text-align: center;
+            color: inherit;
+        }
+
+        .account-menu-divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 0.5rem 0;
+        }
+
+        .logout-account-btn {
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font: inherit;
+            color: inherit;
+        }
+
+        .logout-account-btn:hover,
+        .logout-account-btn:focus {
+            color: var(--danger-color) !important;
+        }
+
+        .account-menu-item.plan-info {
+            background-color: #f8f9fa;
+            color: var(--dark-color);
+            font-weight: 600;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .account-menu-item.plan-info i {
+            margin-right: 8px;
+        }
+
+        /* Different colors for different plans */
+        .plan-basic {
+            color: var(--primary-color);
+        }
+
+        .plan-advanced {
+            color: var(--success-color);
+        }
+
+        .plan-pro {
+            color: gold;
+        }
+
+        .customer-logo {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Notification Modal Styles */
+        .notification-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .notification-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+
+        .notification-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .notification-icon.success {
+            color: var(--success-color);
+        }
+
+        .notification-icon.warning {
+            color: var(--warning-color);
+        }
+
+        .notification-icon.error {
+            color: var(--danger-color);
+        }
+
+        .notification-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark-color);
+        }
+
+        .notification-message {
+            margin-bottom: 20px;
+            color: var(--dark-color);
+        }
+
+        .notification-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* Confirmation Modal Styles */
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .confirmation-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .confirmation-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--dark-color);
+        }
+
+        .confirmation-message {
+            margin-bottom: 20px;
+            color: var(--dark-color);
+        }
+
+        .confirmation-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Existing Device Types Table */
+        .existing-types-section {
+            margin-top: 30px;
+            display: none; /* Initially hidden */
+        }
+
+        .existing-types-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .existing-types-table th,
+        .existing-types-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .existing-types-table th {
+            background-color: var(--light-color);
+            font-weight: 600;
+        }
+
+        .existing-types-table tr:hover {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .table-btn {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .table-btn-edit {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .table-btn-delete {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        /* Field item styling */
+        .field-item {
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+        }
+
+        .field-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .field-title {
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .field-properties {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        /* Enhanced field modal styling */
+        .field-config-group {
+            margin-bottom: 15px;
+            padding: 12px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            background-color: #f9f9f9;
+        }
+
+        .field-config-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .field-config-title i {
+            color: var(--primary-color);
+        }
+
+        /* Validation error styling */
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .input-error {
+            border-color: var(--danger-color) !important;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .field-properties {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 95%;
+            }
+        }
+        
+        /* Toggle switch for required field */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+            margin-left: 10px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+        
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+ 
+        .field-edit-btn {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .field-edit-btn:hover {
+            background-color: var(--secondary-color);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container" id="mainContainer">
+        <!-- Sidebar Navigation -->
+        <div id="sidebar-container"></div>
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <div class="header-logo">CraneIQ</div>
+                </div>
+             
+                <div class="user-info-wrapper">
+                    <div class="account-dropdown">
+                        <div class="account-trigger" id="accountDropdownTrigger">
+                            <div class="customer-logo">H</div>
+                            <span>Hilton (Pro Plan)</span>
+                            <i class="fas fa-caret-down"></i>
+                        </div>
+                        <div class="account-menu" id="accountDropdownMenu">
+                            <div class="account-menu-item plan-info">
+                                <i class="fas fa-crown" style="color: gold;"></i>
+                                <span>Pro Plan</span>
+                            </div>
+                            <div class="account-menu-divider"></div>
+                            <a href="#" class="account-menu-item">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="#" class="account-menu-item">
+                                <i class="fas fa-sync-alt"></i> Upgrade Plan
+                            </a>
+                            <div class="account-menu-divider"></div>
+                            <button id="accountLogoutBtn" class="account-menu-item logout-account-btn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="page-title">
+                <h1>Create New Device Type</h1>
+                <p>Define a new device type and its properties</p>
+            </div>
+
+            <!-- Device Type Name Section -->
+            <div class="device-type-header">
+                <h2>Device Type Identification</h2>
+                <div class="form-group">
+                    <label for="device-type-name" class="required-field">Device Type Name</label>
+                    <input type="text" id="device-type-name" placeholder="e.g., Sensor, Controller, Gateway" required>
+                    <div class="error-message" id="device-type-name-error">Device type name is required</div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="add-section-btn" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Section
+                </button>
+            </div>
+
+            <div class="table-container">
+                <!-- Basic Details Section -->
+                <div class="section" id="basic-details">
+                    <div class="section-header">
+                        <h3 class="section-title">Basic Details</h3>
+                        <div class="section-actions">
+                            <button class="btn btn-primary add-field-basic" data-section="basic-details">
+                                <i class="fas fa-plus"></i> Add Field
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="device-name">Device Name</label>
+                                <input type="text" id="device-name" placeholder="Enter device name">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="device-id">Device ID</label>
+                                <input type="text" id="device-id" placeholder="Enter device ID">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="iot-gateway">IoT Gateway</label>
+                                <input type="text" id="iot-gateway" placeholder="Enter IoT gateway">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="poll-interval">Poll Interval (ms)</label>
+                                <input type="number" id="poll-interval" placeholder="Enter poll interval" min="100">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-fields" id="basic-details-fields"></div>
+                </div>
+
+                <!-- Data Point Details Section -->
+                <div class="section" id="data-point-details">
+                    <div class="section-header">
+                        <h3 class="section-title">Data Point Details</h3>
+                        <div class="section-actions">
+                            <button class="btn btn-primary add-field" data-section="data-point-details">
+                                <i class="fas fa-plus"></i> Add Field
+                            </button>
+                        </div>
+                    </div>
+                    <div class="section-fields" id="data-point-details-fields"></div>
+                </div>
+
+                <!-- Dynamic Sections Container -->
+                <div id="dynamic-sections"></div>
+            </div>
+
+            <!-- Existing Device Types Table moved to bottom after Save/Cancel -->
+
+            <div class="action-buttons" style="margin-top: 20px;">
+                <button id="save-form-btn" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Device Type
+                </button>
+                <button id="cancel-btn" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+                <button id="view-existing-btn" class="btn btn-secondary">
+                    <i class="fas fa-list"></i> View Existing Types
+                </button>
+            </div>
+
+            <!-- Device Type Table -->
+            <div class="section existing-types-section" id="existing-types-section">
+                <div class="section-header">
+                    <h3 class="section-title">Device Type</h3>
+                </div>
+                <table class="existing-types-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Device Name</th>
+                            <th>Device ID</th>
+                            <th>IoT Gateway</th>
+                            <th>Poll Interval</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="existing-types-body">
+                        <!-- Will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Section Creation -->
+    <div class="modal" id="section-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Section</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="section-name" class="required-field">Section Name</label>
+                    <input type="text" id="section-name" placeholder="Enter section name" required>
+                    <div class="error-message" id="section-name-error">Section name is required</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-section">Cancel</button>
+                <button class="btn btn-primary" id="confirm-section">Add Section</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple Modal for Basic Details Field Creation -->
+    <div class="modal" id="basic-field-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+<h3 class="modal-title" id="basic-field-modal-title">Add New Field to Basic Details</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="field-config-group">
+                    <div class="field-config-title">
+                        <i class="fas fa-font"></i>
+                        <span>Basic Information</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="basic-field-name" class="required-field">Field Name</label>
+                        <input type="text" id="basic-field-name" placeholder="Enter field name" required>
+                        <div class="error-message" id="basic-field-name-error">Field name is required</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="basic-field-description">Description</label>
+                        <textarea id="basic-field-description" placeholder="Enter field description" rows="2"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Hidden field to store field ID for editing -->
+                <input type="hidden" id="basic-field-id">
+                
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-basic-field">Cancel</button>
+                <button class="btn btn-primary" id="confirm-basic-field">Add Field</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Modal for Field Creation -->
+    <div class="modal" id="field-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="field-modal-title">Add New Field</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="field-config-group">
+                    <div class="field-config-title">
+                        <i class="fas fa-font"></i>
+                        <span>Basic Information</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="field-name" class="required-field">Field Name</label>
+                        <input type="text" id="field-name" placeholder="Enter field name" required>
+                        <div class="error-message" id="field-name-error">Field name is required</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="field-description">Description</label>
+                        <textarea id="field-description" placeholder="Enter field description" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div class="field-config-group">
+                    <div class="field-config-title">
+                        <i class="fas fa-cog"></i>
+                        <span>Data Configuration</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="field-data-type" class="required-field">Data Type</label>
+                        <select id="field-data-type">
+                            <option value="text">Text</option>
+                            <option value="number">Number</option>
+                            <option value="decimal">Decimal</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field-config-group">
+                    <div class="field-config-title">
+                        <i class="fas fa-database"></i>
+                        <span>Data Feed Configuration</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="field-feed-type" class="required-field">Feed Type</label>
+                        <select id="field-feed-type">
+                            <option value="manual">Manual Input</option>
+                            <option value="auto">Auto Feed</option>
+                            <option value="derivative">Derivative</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Hidden field to store field ID for editing -->
+                <input type="hidden" id="field-id">
+                
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-field">Cancel</button>
+                <button class="btn btn-primary" id="confirm-field">Add Field</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div class="notification-modal" id="notification-modal">
+        <div class="notification-content">
+            <div class="notification-icon" id="notification-icon">
+                <i class="fas fa-check-circle success"></i>
+            </div>
+            <h3 class="notification-title" id="notification-title">Success!</h3>
+            <p class="notification-message" id="notification-message">Operation completed successfully.</p>
+            <div class="notification-actions">
+                <button class="btn btn-primary" id="notification-ok-btn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="confirmation-modal" id="confirmation-modal">
+        <div class="confirmation-content">
+            <h3 class="confirmation-title" id="confirmation-title">Confirm Action</h3>
+            <p class="confirmation-message" id="confirmation-message">Are you sure you want to perform this action?</p>
+            <div class="confirmation-actions">
+                <button class="btn btn-secondary" id="confirmation-cancel-btn">Cancel</button>
+                <button class="btn btn-primary" id="confirmation-ok-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize sample data for existing device types
+            const sampleDeviceTypes = [
+                { id: 'DT001', name: 'Sensor', deviceName: 'Temperature Sensor', deviceId: 'SENS-001', iotGateway: 'GW-001', pollInterval: 1000 },
+                { id: 'DT002', name: 'Controller', deviceName: 'Motor Controller', deviceId: 'CTRL-002', iotGateway: 'GW-002', pollInterval: 500 },
+                { id: 'DT003', name: 'Gateway', deviceName: 'IoT Gateway', deviceId: 'GW-003', iotGateway: 'GW-003', pollInterval: 2000 }
+            ];
+
+            // Load the sidebar
+            fetch('sidebar.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('sidebar-container').innerHTML = data;
+                    initializeSidebar();
+                });
+
+            function initializeSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                const sidebarToggle = document.getElementById('sidebar-toggle');
+                const navItems = document.querySelectorAll('.nav-item');
+                const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+                const mainContainer = document.getElementById('mainContainer');
+
+                // Toggle sidebar
+                sidebarToggle.addEventListener('click', function () {
+                    sidebar.classList.toggle('expanded');
+                    mainContainer.classList.toggle('sidebar-expanded');
+                });
+
+                // Handle navigation item clicks
+                navItems.forEach(item => {
+                    item.addEventListener('click', function () {
+                        navItems.forEach(nav => nav.classList.remove('active'));
+                        this.classList.add('active');
+                    });
+                });
+
+                // Handle dropdown toggles
+                dropdownToggles.forEach(toggle => {
+                    toggle.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        this.classList.toggle('show');
+                        const dropdownMenu = this.nextElementSibling;
+                        dropdownMenu.classList.toggle('show');
+                    });
+                });
+
+                // Close dropdowns when clicking outside
+                document.addEventListener('click', function (e) {
+                    if (!e.target.matches('.dropdown-toggle') && !e.target.closest('.dropdown-toggle')) {
+                        dropdownToggles.forEach(toggle => {
+                            toggle.classList.remove('show');
+                            const dropdownMenu = toggle.nextElementSibling;
+                            dropdownMenu.classList.remove('show');
+                        });
+                    }
+                });
+            }
+
+            // Account dropdown functionality
+            const accountDropdownTrigger = document.getElementById('accountDropdownTrigger');
+            const accountDropdownMenu = document.getElementById('accountDropdownMenu');
+
+            accountDropdownTrigger.addEventListener('click', function (e) {
+                e.stopPropagation();
+                accountDropdownMenu.classList.toggle('show');
+                accountDropdownTrigger.classList.toggle('active');
+            });
+
+            // Close account dropdown when clicking outside
+            document.addEventListener('click', function (e) {
+                if (!e.target.matches('.account-trigger') && !e.target.closest('.account-trigger')) {
+                    accountDropdownMenu.classList.remove('show');
+                    accountDropdownTrigger.classList.remove('active');
+                }
+            });
+
+            // Modal functionality
+            const sectionModal = document.getElementById('section-modal');
+            const fieldModal = document.getElementById('field-modal');
+            const basicFieldModal = document.getElementById('basic-field-modal');
+            const notificationModal = document.getElementById('notification-modal');
+            const confirmationModal = document.getElementById('confirmation-modal');
+            const closeModalButtons = document.querySelectorAll('.close-modal');
+
+            // Open section modal
+            document.getElementById('add-section-btn').addEventListener('click', function () {
+                openModal(sectionModal);
+            });
+
+          // Open field modal for basic details - FIXED
+document.querySelectorAll('.add-field-basic').forEach(button => {
+    button.addEventListener('click', function() {
+        document.getElementById('field-modal-title').textContent = 'Add New Field to Basic Details';
+        document.getElementById('confirm-basic-field').textContent = 'Add Field';
+        document.getElementById('basic-field-name').value = '';
+        document.getElementById('basic-field-description').value = '';
+        document.getElementById('basic-field-id').value = '';
+        openModal(basicFieldModal);
+    });
+});
+            // Open field modal for data point details
+            document.querySelector('.add-field').addEventListener('click', function () {
+                document.getElementById('field-modal-title').textContent = 'Add New Field';
+                document.getElementById('confirm-field').textContent = 'Add Field';
+                document.getElementById('field-name').value = '';
+                document.getElementById('field-description').value = '';
+                document.getElementById('field-data-type').value = 'text';
+                document.getElementById('field-feed-type').value = 'manual';
+                document.getElementById('field-id').value = '';
+                openModal(fieldModal);
+            });
+
+            // Close modals
+            closeModalButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const modal = this.closest('.modal');
+                    closeModal(modal);
+                });
+            });
+
+            // Cancel buttons
+            document.getElementById('cancel-section').addEventListener('click', function () {
+                closeModal(sectionModal);
+            });
+
+            document.getElementById('cancel-basic-field').addEventListener('click', function () {
+                closeModal(basicFieldModal);
+            });
+
+            document.getElementById('cancel-field').addEventListener('click', function () {
+                closeModal(fieldModal);
+            });
+
+            // Confirm section creation
+            document.getElementById('confirm-section').addEventListener('click', function () {
+                const sectionName = document.getElementById('section-name').value.trim();
+                if (!sectionName) {
+                    document.getElementById('section-name-error').style.display = 'block';
+                    document.getElementById('section-name').classList.add('input-error');
+                    return;
+                }
+
+                createNewSection(sectionName);
+                closeModal(sectionModal);
+                document.getElementById('section-name').value = '';
+                document.getElementById('section-name-error').style.display = 'none';
+                document.getElementById('section-name').classList.remove('input-error');
+            });
+
+            // Confirm basic field creation
+document.getElementById('confirm-basic-field').addEventListener('click', function () {
+    const fieldName = document.getElementById('basic-field-name').value.trim();
+    if (!fieldName) {
+        document.getElementById('basic-field-name-error').style.display = 'block';
+        document.getElementById('basic-field-name').classList.add('input-error');
+        return;
+    }
+
+    const fieldId = document.getElementById('basic-field-id').value;
+    if (fieldId) {
+        // Update existing field
+        updateBasicField(fieldId, fieldName);
+    } else {
+        // Create new field
+        addBasicField(fieldName);
+    }
+
+    closeModal(basicFieldModal);
+    document.getElementById('basic-field-name').value = '';
+    document.getElementById('basic-field-description').value = '';
+    document.getElementById('basic-field-id').value = '';
+    document.getElementById('basic-field-name-error').style.display = 'none';
+    document.getElementById('basic-field-name').classList.remove('input-error');
+});
+
+            // Confirm field creation
+            document.getElementById('confirm-field').addEventListener('click', function () {
+                const fieldName = document.getElementById('field-name').value.trim();
+                if (!fieldName) {
+                    document.getElementById('field-name-error').style.display = 'block';
+                    document.getElementById('field-name').classList.add('input-error');
+                    return;
+                }
+
+                const fieldId = document.getElementById('field-id').value;
+                if (fieldId) {
+                    // Update existing field
+                    updateField(fieldId);
+                } else {
+                    // Create new field
+                    addField();
+                }
+
+                closeModal(fieldModal);
+                document.getElementById('field-name').value = '';
+                document.getElementById('field-description').value = '';
+                document.getElementById('field-id').value = '';
+                document.getElementById('field-name-error').style.display = 'none';
+                document.getElementById('field-name').classList.remove('input-error');
+            });
+
+// Save form
+document.getElementById('save-form-btn').addEventListener('click', function () {
+    const deviceTypeName = document.getElementById('device-type-name').value.trim();
+    if (!deviceTypeName) {
+        document.getElementById('device-type-name-error').style.display = 'block';
+        document.getElementById('device-type-name').classList.add('input-error');
+        return;
+    }
+
+    // Collect all data
+    const deviceType = {
+        id: 'DT' + (sampleDeviceTypes.length + 1).toString().padStart(3, '0'),
+        name: deviceTypeName,
+        deviceName: document.getElementById('device-name').value,
+        deviceId: document.getElementById('device-id').value,
+        iotGateway: document.getElementById('iot-gateway').value,
+        pollInterval: document.getElementById('poll-interval').value,
+        fields: {
+            basicDetails: {
+                deviceName: { type: 'text', required: true },
+                deviceId: { type: 'text', required: true },
+                iotGateway: { type: 'text' },
+                pollInterval: { type: 'number' }
+            },
+            dataPointDetails: {}
+        }
+    };
+
+    // Add custom fields from basic details
+    const basicFields = document.querySelectorAll('#basic-details-fields .field-item');
+    basicFields.forEach(field => {
+        const fieldName = field.querySelector('.field-title').textContent.toLowerCase().replace(/\s+/g, '_');
+        deviceType.fields.basicDetails[fieldName] = { type: 'text' };
+    });
+
+    // Add custom fields from data point details
+    const dataPointFields = document.querySelectorAll('#data-point-details-fields .field-item');
+    dataPointFields.forEach(field => {
+        const fieldName = field.querySelector('.field-title').textContent.toLowerCase().replace(/\s+/g, '_');
+        const dataType = field.querySelectorAll('p')[1].textContent;
+        const feedType = field.querySelectorAll('p')[2].textContent;
+        deviceType.fields.dataPointDetails[fieldName] = { 
+            type: dataType.toLowerCase(),
+            feedType: feedType.toLowerCase()
+        };
+    });
+
+    // Add custom sections
+    const customSections = document.querySelectorAll('#dynamic-sections .section');
+    customSections.forEach(section => {
+        const sectionName = section.querySelector('.section-title').textContent.toLowerCase().replace(/\s+/g, '_');
+        deviceType.fields[sectionName] = {};
+        
+        const sectionFields = section.querySelectorAll('.field-item');
+        sectionFields.forEach(field => {
+            const fieldName = field.querySelector('.field-title').textContent.toLowerCase().replace(/\s+/g, '_');
+            const dataType = field.querySelectorAll('p')[1].textContent;
+            const feedType = field.querySelectorAll('p')[2].textContent;
+            deviceType.fields[sectionName][fieldName] = { 
+                type: dataType.toLowerCase(),
+                feedType: feedType.toLowerCase()
+            };
+        });
+    });
+
+    // Add to sample data
+    sampleDeviceTypes.push(deviceType);
+
+    // Save to localStorage
+    localStorage.setItem('deviceTypes', JSON.stringify(sampleDeviceTypes));
+
+    // Show success notification
+    showNotification('Success!', 'Device type created successfully.', 'success');
+
+    // Update the existing types table
+    updateExistingTypesTable();
+
+    // Clear the form
+    document.getElementById('device-type-name').value = '';
+    document.getElementById('device-name').value = '';
+    document.getElementById('device-id').value = '';
+    document.getElementById('iot-gateway').value = '';
+    document.getElementById('poll-interval').value = '';
+    
+    // Clear dynamic sections and fields
+    document.getElementById('dynamic-sections').innerHTML = '';
+    document.getElementById('basic-details-fields').innerHTML = '';
+    document.getElementById('data-point-details-fields').innerHTML = '';
+});
+
+            // View existing types button
+            document.getElementById('view-existing-btn').addEventListener('click', function () {
+                const existingSection = document.getElementById('existing-types-section');
+                if (existingSection.style.display === 'none' || existingSection.style.display === '') {
+                    updateExistingTypesTable();
+                    existingSection.style.display = 'block';
+                } else {
+                    existingSection.style.display = 'none';
+                }
+            });
+
+            // Notification modal buttons
+            document.getElementById('notification-ok-btn').addEventListener('click', function () {
+                closeModal(notificationModal);
+            });
+
+            // Confirmation modal buttons
+            document.getElementById('confirmation-cancel-btn').addEventListener('click', function () {
+                closeModal(confirmationModal);
+            });
+
+            // Initialize the existing types table
+            function updateExistingTypesTable() {
+                const tableBody = document.getElementById('existing-types-body');
+                tableBody.innerHTML = '';
+
+                sampleDeviceTypes.forEach(deviceType => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${deviceType.id}</td>
+                        <td>${deviceType.name}</td>
+                        <td>${deviceType.deviceName || '-'}</td>
+                        <td>${deviceType.deviceId || '-'}</td>
+                        <td>${deviceType.iotGateway || '-'}</td>
+                        <td>${deviceType.pollInterval || '-'}</td>
+                        <td class="table-actions">
+                            <button class="table-btn table-btn-edit" data-id="${deviceType.id}">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="table-btn table-btn-delete" data-id="${deviceType.id}">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Add event listeners for edit and delete buttons
+                document.querySelectorAll('.table-btn-edit').forEach(button => {
+                    button.addEventListener('click', function () {
+                        const deviceTypeId = this.getAttribute('data-id');
+                        editDeviceType(deviceTypeId);
+                    });
+                });
+
+                document.querySelectorAll('.table-btn-delete').forEach(button => {
+                    button.addEventListener('click', function () {
+                        const deviceTypeId = this.getAttribute('data-id');
+                        deleteDeviceType(deviceTypeId);
+                    });
+                });
+            }
+
+            function editDeviceType(id) {
+                const deviceType = sampleDeviceTypes.find(dt => dt.id === id);
+                if (deviceType) {
+                    // Fill the form with the device type data
+                    document.getElementById('device-type-name').value = deviceType.name;
+                    document.getElementById('device-name').value = deviceType.deviceName || '';
+                    document.getElementById('device-id').value = deviceType.deviceId || '';
+                    document.getElementById('iot-gateway').value = deviceType.iotGateway || '';
+                    document.getElementById('poll-interval').value = deviceType.pollInterval || '';
+                    
+                    // Show success notification
+                    showNotification('Edit Mode', `Editing device type: ${deviceType.name}`, 'info');
+                }
+            }
+
+            function deleteDeviceType(id) {
+                showConfirmation(
+                    'Delete Device Type',
+                    'Are you sure you want to delete this device type? This action cannot be undone.',
+                    function () {
+                        const index = sampleDeviceTypes.findIndex(dt => dt.id === id);
+                        if (index !== -1) {
+                            sampleDeviceTypes.splice(index, 1);
+                            updateExistingTypesTable();
+                            showNotification('Deleted!', 'Device type has been deleted.', 'success');
+                        }
+                    }
+                );
+            }
+
+            function createNewSection(name) {
+                const sectionId = 'section-' + Date.now();
+                const section = document.createElement('div');
+                section.className = 'section';
+                section.id = sectionId;
+
+                section.innerHTML = `
+                    <div class="section-header">
+                        <h3 class="section-title">${name}</h3>
+                        <div class="section-actions">
+                            <button class="btn btn-primary add-field" data-section="${sectionId}">
+                                <i class="fas fa-plus"></i> Add Field
+                            </button>
+                            <button class="btn btn-danger delete-section" data-section="${sectionId}">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div class="section-fields" id="${sectionId}-fields"></div>
+                `;
+
+                document.getElementById('dynamic-sections').appendChild(section);
+
+                // Add event listener for the add field button
+                section.querySelector('.add-field').addEventListener('click', function () {
+                    const sectionId = this.getAttribute('data-section');
+                    document.getElementById('field-modal-title').textContent = `Add New Field to ${name}`;
+                    document.getElementById('confirm-field').textContent = 'Add Field';
+                    document.getElementById('field-name').value = '';
+                    document.getElementById('field-description').value = '';
+                    document.getElementById('field-data-type').value = 'text';
+                    document.getElementById('field-feed-type').value = 'manual';
+                    document.getElementById('field-id').value = '';
+                    openModal(fieldModal);
+                });
+
+                // Add event listener for the delete section button
+                section.querySelector('.delete-section').addEventListener('click', function () {
+                    const sectionId = this.getAttribute('data-section');
+                    showConfirmation(
+                        'Delete Section',
+                        'Are you sure you want to delete this section? All fields in this section will be lost.',
+                        function () {
+                            document.getElementById(sectionId).remove();
+                        }
+                    );
+                });
+            }
+
+            function addBasicField(name) {
+                const fieldId = 'field-' + Date.now();
+                const description = document.getElementById('basic-field-description').value;
+                
+                const fieldItem = document.createElement('div');
+                fieldItem.className = 'field-item';
+                fieldItem.id = fieldId;
+                fieldItem.innerHTML = `
+                    <div class="field-header">
+                        <div class="field-title">${name}</div>
+                        <div>
+                            <button class="field-edit-btn" data-field-id="${fieldId}">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </div>
+                    </div>
+                    <div class="field-properties">
+                        <div class="form-group">
+                            <label>Description</label>
+                            <p>${description || 'No description provided'}</p>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('basic-details-fields').appendChild(fieldItem);
+
+                // Add event listener for the edit button
+                fieldItem.querySelector('.field-edit-btn').addEventListener('click', function () {
+                    const fieldId = this.getAttribute('data-field-id');
+                    const fieldElement = document.getElementById(fieldId);
+                    const fieldName = fieldElement.querySelector('.field-title').textContent;
+                    const fieldDescription = fieldElement.querySelector('p').textContent;
+                    
+                    document.getElementById('basic-field-modal-title').textContent = 'Edit Field';
+                    document.getElementById('confirm-basic-field').textContent = 'Update Field';
+                    document.getElementById('basic-field-name').value = fieldName;
+                    document.getElementById('basic-field-description').value = fieldDescription !== 'No description provided' ? fieldDescription : '';
+                    document.getElementById('basic-field-id').value = fieldId;
+                    
+                    openModal(basicFieldModal);
+                });
+            }
+
+            function updateBasicField(fieldId, newName) {
+                const fieldElement = document.getElementById(fieldId);
+                if (fieldElement) {
+                    const description = document.getElementById('basic-field-description').value;
+                    fieldElement.querySelector('.field-title').textContent = newName;
+                    fieldElement.querySelector('p').textContent = description || 'No description provided';
+                }
+            }
+
+            function addField() {
+                const fieldId = 'field-' + Date.now();
+                const name = document.getElementById('field-name').value;
+                const description = document.getElementById('field-description').value;
+                const dataType = document.getElementById('field-data-type').value;
+                const feedType = document.getElementById('field-feed-type').value;
+                
+                const fieldItem = document.createElement('div');
+                fieldItem.className = 'field-item';
+                fieldItem.id = fieldId;
+                fieldItem.innerHTML = `
+                    <div class="field-header">
+                        <div class="field-title">${name}</div>
+                        <div>
+                            <button class="field-edit-btn" data-field-id="${fieldId}">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </div>
+                    </div>
+                    <div class="field-properties">
+                        <div class="form-group">
+                            <label>Description</label>
+                            <p>${description || 'No description provided'}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Data Type</label>
+                            <p>${dataType}</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Feed Type</label>
+                            <p>${feedType}</p>
+                        </div>
+                    </div>
+                `;
+
+                // Determine which section to add the field to
+                const activeSection = document.querySelector('.add-field.active') || document.querySelector('.add-field');
+                const sectionId = activeSection ? activeSection.getAttribute('data-section') : 'data-point-details';
+                document.getElementById(`${sectionId}-fields`).appendChild(fieldItem);
+
+                // Add event listener for the edit button
+                fieldItem.querySelector('.field-edit-btn').addEventListener('click', function () {
+                    const fieldId = this.getAttribute('data-field-id');
+                    const fieldElement = document.getElementById(fieldId);
+                    const fieldName = fieldElement.querySelector('.field-title').textContent;
+                    const fieldDescription = fieldElement.querySelectorAll('p')[0].textContent;
+                    const fieldDataType = fieldElement.querySelectorAll('p')[1].textContent;
+                    const fieldFeedType = fieldElement.querySelectorAll('p')[2].textContent;
+                    
+                    document.getElementById('field-modal-title').textContent = 'Edit Field';
+                    document.getElementById('confirm-field').textContent = 'Update Field';
+                    document.getElementById('field-name').value = fieldName;
+                    document.getElementById('field-description').value = fieldDescription !== 'No description provided' ? fieldDescription : '';
+                    document.getElementById('field-data-type').value = fieldDataType.toLowerCase();
+                    document.getElementById('field-feed-type').value = fieldFeedType.toLowerCase().replace(' ', '-');
+                    document.getElementById('field-id').value = fieldId;
+                    
+                    openModal(fieldModal);
+                });
+            }
+
+            function updateField(fieldId) {
+                const fieldElement = document.getElementById(fieldId);
+                if (fieldElement) {
+                    const name = document.getElementById('field-name').value;
+                    const description = document.getElementById('field-description').value;
+                    const dataType = document.getElementById('field-data-type').value;
+                    const feedType = document.getElementById('field-feed-type').value;
+                    
+                    fieldElement.querySelector('.field-title').textContent = name;
+                    fieldElement.querySelectorAll('p')[0].textContent = description || 'No description provided';
+                    fieldElement.querySelectorAll('p')[1].textContent = dataType;
+                    fieldElement.querySelectorAll('p')[2].textContent = feedType;
+                }
+            }
+
+            function openModal(modal) {
+                modal.style.display = 'flex';
+            }
+
+            function closeModal(modal) {
+                modal.style.display = 'none';
+            }
+
+            function showNotification(title, message, type) {
+                const icon = document.getElementById('notification-icon');
+                icon.innerHTML = '';
+                
+                if (type === 'success') {
+                    icon.innerHTML = '<i class="fas fa-check-circle success"></i>';
+                } else if (type === 'error') {
+                    icon.innerHTML = '<i class="fas fa-exclamation-circle error"></i>';
+                } else if (type === 'warning') {
+                    icon.innerHTML = '<i class="fas fa-exclamation-triangle warning"></i>';
+                } else {
+                    icon.innerHTML = '<i class="fas fa-info-circle info"></i>';
+                }
+                
+                document.getElementById('notification-title').textContent = title;
+                document.getElementById('notification-message').textContent = message;
+                openModal(notificationModal);
+            }
+
+            function showConfirmation(title, message, confirmCallback) {
+                document.getElementById('confirmation-title').textContent = title;
+                document.getElementById('confirmation-message').textContent = message;
+                
+                const confirmButton = document.getElementById('confirmation-ok-btn');
+                // Remove any existing event listeners
+                const newConfirmButton = confirmButton.cloneNode(true);
+                confirmButton.parentNode.replaceChild(newConfirmButton, confirmButton);
+                
+                newConfirmButton.addEventListener('click', function () {
+                    confirmCallback();
+                    closeModal(confirmationModal);
+                });
+                
+                openModal(confirmationModal);
+            }
+
+            // Close modals when clicking outside
+            window.addEventListener('click', function (event) {
+                if (event.target.classList.contains('modal')) {
+                    closeModal(event.target);
+                }
+            });
+
+            // Initialize the page
+            updateExistingTypesTable();
+        });
+    </script>
+</body>
+
+</html>

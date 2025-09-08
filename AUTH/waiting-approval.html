@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CraneIQ Pro - Waiting Approval</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Same base styles as login page */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --warning-color: #f39c12;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .logo {
+            margin-bottom: 30px;
+        }
+        
+        .logo h2 {
+            color: var(--dark-color);
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .status-container {
+            margin-bottom: 30px;
+        }
+        
+        .status-icon {
+            font-size: 3rem;
+            color: var(--warning-color);
+            margin-bottom: 20px;
+        }
+        
+        .status-message {
+            font-size: 1.2rem;
+            color: var(--dark-color);
+            margin-bottom: 15px;
+        }
+        
+        .status-details {
+            font-size: 0.9rem;
+            color: var(--dark-color);
+            opacity: 0.7;
+            margin-bottom: 20px;
+        }
+        
+        .signup-method {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--warning-color);
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: var(--dark-color);
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h2>CraneIQ Pro</h2>
+            <p>Account Status</p>
+        </div>
+        
+        <div class="status-container">
+            <div class="status-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="status-message">
+                Waiting for Admin Approval
+            </div>
+            <div class="status-details">
+                Your account is pending approval from the system administrator. You'll receive a notification once your account is approved.
+            </div>
+            <div class="signup-method">
+                <i class="fas fa-info-circle"></i> Signed up via {signup method}
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 CraneIQ Pro. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script>
+        // Display signup method
+        const method = sessionStorage.getItem('signupMethod');
+        const signupMethodElement = document.querySelector('.signup-method');
+        
+        if (method === 'email') {
+            signupMethodElement.innerHTML = '<i class="fas fa-info-circle"></i> Signed up via Email';
+        } else if (method === 'mobile') {
+            signupMethodElement.innerHTML = '<i class="fas fa-info-circle"></i> Signed up via Mobile';
+        }
+        
+        // In a real app, you would check with the server periodically for approval status
+        // For demo purposes, we'll redirect after 5 seconds
+        setTimeout(() => {
+             window.location.href = '../index.html'; // Uncomment in real app
+        }, 10000);
+    </script>
+</body>
+</html>

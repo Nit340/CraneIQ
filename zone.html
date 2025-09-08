@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EOT Crane - 3D Zone Monitoring</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --gray-color: #95a5a6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+              .container {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    min-height: 100vh;
+    transition: grid-template-columns 0.3s ease;
+}
+
+.container.sidebar-expanded {
+    grid-template-columns: 250px 1fr;
+}
+
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 20px 0;
+            position: relative;
+            z-index: 10;
+        }
+
+        .nav-link {
+            color: inherit;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px 15px;
+        }
+
+        .nav-item.active .nav-link {
+            color: white;
+        }
+
+        .nav-item:hover .nav-link {
+            color: white;
+        }
+
+        .nav-menu {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 100px);
+            justify-content: space-between;
+        }
+
+        .nav-item {
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-color);
+        }
+
+        .nav-item i {
+            width: 30px;
+            text-align: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .nav-link span {
+            margin-left: 10px;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .page-title {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .page-title h1 {
+            font-size: 1.8rem;
+            color: var(--dark-color);
+            margin-bottom: 5px;
+        }
+
+        .page-title p {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+
+        /* Crane Status */
+        .crane-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .status-card {
+            padding: 15px;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .status-card i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .status-card .label {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+            margin-bottom: 5px;
+        }
+
+        .status-card .value {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .status-operational {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-warning {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--warning-color);
+        }
+
+        .status-danger {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger-color);
+        }
+
+        /* 3D Viewer */
+        .viewer-container {
+            position: relative;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            height: 500px;
+            overflow: hidden;
+        }
+
+        #crane3dViewer {
+            width: 100%;
+            height: 100%;
+        }
+
+        .viewer-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .viewer-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: white;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+
+        .viewer-btn:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.1);
+        }
+
+        /* Crane Controls */
+        .crane-controls {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            display: flex;
+            gap: 15px;
+            z-index: 10;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            background-color: rgba(255,255,255,0.9);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .control-group h4 {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--dark-color);
+        }
+        
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: white;
+            border: 2px solid var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            transition: all 0.2s;
+        }
+        
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .control-btn:hover:not(:disabled) {
+            background-color: var(--primary-color);
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .control-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+        
+        .horizontal-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .vertical-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .control-value {
+            font-size: 0.9rem;
+            color: var(--dark-color);
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        /* Zone Controls */
+        .zone-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+        }
+
+        .zone-configuration, .zone-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .zone-control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .zone-control-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .zone-types {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .zone-type {
+            flex: 1;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            font-size: 0.9rem;
+        }
+
+        .zone-type:hover {
+            opacity: 0.9;
+        }
+
+        .zone-type.active {
+            border-color: currentColor;
+        }
+
+        .zone-type.work {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+
+        .zone-type.restricted {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .zone-type.warning {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: #ffc107;
+        }
+
+        .zone-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            grid-column: span 2;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--dark-color);
+            border: 1px solid #ddd;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        /* Zone Table */
+        .zone-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 15px;
+        }
+
+        .zone-table th {
+            text-align: left;
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--dark-color);
+            border-bottom: 2px solid #eee;
+        }
+
+        .zone-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .zone-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .zone-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .zone-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-work {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-restricted {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        /* Real-time Position */
+        .position-tracker {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+        }
+
+        .position-values {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .position-value {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .position-label {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+            margin-bottom: 5px;
+        }
+
+        .position-number {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .position-unit {
+            font-size: 0.9rem;
+            color: var(--gray-color);
+        }
+
+        /* Account Dropdown */
+        .account-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .account-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            border: none;
+            color: var(--dark-color);
+        }
+
+        .account-trigger:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .account-trigger:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        .account-trigger .fa-user-circle {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .account-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 5px);
+            background-color: white;
+            min-width: 200px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 10px 0;
+            z-index: 1000;
+            display: none;
+        }
+
+        .account-menu.show {
+            display: block;
+        }
+
+        .account-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            color: var(--dark-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .account-menu-item:hover {
+            background-color: #f8f9fa;
+            color: var(--primary-color);
+        }
+
+        .account-menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .account-menu-divider {
+            height: 1px;
+            background-color: #eee;
+            margin: 10px 0;
+        }
+
+        .customer-logo {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .zone-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .crane-controls {
+                flex-direction: column;
+                right: 10px;
+                bottom: 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .zone-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+            
+            .position-values {
+                grid-template-columns: 1fr;
+            }
+            
+            .crane-controls {
+                position: static;
+                flex-direction: row;
+                margin-top: 15px;
+                justify-content: center;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .crane-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .control-group {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+         <div id="sidebar-container"></div>
+        
+        
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    <div class="header-logo">EOT Crane Zone Control</div>
+                </div>
+               
+               <div class="account-dropdown">
+                    <button class="account-trigger" id="accountDropdownTrigger">
+                        <img src="https://via.placeholder.com/30" class="customer-logo">
+                        <span>Operator (Admin)</span>
+                        <i class="fas fa-caret-down"></i>
+                    </button>
+                    <div class="account-menu" id="accountDropdownMenu">
+                        <div class="account-menu-item">
+                            <i class="fas fa-user"></i> Profile
+                        </div>
+                        <div class="account-menu-item">
+                            <i class="fas fa-cog"></i> Settings
+                        </div>
+                        <div class="account-menu-divider"></div>
+                        <div class="account-menu-item">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page-title">
+                <h1>EOT Crane #CRN-001 - Zone Monitoring</h1>
+                <p>Real-time 3D visualization and control of restricted zones for overhead crane operations</p>
+            </div>
+            
+            <!-- Crane Status -->
+            <div class="crane-status">
+                <div class="status-card status-operational">
+                    <i class="fas fa-check-circle"></i>
+                    <div class="label">Crane Status</div>
+                    <div class="value">Operational</div>
+                </div>
+                <div class="status-card">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div class="label">Current Zone</div>
+                    <div class="value">Main Work Area</div>
+                </div>
+                <div class="status-card status-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div class="label">Nearest Restricted</div>
+                    <div class="value">3.2m NW</div>
+                </div>
+                <div class="status-card">
+                    <i class="fas fa-weight-hanging"></i>
+                    <div class="label">Current Load</div>
+                    <div class="value">2.5 / 5.0 tons</div>
+                </div>
+            </div>
+            
+            <!-- 3D Viewer -->
+            <div class="viewer-container">
+                <div id="crane3dViewer"></div>
+                <div class="viewer-controls">
+                    <button class="viewer-btn" id="resetView" title="Reset View">
+                        <i class="fas fa-home"></i>
+                    </button>
+                    <button class="viewer-btn" id="zoomIn" title="Zoom In">
+                        <i class="fas fa-search-plus"></i>
+                    </button>
+                    <button class="viewer-btn" id="zoomOut" title="Zoom Out">
+                        <i class="fas fa-search-minus"></i>
+                    </button>
+                    <button class="viewer-btn" id="topView" title="Top View">
+                        <i class="fas fa-map"></i>
+                    </button>
+                    <button class="viewer-btn" id="sideView" title="Side View">
+                        <i class="fas fa-vector-square"></i>
+                    </button>
+                </div>
+                
+                <!-- Crane Movement Controls (visual only for simulation) -->
+                <div class="crane-controls">
+                    <div class="control-group">
+                        <h4>Bridge (LT)</h4>
+                        <div class="horizontal-controls">
+                            <button class="control-btn" id="bridgeForward">
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                            <button class="control-btn" id="bridgeReverse">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                        </div>
+                        <div class="control-value" id="bridgePosition">0.00 m</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h4>Trolley (CT)</h4>
+                        <div class="horizontal-controls">
+                            <button class="control-btn" id="trolleyLeft">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <button class="control-btn" id="trolleyRight">
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                        <div class="control-value" id="trolleyPosition">0.00 m</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h4>Hoist</h4>
+                        <div class="vertical-controls">
+                            <button class="control-btn" id="hoistUp">
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                            <button class="control-btn" id="hoistDown">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                        </div>
+                        <div class="control-value" id="hoistPosition">5.00 m</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Zone Controls -->
+            <div class="zone-controls">
+                <div class="zone-configuration">
+                    <div class="zone-control-header">
+                        <div class="zone-control-title">Zone Configuration</div>
+                    </div>
+                    
+                    <div class="zone-types">
+                        <div class="zone-type work active">
+                            <i class="fas fa-check-circle"></i>
+                            <div>Work Zone</div>
+                        </div>
+                        <div class="zone-type restricted">
+                            <i class="fas fa-ban"></i>
+                            <div>Restricted</div>
+                        </div>
+                        <div class="zone-type warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div>Warning</div>
+                        </div>
+                    </div>
+                    
+                    <form class="zone-form">
+                        <div class="form-group">
+                            <label class="form-label">Zone Name</label>
+                            <input type="text" class="form-input" placeholder="Main Work Area" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Zone Type</label>
+                            <select class="form-select">
+                                <option value="work">Work Zone</option>
+                                <option value="restricted">Restricted Zone</option>
+                                <option value="warning">Warning Zone</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">X Position (m)</label>
+                            <input type="number" class="form-input" placeholder="0" step="0.1" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Y Position (m)</label>
+                            <input type="number" class="form-input" placeholder="0" step="0.1" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Z Position (m)</label>
+                            <input type="number" class="form-input" placeholder="0" step="0.1" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Length (m)</label>
+                            <input type="number" class="form-input" placeholder="10" step="0.1" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Width (m)</label>
+                            <input type="number" class="form-input" placeholder="10" step="0.1" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Height (m)</label>
+                            <input type="number" class="form-input" placeholder="5" step="0.1" required>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label class="form-label">Safety Parameters</label>
+                            <select class="form-select">
+                                <option value="none">No restrictions</option>
+                                <option value="slow">Reduce speed</option>
+                                <option value="stop">Complete stop</option>
+                                <option value="alarm">Sound alarm</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Zone
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="zone-list">
+                    <div class="zone-control-header">
+                        <div class="zone-control-title">Active Zones</div>
+                        <div>
+                            <button class="btn btn-secondary">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <table class="zone-table">
+                        <thead>
+                            <tr>
+                                <th>Zone ID</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Position</th>
+                                <th>Dimensions</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>ZN-001</td>
+                                <td>Main Work Area</td>
+                                <td><span class="zone-status status-work">Work</span></td>
+                                <td>0,0,0</td>
+                                <td>20×15×6m</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 4px 8px;">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>ZN-002</td>
+                                <td>Personnel Area</td>
+                                <td><span class="zone-status status-restricted">Restricted</span></td>
+                                <td>25,5,0</td>
+                                <td>8×8×6m</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 4px 8px;">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>ZN-003</td>
+                                <td>Equipment Storage</td>
+                                <td><span class="zone-status status-warning">Warning</span></td>
+                                <td>-15,5,0</td>
+                                <td>10×10×6m</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 4px 8px;">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>ZN-004</td>
+                                <td>Loading Dock</td>
+                                <td><span class="zone-status status-work">Work</span></td>
+                                <td>0,-12,0</td>
+                                <td>10×5×6m</td>
+                                <td>
+                                    <button class="btn btn-secondary" style="padding: 4px 8px;">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Real-time Position Tracking -->
+            <div class="position-tracker">
+                <div class="zone-control-header">
+                    <div class="zone-control-title">Real-time Position Tracking</div>
+                    <div>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-ruler-combined"></i> Set Reference Point
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="position-values">
+                    <div class="position-value">
+                        <div class="position-label">Bridge Position (X)</div>
+                        <div class="position-number">0.00 <span class="position-unit">m</span></div>
+                    </div>
+                    <div class="position-value">
+                        <div class="position-label">Trolley Position (Z)</div>
+                        <div class="position-number">0.00 <span class="position-unit">m</span></div>
+                    </div>
+                    <div class="position-value">
+                        <div class="position-label">Hook Height (Y)</div>
+                        <div class="position-number">5.00 <span class="position-unit">m</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+ <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load the sidebar
+        fetch('sidebar.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('sidebar-container').innerHTML = data;
+                initializeSidebar(); // Call this after loading
+            });
+
+        function initializeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            
+            if (sidebar && sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('expanded');
+                    document.querySelector('.container').classList.toggle('sidebar-expanded');
+                });
+
+                // Dropdown functionality
+                document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                    toggle.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const dropdown = this.closest('.dropdown');
+                        const menu = dropdown.querySelector('.dropdown-menu');
+                        
+                        // Close all other dropdowns
+                        closeAllDropdownsExcept(menu, this);
+                        
+                        // Toggle current dropdown
+                        menu.classList.toggle('show');
+                        this.classList.toggle('show');
+                    });
+                });
+
+                // Function to close all dropdowns
+                function closeAllDropdowns() {
+                    document.querySelectorAll('.dropdown-menu').forEach(m => {
+                        m.classList.remove('show');
+                    });
+                    document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                        t.classList.remove('show');
+                    });
+                }
+
+                // Function to close all dropdowns except a specific one
+                function closeAllDropdownsExcept(exceptMenu = null, exceptToggle = null) {
+                    document.querySelectorAll('.dropdown-menu').forEach(m => {
+                        if (m !== exceptMenu) m.classList.remove('show');
+                    });
+                    document.querySelectorAll('.dropdown-toggle').forEach(t => {
+                        if (t !== exceptToggle) t.classList.remove('show');
+                    });
+                }
+
+                // Close dropdowns when sidebar is collapsed
+                sidebarToggle.addEventListener('click', function() {
+                    if (!sidebar.classList.contains('expanded')) {
+                        closeAllDropdowns();
+                    }
+                });
+
+                // Also close dropdowns when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!e.target.closest('.dropdown')) {
+                        closeAllDropdowns();
+                    }
+                });
+            }
+        }
+    });
+</script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // UI Interactions
+            const dropdownTrigger = document.getElementById('accountDropdownTrigger');
+            const dropdownMenu = document.getElementById('accountDropdownMenu');
+            const logoutBtn = document.getElementById('accountLogoutBtn');
+            const zoneTypes = document.querySelectorAll('.zone-type');
+            
+            // Toggle dropdown when clicking the trigger
+            dropdownTrigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdownMenu.classList.toggle('show');
+            });
+
+            // Close dropdown when clicking anywhere else
+            document.addEventListener('click', function() {
+                dropdownMenu.classList.remove('show');
+            });
+            
+            // Prevent dropdown from closing when clicking inside it
+            dropdownMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            // Zone type selection
+            zoneTypes.forEach(type => {
+                type.addEventListener('click', function() {
+                    zoneTypes.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update form based on zone type
+                    const zoneType = this.classList.contains('work') ? 'work' : 
+                                    this.classList.contains('restricted') ? 'restricted' : 'warning';
+                    
+                    const safetySelect = document.querySelector('.zone-form select');
+                    if (zoneType === 'work') {
+                        safetySelect.value = 'none';
+                    } else if (zoneType === 'restricted') {
+                        safetySelect.value = 'stop';
+                    } else {
+                        safetySelect.value = 'alarm';
+                    }
+                });
+            });
+            
+            // Initialize 3D viewer
+            let scene, camera, renderer, controls;
+            let craneModel, zones = [];
+            let bridge, trolley, hook, hookLine;
+            let bridgeX = 0, trolleyZ = 0, hookY = 5;
+            
+            // Movement parameters
+            const movementParams = {
+                bridge: {
+                    speed: 0.05,
+                    min: -20,
+                    max: 20,
+                    direction: 1
+                },
+                trolley: {
+                    speed: 0.03,
+                    min: -0.8,
+                    max: 0.8,
+                    direction: 1
+                },
+                hoist: {
+                    speed: 0.02,
+                    min: 2,
+                    max: 8,
+                    direction: 1
+                }
+            };
+            
+            // Operation sequence state
+            let operationState = 'bridgeForward';
+            let operationPause = 0;
+            
+            function init3DViewer() {
+                // Create scene
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0xf0f0f0);
+                
+                // Create camera
+                camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.set(30, 30, 30);
+                
+                // Create renderer
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(document.getElementById('crane3dViewer').clientWidth, 
+                                document.getElementById('crane3dViewer').clientHeight);
+                document.getElementById('crane3dViewer').appendChild(renderer.domElement);
+                
+                // Add controls
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.25;
+                controls.minDistance = 10;
+                controls.maxDistance = 100;
+                
+                // Add lights
+                const ambientLight = new THREE.AmbientLight(0x404040);
+                scene.add(ambientLight);
+                
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(1, 1, 1);
+                scene.add(directionalLight);
+                
+                // Add grid helper
+                const gridHelper = new THREE.GridHelper(50, 50, 0x555555, 0x333333);
+                scene.add(gridHelper);
+                
+                // Add axes helper
+                const axesHelper = new THREE.AxesHelper(10);
+                scene.add(axesHelper);
+                
+                // Create EOT crane model
+                createEOTCraneModel();
+                
+                // Add sample zones
+                createSampleZones();
+                
+                // Handle window resize
+                window.addEventListener('resize', onWindowResize);
+                
+                // Animation loop
+                animate();
+                
+                // Start crane operation simulation
+                simulateCraneOperation();
+            }
+            
+            function createEOTCraneModel() {
+                // Create runway beams
+                const runwayGeometry = new THREE.BoxGeometry(50, 0.5, 0.5);
+                const runwayMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
+                
+                const leftRunway = new THREE.Mesh(runwayGeometry, runwayMaterial);
+                leftRunway.position.set(0, 10, -1);
+                scene.add(leftRunway);
+                
+                const rightRunway = new THREE.Mesh(runwayGeometry, runwayMaterial);
+                rightRunway.position.set(0, 10, 1);
+                scene.add(rightRunway);
+                
+                // Create bridge (cross beam)
+                const bridgeGeometry = new THREE.BoxGeometry(3, 0.5, 0.5);
+                const bridgeMaterial = new THREE.MeshPhongMaterial({ color: 0x3498db });
+                
+                bridge = new THREE.Mesh(bridgeGeometry, bridgeMaterial);
+                bridge.position.set(0, 10, 0);
+                scene.add(bridge);
+                
+                // Create end trucks (wheels)
+                const wheelGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.2, 16);
+                const wheelMaterial = new THREE.MeshPhongMaterial({ color: 0x333333 });
+                
+                const leftFrontWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                leftFrontWheel.position.set(-1.5, 10, -1);
+                leftFrontWheel.rotation.z = Math.PI / 2;
+                scene.add(leftFrontWheel);
+                
+                const leftBackWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                leftBackWheel.position.set(1.5, 10, -1);
+                leftBackWheel.rotation.z = Math.PI / 2;
+                scene.add(leftBackWheel);
+                
+                const rightFrontWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                rightFrontWheel.position.set(-1.5, 10, 1);
+                rightFrontWheel.rotation.z = Math.PI / 2;
+                scene.add(rightFrontWheel);
+                
+                const rightBackWheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                rightBackWheel.position.set(1.5, 10, 1);
+                rightBackWheel.rotation.z = Math.PI / 2;
+                scene.add(rightBackWheel);
+                
+                // Create trolley
+                const trolleyGeometry = new THREE.BoxGeometry(1, 0.5, 1);
+                const trolleyMaterial = new THREE.MeshPhongMaterial({ color: 0x2980b9 });
+                
+                trolley = new THREE.Mesh(trolleyGeometry, trolleyMaterial);
+                trolley.position.set(0, 9, 0);
+                scene.add(trolley);
+                
+                // Create hook
+                const hookGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+                const hookMaterial = new THREE.MeshPhongMaterial({ color: 0xe74c3c });
+                
+                hook = new THREE.Mesh(hookGeometry, hookMaterial);
+                hook.position.set(0, 5, 0);
+                scene.add(hook);
+                
+                // Connect hook to trolley with a line
+                const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3(0, 9, 0),
+                    new THREE.Vector3(0, 5, 0)
+                ]);
+                const lineMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
+                hookLine = new THREE.Line(lineGeometry, lineMaterial);
+                scene.add(hookLine);
+                
+                // Create hoist motor
+                const motorGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.8, 16);
+                const motorMaterial = new THREE.MeshPhongMaterial({ color: 0x333333 });
+                const motor = new THREE.Mesh(motorGeometry, motorMaterial);
+                motor.position.set(0, 9.5, 0);
+                scene.add(motor);
+            }
+            
+            function createSampleZones() {
+                // Clear existing zones
+                zones.forEach(zone => scene.remove(zone.mesh));
+                zones = [];
+                
+                // Main work area (green)
+                const workZoneGeometry = new THREE.BoxGeometry(20, 6, 15);
+                const workZoneMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x28a745, 
+                    transparent: true, 
+                    opacity: 0.2,
+                    side: THREE.DoubleSide
+                });
+                const workZone = new THREE.Mesh(workZoneGeometry, workZoneMaterial);
+                workZone.position.set(0, 3, 0);
+                scene.add(workZone);
+                zones.push({ id: 'ZN-001', type: 'work', mesh: workZone });
+                
+                // Personnel area (red)
+                const restrictedZoneGeometry = new THREE.BoxGeometry(8, 6, 8);
+                const restrictedZoneMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xdc3545, 
+                    transparent: true, 
+                    opacity: 0.2,
+                    side: THREE.DoubleSide
+                });
+                const restrictedZone = new THREE.Mesh(restrictedZoneGeometry, restrictedZoneMaterial);
+                restrictedZone.position.set(25, 3, 5);
+                scene.add(restrictedZone);
+                zones.push({ id: 'ZN-002', type: 'restricted', mesh: restrictedZone });
+                
+                // Equipment storage (yellow)
+                const warningZoneGeometry = new THREE.BoxGeometry(10, 6, 10);
+                const warningZoneMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xffc107, 
+                    transparent: true, 
+                    opacity: 0.2,
+                    side: THREE.DoubleSide
+                });
+                const warningZone = new THREE.Mesh(warningZoneGeometry, warningZoneMaterial);
+                warningZone.position.set(-15, 3, 5);
+                scene.add(warningZone);
+                zones.push({ id: 'ZN-003', type: 'warning', mesh: warningZone });
+                
+                // Loading dock (green)
+                const loadingZoneGeometry = new THREE.BoxGeometry(10, 6, 5);
+                const loadingZoneMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x28a745, 
+                    transparent: true, 
+                    opacity: 0.2,
+                    side: THREE.DoubleSide
+                });
+                const loadingZone = new THREE.Mesh(loadingZoneGeometry, loadingZoneMaterial);
+                loadingZone.position.set(0, 3, -12);
+                scene.add(loadingZone);
+                zones.push({ id: 'ZN-004', type: 'work', mesh: loadingZone });
+            }
+            
+            function simulateCraneOperation() {
+                // Simulate realistic crane operations sequence
+                const operationInterval = setInterval(() => {
+                    // State machine for crane operations
+                    switch(operationState) {
+                        case 'bridgeForward':
+                            // Move bridge forward (LT forward)
+                            if (bridgeX < movementParams.bridge.max) {
+                                bridgeX += movementParams.bridge.speed;
+                            } else {
+                                operationState = 'trolleyRight';
+                            }
+                            break;
+                            
+                        case 'trolleyRight':
+                            // Move trolley right (CT right)
+                            if (trolleyZ < movementParams.trolley.max) {
+                                trolleyZ += movementParams.trolley.speed;
+                            } else {
+                                operationState = 'hoistDown';
+                            }
+                            break;
+                            
+                        case 'hoistDown':
+                            // Hoist down
+                            if (hookY > movementParams.hoist.min) {
+                                hookY -= movementParams.hoist.speed;
+                            } else {
+                                operationState = 'pauseAtBottom';
+                                operationPause = 30; // 1.5 seconds pause
+                            }
+                            break;
+                            
+                        case 'pauseAtBottom':
+                            // Pause at bottom (simulating load pickup)
+                            if (operationPause > 0) {
+                                operationPause--;
+                            } else {
+                                operationState = 'hoistUp';
+                            }
+                            break;
+                            
+                        case 'hoistUp':
+                            // Hoist up
+                            if (hookY < movementParams.hoist.max) {
+                                hookY += movementParams.hoist.speed;
+                            } else {
+                                operationState = 'trolleyLeft';
+                            }
+                            break;
+                            
+                        case 'trolleyLeft':
+                            // Move trolley left (CT left)
+                            if (trolleyZ > movementParams.trolley.min) {
+                                trolleyZ -= movementParams.trolley.speed;
+                            } else {
+                                operationState = 'bridgeReverse';
+                            }
+                            break;
+                            
+                        case 'bridgeReverse':
+                            // Move bridge reverse (LT reverse)
+                            if (bridgeX > movementParams.bridge.min) {
+                                bridgeX -= movementParams.bridge.speed;
+                            } else {
+                                operationState = 'pauseAtStart';
+                                operationPause = 60; // 3 seconds pause
+                            }
+                            break;
+                            
+                        case 'pauseAtStart':
+                            // Pause at start position before repeating
+                            if (operationPause > 0) {
+                                operationPause--;
+                            } else {
+                                operationState = 'bridgeForward';
+                            }
+                            break;
+                    }
+                    
+                    // Apply positions
+                    bridge.position.x = bridgeX;
+                    trolley.position.x = bridgeX;
+                    trolley.position.z = trolleyZ;
+                    hook.position.x = bridgeX;
+                    hook.position.z = trolleyZ;
+                    hook.position.y = hookY;
+                    
+                    // Update hook line
+                    scene.remove(hookLine);
+                    const lineGeometry = new THREE.BufferGeometry().setFromPoints([
+                        new THREE.Vector3(bridgeX, 9, trolleyZ),
+                        new THREE.Vector3(bridgeX, hookY, trolleyZ)
+                    ]);
+                    hookLine = new THREE.Line(lineGeometry, new THREE.LineBasicMaterial({ color: 0x000000 }));
+                    scene.add(hookLine);
+                    
+                    // Update position displays
+                    updatePositionDisplay(bridgeX, trolleyZ, hookY);
+                    
+                    // Check zone collisions
+                    checkZoneCollisions(bridgeX, trolleyZ, hookY);
+                    
+                }, 50); // Update every 50ms (20fps)
+            }
+            
+            function updatePositionDisplay(x, z, y) {
+                document.getElementById('bridgePosition').textContent = x.toFixed(2) + ' m';
+                document.getElementById('trolleyPosition').textContent = z.toFixed(2) + ' m';
+                document.getElementById('hoistPosition').textContent = y.toFixed(2) + ' m';
+                
+                // Also update the position tracker in the main content
+                const xElement = document.querySelectorAll('.position-number')[0];
+                const zElement = document.querySelectorAll('.position-number')[1];
+                const yElement = document.querySelectorAll('.position-number')[2];
+                
+                xElement.textContent = x.toFixed(2) + ' m';
+                zElement.textContent = z.toFixed(2) + ' m';
+                yElement.textContent = y.toFixed(2) + ' m';
+            }
+            
+            function checkZoneCollisions(x, z, y) {
+                const statusCard = document.querySelector('.crane-status .status-card:nth-child(2) .value');
+                const warningCard = document.querySelector('.crane-status .status-card:nth-child(3)');
+                
+                let currentZone = "No Zone";
+                let nearestRestricted = { distance: Infinity, name: "None" };
+                
+                zones.forEach(zone => {
+                    const zonePos = zone.mesh.position;
+                    const zoneSize = zone.mesh.geometry.parameters;
+                    
+                    // Simple box collision detection
+                    if (Math.abs(x - zonePos.x) < zoneSize.width/2 &&
+                        Math.abs(z - zonePos.z) < zoneSize.depth/2 &&
+                        Math.abs(y - zonePos.y) < zoneSize.height/2) {
+                        currentZone = zone.id + " - " + (zone.type === 'work' ? 'Work Area' : 
+                                        zone.type === 'restricted' ? 'Restricted' : 'Warning');
+                    }
+                    
+                    // Calculate distance to restricted zones
+                    if (zone.type === 'restricted') {
+                        const dx = x - zonePos.x;
+                        const dz = z - zonePos.z;
+                        const dy = y - zonePos.y;
+                        const distance = Math.sqrt(dx*dx + dz*dz + dy*dy);
+                        
+                        if (distance < nearestRestricted.distance) {
+                            nearestRestricted.distance = distance;
+                            nearestRestricted.name = zone.id;
+                        }
+                    }
+                });
+                
+                statusCard.textContent = currentZone;
+                
+                if (nearestRestricted.distance < 5) {
+                    warningCard.querySelector('.value').textContent = 
+                        nearestRestricted.distance.toFixed(1) + 'm to ' + nearestRestricted.name;
+                    warningCard.classList.add('status-danger');
+                    warningCard.classList.remove('status-warning');
+                } else if (nearestRestricted.distance < 10) {
+                    warningCard.querySelector('.value').textContent = 
+                        nearestRestricted.distance.toFixed(1) + 'm to ' + nearestRestricted.name;
+                    warningCard.classList.add('status-warning');
+                    warningCard.classList.remove('status-danger');
+                } else {
+                    warningCard.querySelector('.value').textContent = 'None nearby';
+                    warningCard.classList.remove('status-warning', 'status-danger');
+                }
+            }
+            
+            function onWindowResize() {
+                const container = document.getElementById('crane3dViewer');
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            }
+            
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            
+            // Viewer controls
+            document.getElementById('resetView').addEventListener('click', function() {
+                camera.position.set(30, 30, 30);
+                controls.target.set(0, 0, 0);
+            });
+            
+            document.getElementById('zoomIn').addEventListener('click', function() {
+                camera.fov /= 1.1;
+                camera.updateProjectionMatrix();
+            });
+            
+            document.getElementById('zoomOut').addEventListener('click', function() {
+                camera.fov *= 1.1;
+                camera.updateProjectionMatrix();
+            });
+            
+            document.getElementById('topView').addEventListener('click', function() {
+                camera.position.set(0, 50, 0.1); // Slight Z offset to avoid view issues
+                controls.target.set(0, 0, 0);
+            });
+            
+            document.getElementById('sideView').addEventListener('click', function() {
+                camera.position.set(50, 10, 0);
+                controls.target.set(0, 10, 0);
+            });
+            
+            // Initialize the 3D viewer
+            init3DViewer();
+        });
+    </script>
+</body>
+</html>

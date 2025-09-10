@@ -224,6 +224,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             padding: 20px;
             overflow-x: auto;
+            margin-bottom: 20px;
         }
         
         .gateway-table {
@@ -285,6 +286,15 @@
             background-color: #c82333;
         }
         
+        .command-btn {
+            background-color: #9b59b6;
+            color: white;
+        }
+        
+        .command-btn:hover {
+            background-color: #8e44ad;
+        }
+        
         .status-indicator {
             display: inline-block;
             width: 10px;
@@ -330,45 +340,127 @@
             font-size: 0.9rem;
         }
 
-        /* Dropdown menu styles */
-        .dropdown-menu {
+        /* Command Panel Styles */
+        .command-panel {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 20px;
             display: none;
-            padding-left: 20px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease, padding 0.3s ease;
         }
-
-        .dropdown-menu.show {
-            display: block;
-            max-height: 200px;
-        }
-
-        .dropdown-item {
-            padding: 10px 15px;
+        
+        .command-panel h3 {
+            margin-bottom: 15px;
+            color: var(--dark-color);
+            font-size: 1.2rem;
             display: flex;
             align-items: center;
-            color: #fff;
-            text-decoration: none;
-            transition: all 0.2s;
+            justify-content: space-between;
         }
-
-        .dropdown-item:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+        
+        .selected-gateway {
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            font-weight: 600;
         }
-
-        .dropdown-item i {
-            margin-right: 10px;
+        
+        .form-group {
+            margin-bottom: 15px;
         }
-
-        .dropdown-toggle .dropdown-icon {
-            margin-left: auto;
-            transition: transform 0.3s ease;
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--dark-color);
         }
-
-        .dropdown-toggle.show .dropdown-icon,
-        .sidebar:hover .dropdown-toggle.show .dropdown-icon {
-            transform: rotate(180deg);
+        
+        .form-control {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        textarea.form-control {
+            min-height: 100px;
+            font-family: monospace;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .command-history {
+            margin-top: 20px;
+        }
+        
+        .command-history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .command-history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        
+        .command-history-table th {
+            text-align: left;
+            padding: 10px 12px;
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: var(--dark-color);
+            border-bottom: 2px solid #eee;
+        }
+        
+        .command-history-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .command-history-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .command-history-table tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-success {
+            background-color: #e6f7ee;
+            color: var(--success-color);
+        }
+        
+        .status-pending {
+            background-color: #fef5e7;
+            color: var(--warning-color);
+        }
+        
+        .status-error {
+            background-color: #fde8e6;
+            color: var(--danger-color);
         }
 
         /* Grouping Modal Styles */
@@ -443,25 +535,6 @@
             display: flex;
             justify-content: flex-end;
             gap: 10px;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: var(--dark-color);
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 0.9rem;
         }
         
         .gateway-checkboxes {
@@ -655,6 +728,13 @@
             .gateway-table td:nth-child(5) {
                 display: none;
             }
+            
+            .command-history-table th:nth-child(3),
+            .command-history-table td:nth-child(3),
+            .command-history-table th:nth-child(4),
+            .command-history-table td:nth-child(4) {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -731,6 +811,75 @@
                         <!-- Data will be populated by JavaScript -->
                     </tbody>
                 </table>
+            </div>
+            
+            <!-- Command Execution Panel -->
+            <div class="command-panel" id="commandPanel">
+                <h3>
+                    Command Execution
+                    <span class="selected-gateway" id="selectedGatewayInfo"></span>
+                </h3>
+                <div class="form-group">
+                    <label for="commandBody">Command body JSON</label>
+                    <textarea id="commandBody" class="form-control" placeholder='{"command": "test", "parameters": {}}'></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Execution type</label>
+                    <div class="radio-group">
+                        <div class="radio-item">
+                            <input type="radio" id="asyncExecution" name="executionType" value="asynchronous" checked>
+                            <label for="asyncExecution">Asynchronous</label>
+                        </div>
+                        <div class="radio-item">
+                            <input type="radio" id="syncExecution" name="executionType" value="synchronous">
+                            <label for="syncExecution">Synchronous</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="retentionTime">Maximum command retention for delivery (minutes)</label>
+                    <input type="number" id="retentionTime" class="form-control" value="60" min="1">
+                </div>
+                
+                <div class="form-group">
+                    <label for="waitTimeout">Wait timeout (seconds)</label>
+                    <input type="number" id="waitTimeout" class="form-control" value="30" min="1">
+                </div>
+                
+                <button class="btn btn-primary" id="executeCommand">
+                    <i class="fas fa-play"></i> Execute Command
+                </button>
+                
+                <!-- Command History -->
+                <div class="command-history">
+                    <div class="command-history-header">
+                        <h3>Commands History</h3>
+                        <div>
+                            <input type="text" class="form-control" placeholder="Search" style="width: 200px; display: inline-block;">
+                            <button class="btn btn-secondary">
+                                <i class="fas fa-object-group"></i> Group by
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <table class="command-history-table">
+                        <thead>
+                            <tr>
+                                <th>Command type</th>
+                                <th>Status</th>
+                                <th>Status code</th>
+                                <th>Reason phrase</th>
+                                <th>Created</th>
+                                <th>Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody id="commandHistoryBody">
+                            <!-- Command history will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -913,6 +1062,14 @@
                 });
             }
 
+            // Execute Command button functionality
+            const executeCommandBtn = document.getElementById('executeCommand');
+            if (executeCommandBtn) {
+                executeCommandBtn.addEventListener('click', function() {
+                    executeCommand();
+                });
+            }
+
             // Group Modal functionality
             const groupModal = document.getElementById('groupModal');
             const closeGroupModal = document.getElementById('closeGroupModal');
@@ -930,6 +1087,9 @@
             if (saveGroup) {
                 saveGroup.addEventListener('click', saveGatewayGroup);
             }
+
+            // Currently selected gateway
+            let selectedGateway = null;
 
             function openGroupModal() {
                 // Populate the checkboxes with available gateways
@@ -993,6 +1153,174 @@
                 
                 // Re-render the table to show groups
                 renderGatewayTable();
+            }
+
+            // Open command panel for a specific gateway
+            function openCommandPanel(gateway) {
+                selectedGateway = gateway;
+                const commandPanel = document.getElementById('commandPanel');
+                const selectedGatewayInfo = document.getElementById('selectedGatewayInfo');
+                
+                selectedGatewayInfo.textContent = `Target: ${gateway.name} (${gateway.deviceToken})`;
+                commandPanel.style.display = 'block';
+                
+                // Scroll to command panel
+                commandPanel.scrollIntoView({ behavior: 'smooth' });
+                
+                // Load command history for this gateway
+                renderCommandHistory(gateway.id);
+            }
+
+            // Execute command function
+            function executeCommand() {
+                if (!selectedGateway) {
+                    showNotification('Please select a gateway first', 'error');
+                    return;
+                }
+                
+                const commandBody = document.getElementById('commandBody').value.trim();
+                const executionType = document.querySelector('input[name="executionType"]:checked').value;
+                const retentionTime = document.getElementById('retentionTime').value;
+                const waitTimeout = document.getElementById('waitTimeout').value;
+                
+                // Validate JSON
+                try {
+                    if (commandBody) {
+                        JSON.parse(commandBody);
+                    }
+                } catch (e) {
+                    showNotification('Invalid JSON format in command body', 'error');
+                    return;
+                }
+                
+                // Create command object
+                const command = {
+                    id: 'cmd_' + Date.now(),
+                    gatewayId: selectedGateway.id,
+                    gatewayName: selectedGateway.name,
+                    type: commandBody ? JSON.parse(commandBody).command || 'Test' : 'Test',
+                    body: commandBody || '{}',
+                    executionType: executionType,
+                    retentionTime: retentionTime,
+                    waitTimeout: waitTimeout,
+                    status: 'pending',
+                    statusCode: '-',
+                    reasonPhrase: '-',
+                    created: new Date().toISOString(),
+                    updated: new Date().toISOString()
+                };
+                
+                // Save command to history
+                saveCommandToHistory(command);
+                
+                // Show success message
+                showNotification(`Command sent to ${selectedGateway.name}`, 'success');
+                
+                // Simulate command processing (in a real app, this would be an API call)
+                setTimeout(() => {
+                    // Update command status randomly
+                    const statuses = ['success', 'error'];
+                    const status = statuses[Math.floor(Math.random() * statuses.length)];
+                    
+                    updateCommandStatus(command.id, status);
+                }, 2000);
+            }
+
+            // Save command to history
+            function saveCommandToHistory(command) {
+                // Get existing commands or initialize empty array
+                let commands = JSON.parse(localStorage.getItem('commandHistory')) || [];
+                
+                // Add new command to beginning of array
+                commands.unshift(command);
+                
+                // Limit to last 50 commands
+                if (commands.length > 50) {
+                    commands = commands.slice(0, 50);
+                }
+                
+                // Save back to localStorage
+                localStorage.setItem('commandHistory', JSON.stringify(commands));
+                
+                // Update the command history display
+                renderCommandHistory(command.gatewayId);
+            }
+
+            // Update command status
+            function updateCommandStatus(commandId, status) {
+                // Get existing commands
+                let commands = JSON.parse(localStorage.getItem('commandHistory')) || [];
+                
+                // Find the command and update its status
+                const commandIndex = commands.findIndex(cmd => cmd.id === commandId);
+                if (commandIndex !== -1) {
+                    commands[commandIndex].status = status;
+                    commands[commandIndex].updated = new Date().toISOString();
+                    
+                    // Set appropriate status code and reason phrase
+                    if (status === 'success') {
+                        commands[commandIndex].statusCode = '200';
+                        commands[commandIndex].reasonPhrase = 'OK';
+                    } else if (status === 'error') {
+                        commands[commandIndex].statusCode = '500';
+                        commands[commandIndex].reasonPhrase = 'Internal Server Error';
+                    }
+                    
+                    // Save back to localStorage
+                    localStorage.setItem('commandHistory', JSON.stringify(commands));
+                    
+                    // Update the command history display
+                    if (selectedGateway) {
+                        renderCommandHistory(selectedGateway.id);
+                    }
+                }
+            }
+
+            // Render command history for a specific gateway
+            function renderCommandHistory(gatewayId) {
+                const commandHistoryBody = document.getElementById('commandHistoryBody');
+                const allCommands = JSON.parse(localStorage.getItem('commandHistory')) || [];
+                
+                // Filter commands for the selected gateway
+                const commands = gatewayId ? 
+                    allCommands.filter(cmd => cmd.gatewayId === gatewayId) : 
+                    allCommands;
+                
+                commandHistoryBody.innerHTML = '';
+                
+                if (commands.length === 0) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td colspan="6" style="text-align: center; padding: 20px;">
+                            No commands executed yet.
+                        </td>
+                    `;
+                    commandHistoryBody.appendChild(row);
+                    return;
+                }
+                
+                commands.forEach(command => {
+                    const row = document.createElement('tr');
+                    
+                    // Format dates
+                    const createdDate = new Date(command.created).toLocaleString();
+                    const updatedDate = new Date(command.updated).toLocaleString();
+                    
+                    // Determine status badge class
+                    let statusClass = 'status-pending';
+                    if (command.status === 'success') statusClass = 'status-success';
+                    if (command.status === 'error') statusClass = 'status-error';
+                    
+                    row.innerHTML = `
+                        <td>${command.type}</td>
+                        <td><span class="status-badge ${statusClass}">${command.status}</span></td>
+                        <td>${command.statusCode}</td>
+                        <td>${command.reasonPhrase}</td>
+                        <td>${createdDate}</td>
+                        <td>${updatedDate}</td>
+                    `;
+                    commandHistoryBody.appendChild(row);
+                });
             }
 
             // Notification function
@@ -1189,32 +1517,6 @@
                         }
                     });
                 });
-                
-                // Add event listeners to edit buttons
-                document.querySelectorAll('.edit-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const gatewayId = this.getAttribute('data-id');
-                        showNotification(`Editing gateway ${gatewayId}`, 'success');
-                        // In a real app, you would redirect to an edit form
-                        setTimeout(() => {
-                            window.location.href = `gateway-form.html?edit=${gatewayId}`;
-                        }, 1000);
-                    });
-                });
-                
-                // Add event listeners to delete buttons
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const gatewayId = this.getAttribute('data-id');
-                        if (confirm('Are you sure you want to delete this gateway?')) {
-                            // Delete the gateway from localStorage
-                            localStorage.removeItem(`gateway_${gatewayId}`);
-                            showNotification('Gateway deleted successfully', 'success');
-                            // Re-render the table
-                            renderGatewayTable();
-                        }
-                    });
-                });
             }
             
             // Helper function to add a gateway row to the table
@@ -1246,12 +1548,45 @@
                         <button class="btn edit-btn" data-id="${gateway.id}">
                             <i class="fas fa-edit"></i> Edit
                         </button>
+                        <button class="btn command-btn" data-id="${gateway.id}">
+                            <i class="fas fa-terminal"></i> Command
+                        </button>
                         <button class="btn delete-btn" data-id="${gateway.id}">
                             <i class="fas fa-trash"></i> Delete
                         </button>
                     </td>
                 `;
                 tableBody.appendChild(row);
+                
+                // Add event listener to command button
+                const commandBtn = row.querySelector('.command-btn');
+                commandBtn.addEventListener('click', function() {
+                    openCommandPanel(gateway);
+                });
+                
+                // Add event listener to edit button
+                const editBtn = row.querySelector('.edit-btn');
+                editBtn.addEventListener('click', function() {
+                    const gatewayId = this.getAttribute('data-id');
+                    showNotification(`Editing gateway ${gatewayId}`, 'success');
+                    // In a real app, you would redirect to an edit form
+                    setTimeout(() => {
+                        window.location.href = `gateway-form.html?edit=${gatewayId}`;
+                    }, 1000);
+                });
+                
+                // Add event listener to delete button
+                const deleteBtn = row.querySelector('.delete-btn');
+                deleteBtn.addEventListener('click', function() {
+                    const gatewayId = this.getAttribute('data-id');
+                    if (confirm('Are you sure you want to delete this gateway?')) {
+                        // Delete the gateway from localStorage
+                        localStorage.removeItem(`gateway_${gatewayId}`);
+                        showNotification('Gateway deleted successfully', 'success');
+                        // Re-render the table
+                        renderGatewayTable();
+                    }
+                });
             }
 
             // Initial render
